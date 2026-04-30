@@ -2,7 +2,7 @@ package com.nhom26.tutormanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "HocVien")
@@ -20,7 +20,7 @@ public class HocVien {
     @Column(name = "CCCD", length = 20)
     private String cccd;
 
-    private LocalDateTime ngaySinh;
+    private LocalDate ngaySinh;
 
     @ManyToOne
     @JoinColumn(name = "idPhuHuynh")

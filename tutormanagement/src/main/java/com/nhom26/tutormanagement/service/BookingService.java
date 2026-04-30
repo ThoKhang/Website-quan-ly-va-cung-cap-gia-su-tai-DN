@@ -3,8 +3,8 @@ package com.nhom26.tutormanagement.service;
 import com.nhom26.tutormanagement.dto.BookingRequestDTO;
 import com.nhom26.tutormanagement.entity.*;
 import com.nhom26.tutormanagement.repository.*;
-import com.nhom26.tutormanagement.util.IdGeneratorUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,55 +21,72 @@ public class BookingService {
     private final HocVienRepository hocVienRepository;
     private final KhoaHocRepository khoaHocRepository;
 
-    @Transactional(rollbackFor = Exception.class) // Nếu có lỗi bất kỳ, hủy bỏ toàn bộ thao tác
-    public String datLop(BookingRequestDTO request) {
-        // 1. Kiểm tra sự tồn tại của Phụ huynh, Học viên và Khóa học
-        PhuHuynh phuHuynh = phuHuynhRepository.findById(request.getIdPhuHuynh())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin Phụ huynh!"));
-        HocVien hocVien = hocVienRepository.findById(request.getIdHocVien())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin Học viên!"));
-        KhoaHoc khoaHoc = khoaHocRepository.findById(request.getIdKhoaHoc())
-                .orElseThrow(() -> new RuntimeException("Khóa học không tồn tại!"));
+    private String generateNextIdDangKy() {
+        String maxId = dangKyHocRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return "DK001";
+        return String.format("DK%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
+    }
 
-        // 2. Tạo Phiếu Đăng Ký Học
+    private int getCurrentMaxLichHocNumber() {
+        String maxId = chiTietLichHocRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return 0;
+        return Integer.parseInt(maxId.trim().substring(2));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public String datLop(BookingRequestDTO request) {
+        // --- BẢO MẬT JWT: Kiểm tra chính chủ ---
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        PhuHuynh phuHuynhThucTe = phuHuynhRepository.findByTaiKhoan_TenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy hồ sơ Phụ huynh hợp lệ!"));
+
+        // So khớp ID gửi lên với ID thật của User (Chống ID Spoofing)
+        if (!phuHuynhThucTe.getIdPhuHuynh().trim().equals(request.getIdPhuHuynh().trim())) {
+            throw new RuntimeException("CẢNH BÁO: Bạn không có quyền đặt lớp cho hồ sơ người khác!");
+        }
+
+        // 1. Kiểm tra sự tồn tại của Học viên và Khóa học
+        HocVien hocVien = hocVienRepository.findById(request.getIdHocVien())
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy thông tin Học viên!"));
+        KhoaHoc khoaHoc = khoaHocRepository.findById(request.getIdKhoaHoc())
+                .orElseThrow(() -> new RuntimeException("LỖI: Khóa học không tồn tại!"));
+
+        // 2. Tạo đơn đăng ký
         DangKyHoc dangKy = new DangKyHoc();
-        dangKy.setIdDangKy(IdGeneratorUtil.generateId());
-        dangKy.setPhuHuynh(phuHuynh);
+        String idDangKyMoi = generateNextIdDangKy();
+        dangKy.setIdDangKy(idDangKyMoi);
+        dangKy.setPhuHuynh(phuHuynhThucTe);
         dangKy.setHocVien(hocVien);
         dangKy.setKhoaHoc(khoaHoc);
         dangKy.setNgayDangKy(LocalDateTime.now());
         dangKy.setLoaiDangKy("Booking Trực Tiếp");
-        dangKy.setTrangThaiThanhToan(false); // Chưa thanh toán
-        dangKy.setTrangThaiHoanThanh(false); // Chưa học xong
-        
-        // Lưu phiếu đăng ký
+        dangKy.setTrangThaiThanhToan(false);
+        dangKy.setTrangThaiHoanThanh(false);
         dangKyHocRepository.save(dangKy);
 
-        // 3. Xử lý "Nhặt lịch" (Lưu chi tiết các ca học và đổi trạng thái lịch gia sư)
+        // 3. Xử lý lịch học
+        int currentLHNumber = getCurrentMaxLichHocNumber();
         for (String idLichDay : request.getDanhSachIdLichDay()) {
             LichDay lichDay = lichDayRepository.findById(idLichDay)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy ca học của gia sư!"));
+                    .orElseThrow(() -> new RuntimeException("LỖI: Ca học không tồn tại!"));
 
-            // Kiểm tra xem ca này có người khác vừa đặt mất không (Race condition cơ bản)
-            if (!lichDay.getTinhTrang()) {
-                throw new RuntimeException("Ca học " + lichDay.getTietHoc().getThu() + " đã có người đặt, vui lòng chọn ca khác!");
+            if (lichDay.getTinhTrang() == null || !lichDay.getTinhTrang()) {
+                throw new RuntimeException("Ca học " + idLichDay + " đã bị đặt!");
             }
 
-            // Đổi trạng thái từ Trống (true) -> Đã đặt (false)
             lichDay.setTinhTrang(false);
             lichDayRepository.save(lichDay);
 
-            // Tạo Chi tiết lịch học
+            currentLHNumber++;
             ChiTietLichHoc chiTiet = new ChiTietLichHoc();
-            chiTiet.setIdLichHoc(IdGeneratorUtil.generateId());
+            chiTiet.setIdLichHoc(String.format("LH%03d", currentLHNumber));
             chiTiet.setDangKyHoc(dangKy);
             chiTiet.setLichDay(lichDay);
-            chiTiet.setTinhTrang("Chưa bắt đầu"); 
-            
-            // Lưu chi tiết lịch
+            chiTiet.setTinhTrang("Chưa bắt đầu");
+            chiTiet.setNgayHoc(LocalDateTime.now());
             chiTietLichHocRepository.save(chiTiet);
         }
 
-        return "Đặt lớp thành công! Mã đơn của bạn là: " + dangKy.getIdDangKy();
+        return "Đặt lớp thành công! Mã đơn: " + idDangKyMoi;
     }
 }

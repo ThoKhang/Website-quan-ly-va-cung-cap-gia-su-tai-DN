@@ -16,4 +16,6 @@ public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
     // Lấy ID tài khoản lớn nhất hiện có
     @Query("SELECT MAX(t.idTaiKhoan) FROM TaiKhoan t")
     String findMaxId();
+    //jwt
+    Optional<TaiKhoan> findByTenDangNhap(String tenDangNhap);
 }

@@ -46,9 +46,9 @@ CREATE TABLE TietHoc (
 CREATE TABLE TaiKhoan (
     idTaiKhoan CHAR(20) PRIMARY KEY,
     email CHAR(50),
-    tenDangNhap NVARCHAR(50),
+    tenDangNhap NVARCHAR(50) unique,
     anhDaiDien NVARCHAR(50),
-    matKhau CHAR(15),
+    matKhau VARCHAR(100),
     ngayTao DATETIME,
     ngayXoa DATETIME,
     nganHang NVARCHAR(30),
@@ -238,4 +238,61 @@ INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES ('MH01', N'Toán Học');
 INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2 - Ca 1', 2);
 INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH02', N'Thứ 4 - Ca 2', 2);
 
+select * from TaiKhoan
+USE QuanLyCungCapGiaSuDN;
+GO
+UPDATE TaiKhoan 
+SET email = 'giasu@gmail.com' 
+WHERE tenDangNhap = 'giasu01';
+
+USE QuanLyCungCapGiaSuDN;
+GO
+
+select * from PhanQuyenNguoiDung
+-- Thêm quyền Người Dùng vào hệ thống
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) 
+VALUES ('1', N'Người dùng');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Admin');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('3', N'Nhân viên');
+
+select * from PhuHuynh
+select * from KhoaHoc
+
+USE QuanLyCungCapGiaSuDN;
+GO
+
+/*
+-- 2. Tạo tài khoản Gia sư (Mật khẩu băm của '123456')
+INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID, email) 
+VALUES ('TK001', 'giasua', '$2a$10$7R.v/u.6U3DUM1SIs1iGzeXpUqX0.gJ6p.6Y5/5f1l/v9rG2M5/W.', '2', 'giasu@gmail.com');
+
+-- 3. Tạo thông tin Gia sư
+INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu, trangThai) VALUES ('GS001', 'TK001', N'Nguyễn Văn Gia Sư', 1);
+
+-- 4. Tạo Danh mục (Môn, Cấp, Lớp)
+INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES ('MH001', N'Toán Học');
+INSERT INTO CapHoc (maCapHoc, tenCapHoc) VALUES ('CH001', N'Cấp 3');
+INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES ('L12', N'Lớp 12', 'CH001');
+
+-- 5. Tạo Khóa học của Gia sư GS001
+INSERT INTO KhoaHoc (idKhoaHoc, tenKhoaHoc, soTienHoc, idGiaSu, idMonHoc, idDanhMucLop) 
+VALUES ('KH001', N'Toán 12 Cơ Bản', 500000, 'GS001', 'MH001', 'L12');
+
+-- 6. Tạo Tiết học và Lịch dạy (Trạng thái 1 = Đang rảnh)
+INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2', 2), ('TH02', N'Thứ 4', 2);
+INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES ('LD001', 1, 'GS001', 'TH01'), ('LD002', 1, 'GS001', 'TH02');
+
+-- 7. Tạo tài khoản Phụ huynh và Hồ sơ Phụ huynh + Học viên
+INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID, email) 
+VALUES ('TK002', 'phuhuynha', '$2a$10$7R.v/u.6U3DUM1SIs1iGzeXpUqX0.gJ6p.6Y5/5f1l/v9rG2M5/W.', '1', 'phuhuynh@gmail.com');
+
+INSERT INTO PhuHuynh (idPhuHuynh, idTaiKhoan, tenPhuHuynh) VALUES ('PH001', 'TK002', N'Trần Thị Phụ Huynh');
+
+INSERT INTO HocVien (idHocVien, idPhuHuynh, tenHocVien) VALUES ('HV001', 'PH001', N'Nguyễn Văn Học Viên');
+*/
+select * from DangKyHoc
+select * from ChiTietLichHoc
+select * from LichDay
+select * from TietHoc
+select * from PhuHuynh
 select * from TaiKhoan
