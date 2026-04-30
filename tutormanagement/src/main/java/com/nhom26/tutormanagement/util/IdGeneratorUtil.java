@@ -1,13 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.util;
 
-/**
- *
- * @author Tho Khang
- */
+import java.util.UUID;
+
 public class IdGeneratorUtil {
-    
+    public static String generateId() {
+        // Sinh UUID ngẫu nhiên, bỏ dấu gạch ngang và lấy đúng 20 ký tự đầu
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+    }
 }

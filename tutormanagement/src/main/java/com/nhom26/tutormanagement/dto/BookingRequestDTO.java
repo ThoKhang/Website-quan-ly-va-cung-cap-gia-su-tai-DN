@@ -1,13 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.dto;
 
-/**
- *
- * @author Tho Khang
- */
+import lombok.Data;
+import java.util.List;
+
+@Data
 public class BookingRequestDTO {
+    private String idPhuHuynh;
+    private String idHocVien; // Học viên nào sẽ học
+    private String idKhoaHoc; // Học khóa nào
     
+    // Danh sách các "Lịch Dạy" (Ca rảnh của gia sư) mà phụ huynh đã tick chọn
+    private List<String> danhSachIdLichDay; 
+    
+    private String phuongThucThanhToan; // Tiền mặt, Chuyển khoản...
 }

@@ -1,13 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.dto;
 
-/**
- *
- * @author Tho Khang
- */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ThongKeDoanhThuDTO {
-    
+    private String thangNam; // Ví dụ: "04/2026"
+    private Long soLuongLopMoi; // Số khóa học được đăng ký
+    private BigDecimal tongDoanhThu; // Tổng tiền thanh toán thành công
 }

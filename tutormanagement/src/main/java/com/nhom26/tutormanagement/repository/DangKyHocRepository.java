@@ -1,13 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.repository;
 
-/**
- *
- * @author Tho Khang
- */
-public class DangKyHocRepository {
-    
+import com.nhom26.tutormanagement.entity.DangKyHoc;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DangKyHocRepository extends JpaRepository<DangKyHoc, String> {
+    // Lấy danh sách các lớp đã đăng ký của một phụ huynh (Dùng cho lịch sử khóa học)
+    List<DangKyHoc> findByPhuHuynh_IdPhuHuynhOrderByNgayDangKyDesc(String idPhuHuynh);
 }

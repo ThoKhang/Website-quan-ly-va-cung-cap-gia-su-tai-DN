@@ -1,13 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.repository;
 
-/**
- *
- * @author Tho Khang
- */
-public class GiaSuRepository {
-    
+import com.nhom26.tutormanagement.entity.GiaSu;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface GiaSuRepository extends JpaRepository<GiaSu, String> {
+    // Tìm các gia sư đã qua xét duyệt (Lọc kép thành công)
+    // Giả sử trạng thái 2 là "Đã duyệt"
+    List<GiaSu> findByTrangThai(Integer trangThai);
 }

@@ -1,13 +1,21 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.dto;
 
-/**
- *
- * @author Tho Khang
- */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class KhoaHocResponseDTO {
+    private String idKhoaHoc;
+    private String tenKhoaHoc;
+    private BigDecimal soTienHoc;
     
+    // Gom dữ liệu từ các bảng khác lại thành chuỗi dễ đọc
+    private String tenMonHoc;
+    private String tenLop;
+    private String tenGiaSu;
+    private Double saoTrungBinh; // Lấy từ đánh giá của Gia sư
 }

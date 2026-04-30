@@ -1,13 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.dto;
 
-/**
- *
- * @author Tho Khang
- */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthResponse {
-    
+    private String token;
+    private String message;
+    private String loaiNguoiDungID; // Để ReactJS biết là Gia sư hay Phụ huynh để chuyển trang
+    private String idNguoiDung; // Trả về idGiaSu hoặc idPhuHuynh để Frontend gọi API tiếp theo
 }
