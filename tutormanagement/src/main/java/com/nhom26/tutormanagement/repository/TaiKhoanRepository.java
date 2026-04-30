@@ -8,6 +8,8 @@ import java.util.Optional;
 
 @Repository
 public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
-    // Hàm này được AuthService gọi để kiểm tra lúc đăng nhập
-    Optional<TaiKhoan> findByTenDangNhap(String tenDangNhap);
+    
+    // Spring Data JPA sẽ tự động dịch câu này thành: 
+    // SELECT * FROM TaiKhoan WHERE tenDangNhap = ? OR email = ?
+    Optional<TaiKhoan> findByTenDangNhapOrEmail(String tenDangNhap, String email);
 }

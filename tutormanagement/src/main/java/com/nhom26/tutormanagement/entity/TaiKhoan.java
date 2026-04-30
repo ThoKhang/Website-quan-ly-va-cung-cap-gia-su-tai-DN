@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import java.util.Date;
 
@@ -28,7 +29,7 @@ public class TaiKhoan {
     private String anhDaiDien;
 
     @Column(name = "ngayTao")
-    private Date ngayTao;
+    private LocalDateTime ngayTao;
 
     @Column(name = "nganHang", length = 30)
     private String nganHang;

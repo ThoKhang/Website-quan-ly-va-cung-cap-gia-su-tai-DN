@@ -2,6 +2,7 @@ package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.AuthResponse;
 import com.nhom26.tutormanagement.dto.LoginRequest;
+import com.nhom26.tutormanagement.dto.RegisterRequest;
 import com.nhom26.tutormanagement.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,5 +17,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
     }
 }
