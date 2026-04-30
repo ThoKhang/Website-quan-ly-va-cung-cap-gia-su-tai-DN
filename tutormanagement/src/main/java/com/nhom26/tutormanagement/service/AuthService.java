@@ -9,6 +9,7 @@ import com.nhom26.tutormanagement.security.JwtService;
 import com.nhom26.tutormanagement.util.IdGeneratorUtil;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,60 +18,78 @@ public class AuthService {
 
     private final TaiKhoanRepository taiKhoanRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthResponse login(LoginRequest request) {
-        // Lấy thông tin đầu vào (có thể là username hoặc email)
-        String inputTaiKhoan = request.getTenDangNhap(); 
-
-        System.out.println("========== BẮT ĐẦU TEST LOGIN ==========");
-        System.out.println("1. Người dùng nhập tài khoản/email: [" + inputTaiKhoan + "]");
-
-        // Bước 1: Tìm trong DB với điều kiện HOẶC (Username HOẶC Email)
-        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(inputTaiKhoan, inputTaiKhoan)
-                .orElseThrow(() -> new RuntimeException("LỖI BƯỚC 1: Không tìm thấy tài khoản hoặc email [" + inputTaiKhoan + "] trong hệ thống!"));
-
-        // Bước 2: Kiểm tra mật khẩu (Giữ nguyên .trim() cho an toàn)
-        String passDB = taiKhoan.getMatKhau() != null ? taiKhoan.getMatKhau().trim() : "";
-        String passReq = request.getMatKhau() != null ? request.getMatKhau().trim() : "";
-
-        if (!passDB.equals(passReq)) {
-            throw new RuntimeException("LỖI BƯỚC 2: Sai mật khẩu!");
-        }
-
-        System.out.println("KẾT QUẢ: MATCH! Đăng nhập thành công!");
-        System.out.println("========================================");
-
-        // Bước 3: Tạo Token
-        String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), taiKhoan.getLoaiNguoiDungID());
-        String idNguoiDung = ""; // Sẽ lấy ID sau
-        
-        return new AuthResponse(token, "Đăng nhập thành công!", taiKhoan.getLoaiNguoiDungID(), idNguoiDung);
-    }
+    /**
+     * Chức năng Đăng ký tài khoản mới
+     * Mật khẩu sẽ được băm (hash) trước khi lưu vào Database
+     */
     public String register(RegisterRequest request) {
-        // Cạo khoảng trắng để so sánh chính xác
+        // 1. Làm sạch dữ liệu đầu vào
         String inputTenDangNhap = request.getTenDangNhap() != null ? request.getTenDangNhap().trim() : "";
         String inputEmail = request.getEmail() != null ? request.getEmail().trim() : "";
 
-        // 1. Kiểm tra xem Tên đăng nhập hoặc Email đã tồn tại chưa
+        // 2. Kiểm tra trùng lặp
         if (taiKhoanRepository.findByTenDangNhapOrEmail(inputTenDangNhap, inputEmail).isPresent()) {
             throw new RuntimeException("Tên đăng nhập hoặc Email này đã tồn tại trong hệ thống!");
         }
 
-        // 2. Tạo tài khoản mới (Chỉ lưu vào bảng TaiKhoan)
+        // 3. Khởi tạo thực thể tài khoản mới
         TaiKhoan taiKhoanMoi = new TaiKhoan();
         taiKhoanMoi.setIdTaiKhoan(IdGeneratorUtil.generateId());
         taiKhoanMoi.setEmail(inputEmail);
         taiKhoanMoi.setTenDangNhap(inputTenDangNhap);
-        taiKhoanMoi.setMatKhau(request.getMatKhau()); // Ở môi trường thực tế sẽ dùng BCrypt
+        
+        // BĂM MẬT KHẨU: Chuyển '123456' thành dãy ký tự bảo mật (ví dụ: $2a$10$...)
+        String encodedPassword = passwordEncoder.encode(request.getMatKhau());
+        taiKhoanMoi.setMatKhau(encodedPassword);
+        
         taiKhoanMoi.setNgayTao(LocalDateTime.now());
         
-        // GÁN MẶC ĐỊNH QUYỀN "NGƯỜI DÙNG" 
-        // (Thay "1" bằng ID thực tế của quyền Người Dùng trong SQL Server của bạn)
+        // Gán quyền mặc định là "Người dùng" (ID = 1)
         taiKhoanMoi.setLoaiNguoiDungID("1"); 
 
-        // 3. Lưu xuống Database
+        // 4. Lưu xuống Database
         taiKhoanRepository.save(taiKhoanMoi);
 
         return "Đăng ký tài khoản thành công!";
+    }
+
+    /**
+     * Chức năng Đăng nhập
+     * Hỗ trợ tìm kiếm theo cả Tên đăng nhập hoặc Email
+     */
+    public AuthResponse login(LoginRequest request) {
+        String inputTaiKhoan = request.getTenDangNhap() != null ? request.getTenDangNhap().trim() : "";
+
+        System.out.println("========== BẮT ĐẦU KIỂM TRA ĐĂNG NHẬP ==========");
+
+        // Bước 1: Tìm tài khoản trong DB (Username hoặc Email)
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(inputTaiKhoan, inputTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hoặc email: " + inputTaiKhoan));
+
+        // Bước 2: Kiểm tra mật khẩu bằng BCrypt
+        // Hàm matches sẽ tự động băm mật khẩu người dùng nhập vào để so sánh với mã băm trong DB
+        boolean isMatch = passwordEncoder.matches(request.getMatKhau().trim(), taiKhoan.getMatKhau().trim());
+
+        if (!isMatch) {
+            throw new RuntimeException("Mật khẩu không chính xác!");
+        }
+
+        System.out.println("KẾT QUẢ: Xác thực thành công cho người dùng: " + taiKhoan.getTenDangNhap());
+        System.out.println("================================================");
+
+        // Bước 3: Tạo JWT Token
+        String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), taiKhoan.getLoaiNguoiDungID());
+        
+        // ID người dùng nghiệp vụ (Gia sư/Phụ huynh) sẽ được truy vấn bổ sung sau khi hoàn thiện Profile
+        String idNguoiDung = ""; 
+        
+        return new AuthResponse(
+            token, 
+            "Đăng nhập thành công!", 
+            taiKhoan.getLoaiNguoiDungID(), 
+            idNguoiDung
+        );
     }
 }
