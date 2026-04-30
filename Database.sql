@@ -1,4 +1,10 @@
-﻿-- =====================================================================
+﻿USE master;
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'QuanLyCungCapGiaSuDN')
+BEGIN
+    ALTER DATABASE QuanLyCungCapGiaSuDN SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE QuanLyCungCapGiaSuDN;
+END;
+-- =====================================================================
 -- TẠO CÁC BẢNG DANH MỤC (KHÔNG CÓ KHÓA NGOẠI) TRƯỚC
 -- =====================================================================
 create database QuanLyCungCapGiaSuDN
