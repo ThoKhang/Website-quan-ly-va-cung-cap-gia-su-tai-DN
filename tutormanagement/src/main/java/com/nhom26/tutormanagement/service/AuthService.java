@@ -36,11 +36,15 @@ public class AuthService {
 
         // 3. Khởi tạo thực thể tài khoản mới
         TaiKhoan taiKhoanMoi = new TaiKhoan();
-        taiKhoanMoi.setIdTaiKhoan(IdGeneratorUtil.generateId());
+        
+        // SỬA ĐỔI: Sử dụng hàm sinh ID theo trình tự thay vì ngẫu nhiên
+        String nextId = generateNextId();
+        taiKhoanMoi.setIdTaiKhoan(nextId);
+        
         taiKhoanMoi.setEmail(inputEmail);
         taiKhoanMoi.setTenDangNhap(inputTenDangNhap);
         
-        // BĂM MẬT KHẨU: Chuyển '123456' thành dãy ký tự bảo mật (ví dụ: $2a$10$...)
+        // BĂM MẬT KHẨU: Bảo mật thông tin người dùng
         String encodedPassword = passwordEncoder.encode(request.getMatKhau());
         taiKhoanMoi.setMatKhau(encodedPassword);
         
@@ -52,7 +56,7 @@ public class AuthService {
         // 4. Lưu xuống Database
         taiKhoanRepository.save(taiKhoanMoi);
 
-        return "Đăng ký tài khoản thành công!";
+        return "Đăng ký thành công với mã số: " + nextId;
     }
 
     /**
@@ -92,4 +96,24 @@ public class AuthService {
             idNguoiDung
         );
     }
+    private String generateNextId() {
+    String maxId = taiKhoanRepository.findMaxId();
+    
+    // Nếu chưa có dữ liệu
+    if (maxId == null || maxId.trim().isEmpty()) {
+        return "TK001";
+    }
+
+    // BẮT BUỘC: trim() để loại bỏ khoảng trắng của kiểu CHAR rồi mới xử lý chuỗi
+    String cleanId = maxId.trim(); 
+    
+    try {
+        // Tách số từ vị trí thứ 2 (bỏ chữ TK)
+        int nextNumber = Integer.parseInt(cleanId.substring(2)) + 1;
+        return String.format("TK%03d", nextNumber);
+    } catch (Exception e) {
+        // Phòng hờ trường hợp dữ liệu cũ trong DB không đúng định dạng TKxxx
+        return "TK001"; 
+    }
+}
 }
