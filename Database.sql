@@ -223,3 +223,19 @@ CREATE TABLE NoiDungNghi (
     idLichHoc CHAR(20),
     FOREIGN KEY (idLichHoc) REFERENCES ChiTietLichHoc(idLichHoc)
 );
+USE QuanLyCungCapGiaSuDN;
+GO
+
+-- 1. Thêm Quyền và Tài khoản để test Login
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Gia Sư');
+INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID) VALUES ('TK01', 'giasu01', '123456', '2');
+
+-- 2. Thêm Gia sư, Môn, Lớp, Tiết để test Tạo Khóa Học
+INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu) VALUES ('GS01', 'TK01', N'Nguyễn Văn A');
+INSERT INTO CapHoc (maCapHoc, tenCapHoc) VALUES ('C3', N'Cấp 3');
+INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES ('L10', N'Lớp 10', 'C3');
+INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES ('MH01', N'Toán Học');
+INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2 - Ca 1', 2);
+INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH02', N'Thứ 4 - Ca 2', 2);
+
+select * from TaiKhoan
