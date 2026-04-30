@@ -48,7 +48,7 @@ CREATE TABLE TaiKhoan (
     email CHAR(50),
     tenDangNhap NVARCHAR(50),
     anhDaiDien NVARCHAR(50),
-    matKhau CHAR(15),
+    matKhau VARCHAR(100),
     ngayTao DATETIME,
     ngayXoa DATETIME,
     nganHang NVARCHAR(30),
@@ -239,3 +239,20 @@ INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2 - Ca 1', 
 INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH02', N'Thứ 4 - Ca 2', 2);
 
 select * from TaiKhoan
+USE QuanLyCungCapGiaSuDN;
+GO
+UPDATE TaiKhoan 
+SET email = 'giasu@gmail.com' 
+WHERE tenDangNhap = 'giasu01';
+
+USE QuanLyCungCapGiaSuDN;
+GO
+
+select * from PhanQuyenNguoiDung
+-- Thêm quyền Người Dùng vào hệ thống
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) 
+VALUES ('1', N'Người dùng');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Admin');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('3', N'Nhân viên');
+
+select * from PhuHuynh
