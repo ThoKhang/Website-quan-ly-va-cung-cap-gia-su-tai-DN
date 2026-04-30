@@ -2,7 +2,7 @@ package com.nhom26.tutormanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.LocalDate; // Chuyển sang LocalDate để fix lỗi parse ngày sinh
 
 @Entity
 @Table(name = "PhuHuynh")
@@ -16,7 +16,8 @@ public class PhuHuynh {
     private String tenPhuHuynh;
 
     private Boolean gioiTinh;
-    private LocalDateTime ngaySinh;
+    
+    private LocalDate ngaySinh; // Chỉ cần ngày, tháng, năm cho ngày sinh
 
     @Column(name = "SDT", length = 15)
     private String sdt;
@@ -27,8 +28,8 @@ public class PhuHuynh {
     @Column(length = 50)
     private String soNhaTenDuong;
 
-    @OneToOne // Quan hệ 1-1 với tài khoản
-    @JoinColumn(name = "idTaiKhoan")
+    @OneToOne // Quan hệ 1-1
+    @JoinColumn(name = "idTaiKhoan", unique = true) // THÊM unique = true để bảo mật tầng DB
     private TaiKhoan taiKhoan;
 
     @ManyToOne
