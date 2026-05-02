@@ -1,10 +1,25 @@
+
 package com.nhom26.tutormanagement.util;
 
-import java.util.UUID;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IdGeneratorUtil {
-    public static String generateId() {
-        // Sinh UUID ngẫu nhiên, bỏ dấu gạch ngang và lấy đúng 20 ký tự đầu
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+
+  
+    public String generateNextId(String currentMaxId, String prefix) {
+        if (currentMaxId == null || currentMaxId.isEmpty()) {
+            return prefix + "001";
+        }
+
+        // Tách phần số ra khỏi tiền tố (ví dụ "KH005" -> "005")
+        String numericPart = currentMaxId.substring(prefix.length());
+        try {
+            int nextNumber = Integer.parseInt(numericPart) + 1;
+            // Trả về định dạng prefix + số (đệm thêm số 0 để đủ độ dài)
+            return prefix + String.format("%03d", nextNumber);
+        } catch (NumberFormatException e) {
+            return prefix + "001";
+        }
     }
 }

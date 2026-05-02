@@ -6,7 +6,6 @@ import com.nhom26.tutormanagement.dto.RegisterRequest;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
 import com.nhom26.tutormanagement.security.JwtService;
-import com.nhom26.tutormanagement.util.IdGeneratorUtil;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

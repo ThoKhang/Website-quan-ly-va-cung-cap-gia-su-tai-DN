@@ -1,3 +1,4 @@
+
 package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.KhoaHocRequestDTO;
@@ -16,9 +17,10 @@ import java.util.List;
 public class KhoaHocController {
     private final KhoaHocService khoaHocService;
 
+    // CẬP NHẬT: Đổi tên hàm gọi Service và kiểu trả về thành ResponseDTO
     @PostMapping("/tao-moi")
-    public ResponseEntity<String> taoKhoaHoc(@RequestBody KhoaHocRequestDTO request) {
-        return ResponseEntity.ok(khoaHocService.taoKhoaHocVaLichRanh(request));
+    public ResponseEntity<KhoaHocResponseDTO> taoKhoaHoc(@RequestBody KhoaHocRequestDTO request) {
+        return ResponseEntity.ok(khoaHocService.thietLapKhoaHocVaLich(request));
     }
 
     @GetMapping("/tim-kiem")

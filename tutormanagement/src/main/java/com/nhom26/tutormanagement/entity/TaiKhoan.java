@@ -3,7 +3,6 @@ package com.nhom26.tutormanagement.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
-import java.util.Date;
 
 @Entity
 @Table(name = "TaiKhoan")
