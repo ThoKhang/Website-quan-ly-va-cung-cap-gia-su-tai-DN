@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,17 +72,21 @@ public class KhoaHocService {
     }
 
     /**
-     * HÀM 2: TÌM KIẾM KHÓA HỌC (CHO TRANG CHỦ)
+     * HÀM 2: TÌM KIẾM + LỌC KHÓA HỌC (1 API duy nhất cho trang chủ)
      */
-    public List<KhoaHocResponseDTO> timKiemKhoaHoc(String idMonHoc, String idDanhMucLop, BigDecimal maxPrice) {
-        
-        List<KhoaHoc> danhSachKhoaHoc;
+    public List<KhoaHocResponseDTO> timKiemKhoaHoc(String keyword, String idMonHoc, String idDanhMucLop,
+                                                   BigDecimal minPrice, BigDecimal maxPrice) {
+        String normalizedKeyword = chuanHoaChuoi(keyword);
+        String normalizedIdMonHoc = chuanHoaChuoi(idMonHoc);
+        String normalizedIdDanhMucLop = chuanHoaChuoi(idDanhMucLop);
 
-        if (idMonHoc != null && idDanhMucLop != null && maxPrice != null) {
-            danhSachKhoaHoc = khoaHocRepository.findByMonHoc_IdMonHocAndDanhMucLop_IdDanhMucLopAndSoTienHocLessThanEqual(idMonHoc, idDanhMucLop, maxPrice);
-        } else {
-            danhSachKhoaHoc = khoaHocRepository.findAll();
-        }
+        List<KhoaHoc> danhSachKhoaHoc = khoaHocRepository.timKiemVaLoc(
+                normalizedKeyword,
+                normalizedIdMonHoc,
+                normalizedIdDanhMucLop,
+                minPrice,
+                maxPrice
+        );
 
         return danhSachKhoaHoc.stream().map(khoaHoc -> {
             KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
@@ -99,5 +104,14 @@ public class KhoaHocService {
             }
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    private String chuanHoaChuoi(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return Objects.equals(trimmed, "") ? null : trimmed;
     }
 }

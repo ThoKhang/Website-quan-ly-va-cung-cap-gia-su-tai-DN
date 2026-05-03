@@ -29,7 +29,7 @@ Neu may cua ban dung user, password, port, hoac ten database khac, hay sua file 
 ## 3. Chay du an
 
 Di chuyen vao thu muc backend:
-
+êm response object riêng để frontend dễ xử lý filter/search
 ```bash
 cd /home/manhdev/Student/DAPM/BE/tutormanagement
 ```
