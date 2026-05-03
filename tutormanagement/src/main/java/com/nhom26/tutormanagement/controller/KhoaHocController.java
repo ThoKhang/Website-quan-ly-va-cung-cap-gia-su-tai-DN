@@ -23,9 +23,13 @@ public class KhoaHocController {
 
     @GetMapping("/tim-kiem")
     public ResponseEntity<List<KhoaHocResponseDTO>> timKiem(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String idMonHoc,
             @RequestParam(required = false) String idDanhMucLop,
+            @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
-        return ResponseEntity.ok(khoaHocService.timKiemKhoaHoc(idMonHoc, idDanhMucLop, maxPrice));
+        return ResponseEntity.ok(
+                khoaHocService.timKiemKhoaHoc(keyword, idMonHoc, idDanhMucLop, minPrice, maxPrice)
+        );
     }
 }
