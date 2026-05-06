@@ -1,14 +1,19 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.nhom26.tutormanagement.service;
 
+import com.nhom26.tutormanagement.dto.LichDayRequestDTO;
+import org.springframework.transaction.annotation.Transactional; 
+
+import com.nhom26.tutormanagement.entity.GiaSu;
 import com.nhom26.tutormanagement.entity.LichDay;
+import com.nhom26.tutormanagement.entity.TietHoc;
+import com.nhom26.tutormanagement.repository.GiaSuRepository;
 import com.nhom26.tutormanagement.repository.LichDayRepository;
+import com.nhom26.tutormanagement.repository.TietHocRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 /**
  *
  * @author Tho Khang
@@ -17,6 +22,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LichDayService {
     private final LichDayRepository lichDayRepository;
+    private final GiaSuRepository giaSuRepository; 
+    private final TietHocRepository tietHocRepository;
 
     private String generateNextId() {
         String maxId = lichDayRepository.findMaxId();
