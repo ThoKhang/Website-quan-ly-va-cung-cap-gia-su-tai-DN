@@ -24,7 +24,11 @@ public class KhoaHoc {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String noiDungKhoaHoc;
 
+    @Column(name = "soTienHoc")
     private BigDecimal soTienHoc;
+
+    // THÊM TRƯỜNG NÀY: 0: Chờ duyệt, 1: Đã duyệt, 2: Từ chối
+    private Integer tinhTrang;
 
     @ManyToOne
     @JoinColumn(name = "idGiaSu")
@@ -33,7 +37,7 @@ public class KhoaHoc {
     @ManyToOne
     @JoinColumn(name = "idMonHoc")
     private MonHoc monHoc;
-    
+
     @ManyToOne
     @JoinColumn(name = "idDanhMucLop")
     private DanhMucLop danhMucLop;
