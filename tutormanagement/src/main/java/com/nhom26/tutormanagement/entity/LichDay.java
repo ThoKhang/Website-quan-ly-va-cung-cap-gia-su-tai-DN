@@ -11,6 +11,7 @@ public class LichDay {
     @Column(name = "idLichDay", length = 20)
     private String idLichDay;
 
+    // true = Đang rảnh (Chưa ai đặt), false = Đã bận
     private Boolean tinhTrang;
 
     @ManyToOne

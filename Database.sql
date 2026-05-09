@@ -296,3 +296,46 @@ select * from LichDay
 select * from TietHoc
 select * from PhuHuynh
 select * from TaiKhoan
+select * from HocVien
+select * from KhoaHoc
+select * from GiaSu
+select * from MonHoc
+select * from PhanQuyenNguoiDung
+select * from LichDay
+select * from DanhMucLop
+USE QuanLyCungCapGiaSuDN;
+GO
+ALTER TABLE DangKyHoc ADD ngayBatDauHoc DATETIME;
+ALTER TABLE KhoaHoc ADD tinhTrang INT DEFAULT 0;
+INSERT INTO TietHoc (idTietHoc, thu, gioBatDau, gioKetThuc, soTiet) VALUES
+('TH_T2_C1', N'Thứ 2', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
+('TH_T2_C2', N'Thứ 2', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH_T3_C1', N'Thứ 3', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
+('TH_T3_C2', N'Thứ 3', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH_T4_C1', N'Thứ 4', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
+('TH_T4_C2', N'Thứ 4', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH_T5_C1', N'Thứ 5', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
+('TH_T5_C2', N'Thứ 5', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH_T6_C1', N'Thứ 6', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
+('TH_T6_C2', N'Thứ 6', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2);
+
+-- 2. TẠO LỊCH DẠY CHO GIA SƯ (Giả sử idGiaSu là 'GS01' như DB của bạn)
+-- tinhTrang = 1 (Tương đương True) nghĩa là Gia sư ĐANG RẢNH ở ca này
+INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
+('LD001', 1, 'GS01', 'TH_T2_C1'), -- Rảnh Thứ 2, 17h30-19h30
+('LD002', 1, 'GS01', 'TH_T4_C1'), -- Rảnh Thứ 4, 17h30-19h30
+('LD003', 1, 'GS01', 'TH_T6_C1'), -- Rảnh Thứ 6, 17h30-19h30
+('LD004', 1, 'GS01', 'TH_T3_C2'); -- Rảnh Thứ 3, 19h30-21h30
+/* xoa gia su 
+USE QuanLyCungCapGiaSuDN;
+GO
+
+-- 1. Xóa lịch dạy của ông GS01 trước (Nếu có)
+DELETE FROM LichDay WHERE idGiaSu = (SELECT idGiaSu FROM GiaSu WHERE idTaiKhoan = 'TK01');
+
+-- 2. Xóa hồ sơ Gia sư của TK01
+DELETE FROM GiaSu WHERE idTaiKhoan = 'TK01';
+
+-- 3. Cuối cùng mới xóa được Tài khoản TK01
+DELETE FROM TaiKhoan WHERE idTaiKhoan = 'TK01';
+*/

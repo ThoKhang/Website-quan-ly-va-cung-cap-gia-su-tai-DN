@@ -4,13 +4,14 @@ import com.nhom26.tutormanagement.dto.KhoaHocRequestDTO;
 import com.nhom26.tutormanagement.dto.KhoaHocResponseDTO;
 import com.nhom26.tutormanagement.entity.*;
 import com.nhom26.tutormanagement.repository.*;
-import com.nhom26.tutormanagement.util.IdGeneratorUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,26 +27,59 @@ public class KhoaHocService {
     private final TietHocRepository tietHocRepository;
     private final DanhGiaRepository danhGiaRepository;
 
+    // =========================================================================
+    // HÀM HỖ TRỢ: TỰ SINH ID KHÓA HỌC (KH001, KH002...)
+    // =========================================================================
+    private String generateNextIdKhoaHoc() {
+        String maxId = khoaHocRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return "KH001";
+        try {
+            int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+            return String.format("KH%03d", nextNumber);
+        } catch (Exception e) {
+            return "KH001";
+        }
+    }
+
+    // =========================================================================
+    // HÀM HỖ TRỢ: LẤY SỐ THỨ TỰ LỊCH DẠY LỚN NHẤT HIỆN TẠI (Để chạy vòng lặp)
+    // =========================================================================
+    private int getCurrentMaxLichDayNumber() {
+        String maxId = lichDayRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return 0;
+        try {
+            return Integer.parseInt(maxId.trim().substring(2));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     /**
      * HÀM 1: GIA SƯ TẠO KHÓA HỌC VÀ LỊCH RẢNH
      */
     @Transactional 
     public String taoKhoaHocVaLichRanh(KhoaHocRequestDTO request) {
+        // Lấy danh tính Gia sư từ Token đang đăng nhập (Bảo mật)
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        GiaSu giaSu = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("LỖI: Bạn chưa có hồ sơ Gia sư!"));
         
-        GiaSu giaSu = giaSuRepository.findById(request.getIdGiaSu())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Gia sư với ID: " + request.getIdGiaSu()));
         MonHoc monHoc = monHocRepository.findById(request.getIdMonHoc())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Môn học!"));
         DanhMucLop danhMucLop = danhMucLopRepository.findById(request.getIdDanhMucLop())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Danh mục lớp!"));
 
+        // 1. Tạo Khóa học mới
         KhoaHoc khoaHocMoi = new KhoaHoc();
-        khoaHocMoi.setIdKhoaHoc(IdGeneratorUtil.generateId());
+        khoaHocMoi.setIdKhoaHoc(generateNextIdKhoaHoc()); 
         khoaHocMoi.setTenKhoaHoc(request.getTenKhoaHoc());
         khoaHocMoi.setMoTa(request.getMoTa());
         khoaHocMoi.setYeuCau(request.getYeuCau());
         khoaHocMoi.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHocMoi.setSoTienHoc(request.getSoTienHoc());
+        
+        // Mặc định khóa học vừa tạo sẽ ở trạng thái 0 (Chờ duyệt)
+        khoaHocMoi.setTinhTrang(0);
         
         khoaHocMoi.setGiaSu(giaSu);
         khoaHocMoi.setMonHoc(monHoc);
@@ -53,13 +87,21 @@ public class KhoaHocService {
         
         khoaHocRepository.save(khoaHocMoi);
 
+        // 2. Tạo Lịch dạy tương ứng
         if (request.getDanhSachIdTietHocRanh() != null && !request.getDanhSachIdTietHocRanh().isEmpty()) {
+            // Lấy con số lớn nhất hiện tại ra khỏi DB trước khi chạy vòng lặp
+            int currentLDNumber = getCurrentMaxLichDayNumber(); 
+            
             for (String idTietHoc : request.getDanhSachIdTietHocRanh()) {
                 TietHoc tietHoc = tietHocRepository.findById(idTietHoc)
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy Tiết học có ID: " + idTietHoc));
                 
                 LichDay lichDayMoi = new LichDay();
-                lichDayMoi.setIdLichDay(IdGeneratorUtil.generateId());
+                
+                // Tăng dần số đếm cho mỗi vòng lặp để ID không bị trùng
+                currentLDNumber++; 
+                lichDayMoi.setIdLichDay(String.format("LD%03d", currentLDNumber)); 
+                
                 lichDayMoi.setTinhTrang(true); 
                 lichDayMoi.setGiaSu(giaSu);
                 lichDayMoi.setTietHoc(tietHoc);
@@ -67,37 +109,68 @@ public class KhoaHocService {
                 lichDayRepository.save(lichDayMoi);
             }
         }
-        return "Tạo khóa học và thiết lập lịch rảnh thành công!";
+        return "Tạo khóa học thành công! Vui lòng chờ Admin phê duyệt.";
     }
 
     /**
-     * HÀM 2: TÌM KIẾM KHÓA HỌC (CHO TRANG CHỦ)
+     * HÀM 2: TÌM KIẾM + LỌC KHÓA HỌC (Dành cho trang chủ)
      */
-    public List<KhoaHocResponseDTO> timKiemKhoaHoc(String idMonHoc, String idDanhMucLop, BigDecimal maxPrice) {
+    public List<KhoaHocResponseDTO> timKiemKhoaHoc(String keyword, String idMonHoc, String idDanhMucLop,
+                                                   BigDecimal minPrice, BigDecimal maxPrice) {
+        String normalizedKeyword = chuanHoaChuoi(keyword);
+        String normalizedIdMonHoc = chuanHoaChuoi(idMonHoc);
+        String normalizedIdDanhMucLop = chuanHoaChuoi(idDanhMucLop);
+
+        List<KhoaHoc> danhSachKhoaHoc = khoaHocRepository.timKiemVaLoc(
+                normalizedKeyword,
+                normalizedIdMonHoc,
+                normalizedIdDanhMucLop,
+                minPrice,
+                maxPrice
+        );
+
+        return danhSachKhoaHoc.stream()
+                // BỘ LỌC: Chỉ hiển thị những khóa học đã được Admin duyệt (tinhTrang = 1)
+                .filter(khoaHoc -> khoaHoc.getTinhTrang() != null && khoaHoc.getTinhTrang() == 1)
+                .map(khoaHoc -> {
+                    KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
+                    dto.setIdKhoaHoc(khoaHoc.getIdKhoaHoc());
+                    dto.setTenKhoaHoc(khoaHoc.getTenKhoaHoc());
+                    dto.setSoTienHoc(khoaHoc.getSoTienHoc());
+                    
+                    if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
+                    if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
+                    if (khoaHoc.getGiaSu() != null) {
+                        dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());
+                        
+                        Double sao = danhGiaRepository.calculateAverageRatingForGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
+                        dto.setSaoTrungBinh(sao != null ? Math.round(sao * 10.0) / 10.0 : 0.0);
+                    }
+                    return dto;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * HÀM 3: ADMIN DUYỆT KHÓA HỌC
+     */
+    @Transactional
+    public String duyetKhoaHoc(String idKhoaHoc, Integer trangThaiMoi) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("LỖI: Khóa học không tồn tại!"));
         
-        List<KhoaHoc> danhSachKhoaHoc;
+        khoaHoc.setTinhTrang(trangThaiMoi);
+        khoaHocRepository.save(khoaHoc);
 
-        if (idMonHoc != null && idDanhMucLop != null && maxPrice != null) {
-            danhSachKhoaHoc = khoaHocRepository.findByMonHoc_IdMonHocAndDanhMucLop_IdDanhMucLopAndSoTienHocLessThanEqual(idMonHoc, idDanhMucLop, maxPrice);
-        } else {
-            danhSachKhoaHoc = khoaHocRepository.findAll();
+        if (trangThaiMoi == 1) return "Đã duyệt khóa học: " + khoaHoc.getTenKhoaHoc();
+        if (trangThaiMoi == 2) return "Đã từ chối khóa học: " + khoaHoc.getTenKhoaHoc();
+        return "Đã cập nhật trạng thái khóa học.";
+    }
+
+    private String chuanHoaChuoi(String value) {
+        if (value == null) {
+            return null;
         }
-
-        return danhSachKhoaHoc.stream().map(khoaHoc -> {
-            KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
-            dto.setIdKhoaHoc(khoaHoc.getIdKhoaHoc());
-            dto.setTenKhoaHoc(khoaHoc.getTenKhoaHoc());
-            dto.setSoTienHoc(khoaHoc.getSoTienHoc());
-            
-            if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
-            if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
-            if (khoaHoc.getGiaSu() != null) {
-                dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());
-                
-                Double sao = danhGiaRepository.calculateAverageRatingForGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
-                dto.setSaoTrungBinh(sao != null ? Math.round(sao * 10.0) / 10.0 : 0.0);
-            }
-            return dto;
-        }).collect(Collectors.toList());
+        String trimmed = value.trim();
+        return Objects.equals(trimmed, "") ? null : trimmed;
     }
 }
