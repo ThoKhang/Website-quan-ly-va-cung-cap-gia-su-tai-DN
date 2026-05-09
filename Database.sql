@@ -298,7 +298,10 @@ select * from PhuHuynh
 select * from TaiKhoan
 select * from HocVien
 select * from KhoaHoc
-
+select * from GiaSu
+select * from MonHoc
+select * from PhanQuyenNguoiDung
+select * from LichDay
 USE QuanLyCungCapGiaSuDN;
 GO
 ALTER TABLE DangKyHoc ADD ngayBatDauHoc DATETIME;

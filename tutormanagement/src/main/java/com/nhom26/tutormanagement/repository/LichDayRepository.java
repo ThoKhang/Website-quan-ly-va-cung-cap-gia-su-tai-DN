@@ -18,4 +18,6 @@ public interface LichDayRepository extends JpaRepository<LichDay, String> {
     
     // Tìm các Lịch dạy theo mã Gia Sư và Tình trạng phải là True (Đang rảnh)
     List<LichDay> findByGiaSu_IdGiaSuAndTinhTrangTrue(String idGiaSu);
+    
+    
 }
