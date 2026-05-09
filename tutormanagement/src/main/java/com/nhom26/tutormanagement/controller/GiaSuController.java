@@ -58,4 +58,13 @@ public class GiaSuController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // API: Xem thông tin chi tiết một gia sư kèm số sao đánh giá
+    @GetMapping("/{idGiaSu}/chi-tiet")
+    public ResponseEntity<?> layChiTietGiaSu(@PathVariable String idGiaSu) {
+        try {
+            return ResponseEntity.ok(giaSuService.layChiTietGiaSu(idGiaSu));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

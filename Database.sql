@@ -303,6 +303,7 @@ select * from MonHoc
 select * from PhanQuyenNguoiDung
 select * from LichDay
 select * from DanhMucLop
+select * from DanhGia
 USE QuanLyCungCapGiaSuDN;
 GO
 ALTER TABLE DangKyHoc ADD ngayBatDauHoc DATETIME;
