@@ -4,7 +4,6 @@ import com.nhom26.tutormanagement.dto.KhoaHocRequestDTO;
 import com.nhom26.tutormanagement.dto.KhoaHocResponseDTO;
 import com.nhom26.tutormanagement.entity.*;
 import com.nhom26.tutormanagement.repository.*;
-import com.nhom26.tutormanagement.util.IdGeneratorUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,33 @@ public class KhoaHocService {
     private final TietHocRepository tietHocRepository;
     private final DanhGiaRepository danhGiaRepository;
 
+    // =========================================================================
+    // HÀM HỖ TRỢ: TỰ SINH ID KHÓA HỌC (KH001, KH002...)
+    // =========================================================================
+    private String generateNextIdKhoaHoc() {
+        String maxId = khoaHocRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return "KH001";
+        try {
+            int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+            return String.format("KH%03d", nextNumber);
+        } catch (Exception e) {
+            return "KH001";
+        }
+    }
+
+    // =========================================================================
+    // HÀM HỖ TRỢ: LẤY SỐ THỨ TỰ LỊCH DẠY LỚN NHẤT HIỆN TẠI (Để chạy vòng lặp)
+    // =========================================================================
+    private int getCurrentMaxLichDayNumber() {
+        String maxId = lichDayRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return 0;
+        try {
+            return Integer.parseInt(maxId.trim().substring(2));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     /**
      * HÀM 1: GIA SƯ TẠO KHÓA HỌC VÀ LỊCH RẢNH
      */
@@ -43,15 +69,16 @@ public class KhoaHocService {
         DanhMucLop danhMucLop = danhMucLopRepository.findById(request.getIdDanhMucLop())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Danh mục lớp!"));
 
+        // 1. Tạo Khóa học mới
         KhoaHoc khoaHocMoi = new KhoaHoc();
-        khoaHocMoi.setIdKhoaHoc(IdGeneratorUtil.generateId());
+        khoaHocMoi.setIdKhoaHoc(generateNextIdKhoaHoc()); 
         khoaHocMoi.setTenKhoaHoc(request.getTenKhoaHoc());
         khoaHocMoi.setMoTa(request.getMoTa());
         khoaHocMoi.setYeuCau(request.getYeuCau());
         khoaHocMoi.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHocMoi.setSoTienHoc(request.getSoTienHoc());
         
-        // THÊM: Mặc định khóa học vừa tạo sẽ ở trạng thái 0 (Chờ duyệt)
+        // Mặc định khóa học vừa tạo sẽ ở trạng thái 0 (Chờ duyệt)
         khoaHocMoi.setTinhTrang(0);
         
         khoaHocMoi.setGiaSu(giaSu);
@@ -60,13 +87,21 @@ public class KhoaHocService {
         
         khoaHocRepository.save(khoaHocMoi);
 
+        // 2. Tạo Lịch dạy tương ứng
         if (request.getDanhSachIdTietHocRanh() != null && !request.getDanhSachIdTietHocRanh().isEmpty()) {
+            // Lấy con số lớn nhất hiện tại ra khỏi DB trước khi chạy vòng lặp
+            int currentLDNumber = getCurrentMaxLichDayNumber(); 
+            
             for (String idTietHoc : request.getDanhSachIdTietHocRanh()) {
                 TietHoc tietHoc = tietHocRepository.findById(idTietHoc)
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy Tiết học có ID: " + idTietHoc));
                 
                 LichDay lichDayMoi = new LichDay();
-                lichDayMoi.setIdLichDay(IdGeneratorUtil.generateId());
+                
+                // Tăng dần số đếm cho mỗi vòng lặp để ID không bị trùng
+                currentLDNumber++; 
+                lichDayMoi.setIdLichDay(String.format("LD%03d", currentLDNumber)); 
+                
                 lichDayMoi.setTinhTrang(true); 
                 lichDayMoi.setGiaSu(giaSu);
                 lichDayMoi.setTietHoc(tietHoc);
@@ -78,7 +113,7 @@ public class KhoaHocService {
     }
 
     /**
-     * HÀM 2: TÌM KIẾM + LỌC KHÓA HỌC (1 API duy nhất cho trang chủ)
+     * HÀM 2: TÌM KIẾM + LỌC KHÓA HỌC (Dành cho trang chủ)
      */
     public List<KhoaHocResponseDTO> timKiemKhoaHoc(String keyword, String idMonHoc, String idDanhMucLop,
                                                    BigDecimal minPrice, BigDecimal maxPrice) {
@@ -95,7 +130,7 @@ public class KhoaHocService {
         );
 
         return danhSachKhoaHoc.stream()
-                // THÊM BỘ LỌC: Chỉ lấy những khóa học đã được Admin duyệt (tinhTrang = 1)
+                // BỘ LỌC: Chỉ hiển thị những khóa học đã được Admin duyệt (tinhTrang = 1)
                 .filter(khoaHoc -> khoaHoc.getTinhTrang() != null && khoaHoc.getTinhTrang() == 1)
                 .map(khoaHoc -> {
                     KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
