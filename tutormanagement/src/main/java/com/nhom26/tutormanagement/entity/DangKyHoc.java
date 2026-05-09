@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -31,4 +32,7 @@ public class DangKyHoc {
 
     private Boolean trangThaiThanhToan;
     private Boolean trangThaiHoanThanh;
+    @Column(name = "ngayBatDauHoc")
+    private LocalDate ngayBatDauHoc; // Thời điểm khai giảng/bắt đầu học (Khách chọn)
+    
 }

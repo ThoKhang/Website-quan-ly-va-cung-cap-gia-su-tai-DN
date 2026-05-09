@@ -35,15 +35,12 @@ public class BookingService {
 
     @Transactional(rollbackFor = Exception.class)
     public String datLop(BookingRequestDTO request) {
-        // --- BẢO MẬT JWT: Kiểm tra chính chủ ---
+        // --- BẢO MẬT JWT: Lấy thông tin chính chủ từ Token ---
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         PhuHuynh phuHuynhThucTe = phuHuynhRepository.findByTaiKhoan_TenDangNhap(currentUsername)
                 .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy hồ sơ Phụ huynh hợp lệ!"));
 
-        // So khớp ID gửi lên với ID thật của User (Chống ID Spoofing)
-        if (!phuHuynhThucTe.getIdPhuHuynh().trim().equals(request.getIdPhuHuynh().trim())) {
-            throw new RuntimeException("CẢNH BÁO: Bạn không có quyền đặt lớp cho hồ sơ người khác!");
-        }
+        // (Đã xóa đoạn so khớp idPhuHuynh vì Backend sẽ tự gán bằng phuHuynhThucTe, Frontend không cần gửi lên nữa)
 
         // 1. Kiểm tra sự tồn tại của Học viên và Khóa học
         HocVien hocVien = hocVienRepository.findById(request.getIdHocVien())
@@ -55,10 +52,18 @@ public class BookingService {
         DangKyHoc dangKy = new DangKyHoc();
         String idDangKyMoi = generateNextIdDangKy();
         dangKy.setIdDangKy(idDangKyMoi);
+        
+        // Gán Phụ huynh trực tiếp từ JWT
         dangKy.setPhuHuynh(phuHuynhThucTe);
         dangKy.setHocVien(hocVien);
         dangKy.setKhoaHoc(khoaHoc);
+        
+        // Thời điểm đăng ký là ngay lúc này (Backend tự lấy)
         dangKy.setNgayDangKy(LocalDateTime.now());
+        
+        // CẬP NHẬT: Ngày bắt đầu học do người dùng chọn (lấy từ Request)
+        dangKy.setNgayBatDauHoc(request.getNgayBatDauHoc());
+        
         dangKy.setLoaiDangKy("Booking Trực Tiếp");
         dangKy.setTrangThaiThanhToan(false);
         dangKy.setTrangThaiHoanThanh(false);
@@ -74,6 +79,7 @@ public class BookingService {
                 throw new RuntimeException("Ca học " + idLichDay + " đã bị đặt!");
             }
 
+            // Cập nhật trạng thái ca học thành Đã đặt (false)
             lichDay.setTinhTrang(false);
             lichDayRepository.save(lichDay);
 

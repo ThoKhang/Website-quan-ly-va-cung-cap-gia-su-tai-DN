@@ -1,8 +1,9 @@
 package com.nhom26.tutormanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "TietHoc")
@@ -15,8 +16,12 @@ public class TietHoc {
     @Column(length = 30)
     private String thu;
 
-    // Dùng LocalTime hợp lý hơn cho Giờ bắt đầu/Kết thúc trong ngày
-    private LocalTime gioBatDau; 
-    private LocalTime gioKetThuc;
+    // Ép Jackson chỉ trả về định dạng Giờ:Phút cho Frontend (Ví dụ: "17:30")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    private LocalDateTime gioBatDau;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    private LocalDateTime gioKetThuc;
+
     private Integer soTiet;
 }
