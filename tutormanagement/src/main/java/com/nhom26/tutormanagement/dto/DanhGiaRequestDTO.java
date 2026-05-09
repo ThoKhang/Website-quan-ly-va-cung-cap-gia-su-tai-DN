@@ -1,13 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.nhom26.tutormanagement.dto;
 
-/**
- *
- * @author Tho Khang
- */
+import lombok.Data;
+
+@Data
 public class DanhGiaRequestDTO {
-    
+    private String idDangKy;
+    private Integer soSao; // Từ 1 đến 5
+    private String noiDung;
 }
