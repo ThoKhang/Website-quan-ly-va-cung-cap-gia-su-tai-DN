@@ -2,6 +2,7 @@ package com.nhom26.tutormanagement.service;
 
 import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
+import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
 import com.nhom26.tutormanagement.entity.BangCap;
 import com.nhom26.tutormanagement.entity.GiaSu;
@@ -9,6 +10,7 @@ import com.nhom26.tutormanagement.entity.LichDay;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
 import com.nhom26.tutormanagement.entity.TietHoc;
 import com.nhom26.tutormanagement.repository.BangCapRepository;
+import com.nhom26.tutormanagement.repository.DanhGiaRepository;
 import com.nhom26.tutormanagement.repository.GiaSuRepository;
 import com.nhom26.tutormanagement.repository.LichDayRepository;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
@@ -31,6 +33,7 @@ public class GiaSuService {
     private final TaiKhoanRepository taiKhoanRepository;
     private final BangCapRepository bangCapRepository;
     private final TietHocRepository tietHocRepository;
+    private final DanhGiaRepository danhGiaRepository;
     // ==========================================
     // 1. LẤY LỊCH RẢNH CỦA GIA SƯ
     // ==========================================
@@ -165,5 +168,32 @@ public class GiaSuService {
         bangCapMoi.setTrangThai(false); 
 
         return bangCapRepository.save(bangCapMoi);
+    }
+    public GiaSuDetailResponseDTO layChiTietGiaSu(String idGiaSu) {
+        // 1. Tìm thông tin gia sư
+        GiaSu giaSu = giaSuRepository.findById(idGiaSu)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy gia sư!"));
+
+        // 2. Tính số sao trung bình (Hàm bạn vừa viết trong Repo)
+        Double avgRating = danhGiaRepository.calculateAverageRatingForGiaSu(idGiaSu);
+        
+        // Làm tròn đến 1 chữ số thập phân (VD: 4.567 -> 4.6)
+        double roundedRating = (avgRating != null) ? Math.round(avgRating * 10.0) / 10.0 : 0.0;
+
+        // 3. Lấy danh sách tên bằng cấp (Tùy chọn)
+        List<String> bangCaps = bangCapRepository.findByGiaSu_IdGiaSu(idGiaSu).stream()
+                .map(bc -> bc.getTenBangCap())
+                .toList();
+
+        // 4. Đổ dữ liệu vào DTO
+        GiaSuDetailResponseDTO dto = new GiaSuDetailResponseDTO();
+        dto.setIdGiaSu(giaSu.getIdGiaSu());
+        dto.setTenGiaSu(giaSu.getTenGiaSu());
+        dto.setSdt(giaSu.getSdt());
+        dto.setEmail(giaSu.getTaiKhoan().getEmail());
+        dto.setSaoTrungBinh(roundedRating);
+        dto.setDanhSachBangCap(bangCaps);
+
+        return dto;
     }
 }
