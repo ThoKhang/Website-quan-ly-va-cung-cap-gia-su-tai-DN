@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
+import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
 import com.nhom26.tutormanagement.service.GiaSuService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,15 @@ public class GiaSuController {
     public ResponseEntity<?> themBangCap(@RequestBody BangCapRequestDTO request) {
         try {
             return ResponseEntity.ok(giaSuService.themBangCap(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    // API: Gia sư tự do thêm các khung giờ rảnh của mình   
+    @PostMapping("/dang-ky-lich-ranh")
+    public ResponseEntity<?> dangKyLichRanh(@RequestBody DangKyLichRanhRequestDTO request) {
+        try {
+            return ResponseEntity.ok(giaSuService.dangKyLichRanh(request));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
