@@ -1,8 +1,9 @@
 package com.nhom26.tutormanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "BangCap")
@@ -12,19 +13,23 @@ public class BangCap {
     @Column(name = "idBangCap", length = 20)
     private String idBangCap;
 
-    @ManyToOne
-    @JoinColumn(name = "idGiaSu")
-    private GiaSu giaSu;
-
     @Column(length = 50)
     private String tenBangCap;
 
     @Column(length = 150)
     private String thongTinBangCap;
 
-    private LocalDateTime ngayCap;
-    private Boolean trangThai;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate ngayCap;
+
+    // true = Đã xác thực, false = Chờ xác thực
+    private Boolean trangThai; 
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
-    private String anhMinhChung;
+    private String anhMinhChung; // Có thể lưu URL ảnh (từ Cloudinary/Firebase) hoặc chuỗi Base64
+
+    // Khóa ngoại liên kết với Gia Sư
+    @ManyToOne
+    @JoinColumn(name = "idGiaSu")
+    private GiaSu giaSu;
 }

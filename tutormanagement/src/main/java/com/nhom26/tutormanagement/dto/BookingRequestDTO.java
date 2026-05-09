@@ -1,5 +1,7 @@
 package com.nhom26.tutormanagement.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
 import lombok.Data;
 import java.util.List;
 
@@ -13,4 +15,6 @@ public class BookingRequestDTO {
     private List<String> danhSachIdLichDay; 
     
     private String phuongThucThanhToan; // Tiền mặt, Chuyển khoản...
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate ngayBatDauHoc;
 }

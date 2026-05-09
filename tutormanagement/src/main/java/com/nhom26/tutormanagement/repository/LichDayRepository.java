@@ -15,4 +15,7 @@ public interface LichDayRepository extends JpaRepository<LichDay, String> {
     //
     @Query("SELECT MAX(l.idLichDay) FROM LichDay l")
     String findMaxId();
+    
+    // Tìm các Lịch dạy theo mã Gia Sư và Tình trạng phải là True (Đang rảnh)
+    List<LichDay> findByGiaSu_IdGiaSuAndTinhTrangTrue(String idGiaSu);
 }
