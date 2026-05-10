@@ -12,4 +12,11 @@ public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
     // Tính điểm đánh giá trung bình của 1 Gia sư dựa trên các lớp (DangKyHoc) đã dạy
     @Query("SELECT AVG(d.soSao) FROM DanhGia d WHERE d.dangKyHoc.khoaHoc.giaSu.idGiaSu = :idGiaSu")
     Double calculateAverageRatingForGiaSu(@Param("idGiaSu") String idGiaSu);
+    
+    // 1. Tự sinh mã DG001, DG002...
+    @Query("SELECT MAX(d.idDanhGia) FROM DanhGia d")
+    String findMaxId();
+
+    // 2. Kiểm tra xem Đơn đăng ký này đã được đánh giá chưa
+    boolean existsByDangKyHoc_IdDangKy(String idDangKy);
 }

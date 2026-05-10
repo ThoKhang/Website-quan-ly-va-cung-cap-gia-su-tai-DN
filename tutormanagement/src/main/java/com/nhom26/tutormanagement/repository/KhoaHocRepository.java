@@ -36,4 +36,7 @@ public interface KhoaHocRepository extends JpaRepository<KhoaHoc, String> {
             @Param("idDanhMucLop") String idDanhMucLop,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice);
+    
+    @Query("SELECT MAX(k.idKhoaHoc) FROM KhoaHoc k")
+    String findMaxId();
 }

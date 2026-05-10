@@ -1,15 +1,20 @@
 package com.nhom26.tutormanagement.service;
 
 import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
+import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
+import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
 import com.nhom26.tutormanagement.entity.BangCap;
 import com.nhom26.tutormanagement.entity.GiaSu;
 import com.nhom26.tutormanagement.entity.LichDay;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
+import com.nhom26.tutormanagement.entity.TietHoc;
 import com.nhom26.tutormanagement.repository.BangCapRepository;
+import com.nhom26.tutormanagement.repository.DanhGiaRepository;
 import com.nhom26.tutormanagement.repository.GiaSuRepository;
 import com.nhom26.tutormanagement.repository.LichDayRepository;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
+import com.nhom26.tutormanagement.repository.TietHocRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,7 +32,8 @@ public class GiaSuService {
     private final GiaSuRepository giaSuRepository;
     private final TaiKhoanRepository taiKhoanRepository;
     private final BangCapRepository bangCapRepository;
-
+    private final TietHocRepository tietHocRepository;
+    private final DanhGiaRepository danhGiaRepository;
     // ==========================================
     // 1. LẤY LỊCH RẢNH CỦA GIA SƯ
     // ==========================================
@@ -49,7 +55,59 @@ public class GiaSuService {
         if (maxId == null || maxId.trim().isEmpty()) return "GS001";
         return String.format("GS%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
     }
+    private int getCurrentMaxLichDayNumber() {
+        String maxId = lichDayRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return 0;
+        try {
+            return Integer.parseInt(maxId.trim().substring(2));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+    //GIA SƯ TỰ ĐĂNG KÝ LỊCH RẢNH
+    @Transactional
+    public String dangKyLichRanh(DangKyLichRanhRequestDTO request) {
+        // 1. Xác định Gia sư đang thao tác qua JWT
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        GiaSu giaSu = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("LỖI: Bạn chưa có hồ sơ Gia sư!"));
 
+        if (request.getDanhSachIdTietHoc() == null || request.getDanhSachIdTietHoc().isEmpty()) {
+            throw new RuntimeException("Vui lòng chọn ít nhất 1 tiết học để đăng ký!");
+        }
+
+        int currentLDNumber = getCurrentMaxLichDayNumber();
+        int soLuongThemMoi = 0;
+
+        // 2. Duyệt qua từng tiết học được gửi lên
+        for (String idTietHoc : request.getDanhSachIdTietHoc()) {
+            
+            // Chốt chặn: Nếu Gia sư đã đăng ký Tiết này rồi thì bỏ qua, không tạo trùng
+            if (lichDayRepository.existsByGiaSu_IdGiaSuAndTietHoc_IdTietHoc(giaSu.getIdGiaSu(), idTietHoc)) {
+                continue; 
+            }
+
+            TietHoc tietHoc = tietHocRepository.findById(idTietHoc)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Tiết học có ID: " + idTietHoc));
+
+            LichDay lichDayMoi = new LichDay();
+            
+            currentLDNumber++;
+            lichDayMoi.setIdLichDay(String.format("LD%03d", currentLDNumber));
+            lichDayMoi.setTinhTrang(true); // Đánh dấu là đang Rảnh
+            lichDayMoi.setGiaSu(giaSu);
+            lichDayMoi.setTietHoc(tietHoc);
+
+            lichDayRepository.save(lichDayMoi);
+            soLuongThemMoi++;
+        }
+
+        if (soLuongThemMoi == 0) {
+            return "Các tiết học này bạn đã đăng ký rảnh từ trước rồi!";
+        }
+
+        return "Đăng ký thành công " + soLuongThemMoi + " lịch rảnh mới!";
+    }
     @Transactional
     public GiaSu taoHoSo(GiaSuRequestDTO request) {
         // Lấy username từ JWT
@@ -110,5 +168,32 @@ public class GiaSuService {
         bangCapMoi.setTrangThai(false); 
 
         return bangCapRepository.save(bangCapMoi);
+    }
+    public GiaSuDetailResponseDTO layChiTietGiaSu(String idGiaSu) {
+        // 1. Tìm thông tin gia sư
+        GiaSu giaSu = giaSuRepository.findById(idGiaSu)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy gia sư!"));
+
+        // 2. Tính số sao trung bình (Hàm bạn vừa viết trong Repo)
+        Double avgRating = danhGiaRepository.calculateAverageRatingForGiaSu(idGiaSu);
+        
+        // Làm tròn đến 1 chữ số thập phân (VD: 4.567 -> 4.6)
+        double roundedRating = (avgRating != null) ? Math.round(avgRating * 10.0) / 10.0 : 0.0;
+
+        // 3. Lấy danh sách tên bằng cấp (Tùy chọn)
+        List<String> bangCaps = bangCapRepository.findByGiaSu_IdGiaSu(idGiaSu).stream()
+                .map(bc -> bc.getTenBangCap())
+                .toList();
+
+        // 4. Đổ dữ liệu vào DTO
+        GiaSuDetailResponseDTO dto = new GiaSuDetailResponseDTO();
+        dto.setIdGiaSu(giaSu.getIdGiaSu());
+        dto.setTenGiaSu(giaSu.getTenGiaSu());
+        dto.setSdt(giaSu.getSdt());
+        dto.setEmail(giaSu.getTaiKhoan().getEmail());
+        dto.setSaoTrungBinh(roundedRating);
+        dto.setDanhSachBangCap(bangCaps);
+
+        return dto;
     }
 }

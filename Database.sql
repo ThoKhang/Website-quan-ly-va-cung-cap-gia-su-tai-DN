@@ -298,11 +298,17 @@ select * from PhuHuynh
 select * from TaiKhoan
 select * from HocVien
 select * from KhoaHoc
-
+select * from GiaSu
+select * from MonHoc
+select * from PhanQuyenNguoiDung
+select * from LichDay
+select * from DanhMucLop
+select * from DanhGia
 USE QuanLyCungCapGiaSuDN;
 GO
 ALTER TABLE DangKyHoc ADD ngayBatDauHoc DATETIME;
 ALTER TABLE KhoaHoc ADD tinhTrang INT DEFAULT 0;
+ALTER TABLE KhoaHoc ADD soBuoiHoc int;
 INSERT INTO TietHoc (idTietHoc, thu, gioBatDau, gioKetThuc, soTiet) VALUES
 ('TH_T2_C1', N'Thứ 2', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
 ('TH_T2_C2', N'Thứ 2', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),

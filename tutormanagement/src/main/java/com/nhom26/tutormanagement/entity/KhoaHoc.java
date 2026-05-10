@@ -41,4 +41,7 @@ public class KhoaHoc {
     @ManyToOne
     @JoinColumn(name = "idDanhMucLop")
     private DanhMucLop danhMucLop;
+    
+    @Column(name = "soBuoiHoc")
+    private Integer soBuoiHoc; // Ví dụ: 10 buổi, 20 buổi
 }

@@ -14,6 +14,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     @Bean
@@ -34,6 +36,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 2. Cho phép tự do Đăng nhập & Đăng ký
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/khoa-hoc/tim-kiem").permitAll()
+                .requestMatchers("/api/mon-hoc/**").permitAll()
+                .requestMatchers("/api/danh-muc-lop/**").permitAll()
                 // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                 .anyRequest().authenticated() 
             );
