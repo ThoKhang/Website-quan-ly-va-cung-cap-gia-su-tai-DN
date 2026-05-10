@@ -36,6 +36,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 2. Cho phép tự do Đăng nhập & Đăng ký
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/khoa-hoc/tim-kiem").permitAll()
+                .requestMatchers("/api/mon-hoc/**").permitAll()
+                .requestMatchers("/api/danh-muc-lop/**").permitAll()
                 // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                 .anyRequest().authenticated() 
             );

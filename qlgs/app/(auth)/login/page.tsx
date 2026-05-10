@@ -6,6 +6,24 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { LoginRequest } from '@/types/auth.type';
 
+function getErrorMessage(error: unknown) {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error && typeof error === "object" && "response" in error) {
+    const response = error.response;
+    if (response && typeof response === "object" && "data" in response) {
+      const data = response.data;
+      if (typeof data === "string") {
+        return data;
+      }
+    }
+  }
+
+  return "Đăng nhập thất bại, vui lòng thử lại!";
+}
+
 export default function LoginPage() {
   const router = useRouter(); // Dùng để chuyển trang
   const [formData, setFormData] = useState<LoginRequest>({
@@ -47,13 +65,9 @@ export default function LoginPage() {
         router.push('/'); 
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Bắt lỗi từ Backend trả về (Ví dụ: "Mật khẩu không chính xác!")
-      if (err.response && err.response.data) {
-         setError(err.response.data); // Nếu BE quăng thẳng chuỗi text ra body
-      } else {
-         setError('Đăng nhập thất bại, vui lòng thử lại!');
-      }
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
