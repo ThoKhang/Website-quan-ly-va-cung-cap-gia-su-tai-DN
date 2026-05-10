@@ -67,6 +67,13 @@ public class BookingService {
         KhoaHoc khoaHoc = khoaHocRepository.findById(request.getIdKhoaHoc())
                 .orElseThrow(() -> new RuntimeException("LỖI: Khóa học không tồn tại!"));
 
+        // ======================================================
+        // [CHỐT CHẶN BẢO VỆ 1]: KHÓA HỌC PHẢI ĐƯỢC ADMIN DUYỆT (tinhTrang = 1)
+        // ======================================================
+        if (khoaHoc.getTinhTrang() == null || khoaHoc.getTinhTrang() != 1) {
+            throw new RuntimeException("LỖI BẢO MẬT: Khóa học này chưa được Admin phê duyệt hoặc đang bị khóa, bạn không thể đăng ký!");
+        }
+
         if (khoaHoc.getSoBuoiHoc() == null || khoaHoc.getSoBuoiHoc() <= 0) {
             throw new RuntimeException("LỖI: Khóa học này chưa được thiết lập số buổi học (soBuoiHoc) hợp lệ!");
         }
@@ -86,8 +93,6 @@ public class BookingService {
         dangKy.setKhoaHoc(khoaHoc);
         dangKy.setNgayDangKy(LocalDateTime.now());
         
-        // NẾU entity DangKyHoc của bạn vẫn dùng LocalDateTime cho ngayBatDauHoc thì dùng .atStartOfDay()
-        // NẾU entity DangKyHoc đã đổi thành LocalDate thì chỉ cần truyền: ngayBatDau
         dangKy.setNgayBatDauHoc(ngayBatDau);
         
         dangKy.setLoaiDangKy("Booking Trực Tiếp");
@@ -106,6 +111,7 @@ public class BookingService {
             LichDay lichDay = lichDayRepository.findById(idLichDay)
                     .orElseThrow(() -> new RuntimeException("LỖI: Ca học " + idLichDay + " không tồn tại!"));
 
+            // [CHỐT CHẶN BẢO VỆ 2]: NGĂN CHẶN GHÉP LỊCH CHÉO GIA SƯ
             if (!lichDay.getGiaSu().getIdGiaSu().equals(idGiaSuCuaKhoaHoc)) {
                 throw new RuntimeException("LỖI LOGIC: Ca học " + idLichDay + " thuộc về Gia sư khác. Bạn không thể ghép lịch này vào khóa học hiện tại!");
             }
