@@ -78,6 +78,8 @@ public class KhoaHocService {
         khoaHocMoi.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHocMoi.setSoTienHoc(request.getSoTienHoc());
         
+        khoaHocMoi.setSoBuoiHoc(request.getSoBuoiHoc());
+        
         // Mặc định khóa học vừa tạo sẽ ở trạng thái 0 (Chờ duyệt)
         khoaHocMoi.setTinhTrang(0);
         

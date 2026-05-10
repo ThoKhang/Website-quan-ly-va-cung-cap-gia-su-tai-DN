@@ -15,4 +15,5 @@ public interface DangKyHocRepository extends JpaRepository<DangKyHoc, String> {
     // 1. Tìm ID lớn nhất hiện tại để phục vụ logic sinh mã DKxxx
     @Query("SELECT MAX(d.idDangKy) FROM DangKyHoc d")
     String findMaxId();
+    
 }
