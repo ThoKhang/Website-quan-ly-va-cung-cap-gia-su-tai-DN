@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --color-primary: #0066cc;
+  --color-primary-focus: #0071e3;
+  --color-primary-on-dark: #2997ff;
+  --color-canvas: #ffffff;
+  --color-canvas-parchment: #f5f5f7;
+  --color-surface-pearl: #fafafc;
+  --color-surface-tile-1: #272729;
+  --color-surface-tile-2: #2a2a2c;
+  --color-surface-tile-3: #252527;
+  --color-surface-black: #000000;
+  --color-surface-chip: rgba(210, 210, 215, 0.64);
+  --color-ink: #1d1d1f;
+  --color-body-muted: #6e6e73;
+  --color-body-on-dark: #ffffff;
+  --color-ink-muted-48: #7a7a7a;
+  --color-hairline: #e0e0e0;
+  --color-divider-soft: rgba(0, 0, 0, 0.04);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+  --shadow-product: 3px 5px 30px rgba(0, 0, 0, 0.22);
+  --max-content-width: 1440px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "SF Pro Text", "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "SF Pro Display", "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", "Roboto Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease,
+    box-shadow 160ms ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button:active,
+a:active {
+  transform: scale(0.95);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(0, 102, 204, 0.14);
+}
+
+.page-shell {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--color-canvas) 0%, var(--color-canvas-parchment) 100%);
+}
+
+.content-lock {
+  width: min(100%, var(--max-content-width));
+  margin-inline: auto;
+}
+
+.product-shadow {
+  box-shadow: var(--shadow-product);
+}
+
+.surface-card {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 833px) {
+  :root {
+    --max-content-width: 100%;
+  }
+}
