@@ -14,4 +14,7 @@ public interface ChiTietLichHocRepository extends JpaRepository<ChiTietLichHoc, 
     //
     @Query("SELECT MAX(c.idLichHoc) FROM ChiTietLichHoc c")
     String findMaxId();
+    
+    // Hàm đếm số buổi đã nghỉ
+    long countByDangKyHoc_IdDangKyAndTinhTrang(String idDangKy, String tinhTrang);
 }

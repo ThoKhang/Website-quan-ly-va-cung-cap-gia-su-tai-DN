@@ -11,7 +11,9 @@ public class KhoaHocRequestDTO {
     private String yeuCau;
     private String noiDungKhoaHoc;
     private BigDecimal soTienHoc;
-
+    
+    private Integer soBuoiHoc; 
+    
     // Chỉ cần nhận ID khóa ngoại thay vì cả object
     private String idGiaSu;
     private String idMonHoc;
