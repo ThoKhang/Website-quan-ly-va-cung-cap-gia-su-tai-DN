@@ -30,38 +30,6 @@ const footerColumns = [
 export default function Home() {
   return (
     <main className="page-shell">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
-        <div className="content-lock flex items-center justify-between px-6 py-3 md:px-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-[13px] font-semibold">
-              M
-            </div>
-            <Text as="span" size="bodyStrong" tone="onDark">
-              MADZ Sch.
-            </Text>
-          </div>
-
-          <nav className="hidden items-center gap-7 md:flex">
-            <Text as="a" href="#dich-vu" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Dịch vụ
-            </Text>
-            <Text as="a" href="#quan-ly" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Quản lý
-            </Text>
-            <Text as="a" href="#lien-he" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Liên hệ
-            </Text>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" className="hidden md:inline-flex">
-              Tư vấn
-            </Button>
-            <Button>Bắt đầu</Button>
-          </div>
-        </div>
-      </header>
-
       <Section>
         <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="flex flex-col gap-6">

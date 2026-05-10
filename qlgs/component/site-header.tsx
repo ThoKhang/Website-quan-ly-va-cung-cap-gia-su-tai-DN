@@ -1,0 +1,108 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState, useTransition } from "react";
+import { Button, Text } from "@/component/ui";
+
+function getSearchTarget(keyword: string) {
+  const params = new URLSearchParams();
+  const trimmedKeyword = keyword.trim();
+
+  if (trimmedKeyword) {
+    params.set("keyword", trimmedKeyword);
+  }
+
+  const query = params.toString();
+  return query ? `/search?${query}` : "/search";
+}
+
+type HeaderSearchFormProps = {
+  initialKeyword: string;
+  pathname: string;
+};
+
+function HeaderSearchForm({ initialKeyword, pathname }: HeaderSearchFormProps) {
+  const router = useRouter();
+  const [keyword, setKeyword] = useState(initialKeyword);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const target = getSearchTarget(keyword);
+
+    startTransition(() => {
+      if (pathname === "/search") {
+        router.replace(target);
+        return;
+      }
+
+      router.push(target);
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex min-w-0 flex-1 items-center gap-2 md:w-[420px]">
+      <input
+        value={keyword}
+        onChange={(event) => setKeyword(event.target.value)}
+        placeholder="Tìm khóa học, môn học, gia sư..."
+        className="h-11 min-w-0 flex-1 rounded-[var(--radius-pill)] border border-white/12 bg-white/10 px-5 text-[15px] text-white placeholder:text-white/55 focus:border-white/30 focus:outline-none"
+      />
+      <Button
+        type="submit"
+        variant="secondary"
+        className="border-white/12 bg-white text-[var(--color-ink)] hover:bg-white/92"
+        disabled={isPending}
+      >
+        Tìm
+      </Button>
+    </form>
+  );
+}
+
+export function SiteHeader() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const currentKeyword = searchParams.get("keyword") ?? "";
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
+      <div className="content-lock flex flex-col gap-4 px-6 py-3 md:flex-row md:items-center md:justify-between md:px-10">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-[13px] font-semibold">
+              M
+            </div>
+            <Text as="span" size="bodyStrong" tone="onDark">
+              MADZ Sch.
+            </Text>
+          </Link>
+
+          <nav className="hidden items-center gap-7 md:flex">
+            <Text as="a" href="/#dich-vu" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
+              Dịch vụ
+            </Text>
+            <Text as="a" href="/#quan-ly" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
+              Quản lý
+            </Text>
+            <Text as="a" href="/#lien-he" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
+              Liên hệ
+            </Text>
+          </nav>
+        </div>
+
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <HeaderSearchForm key={`${pathname}:${currentKeyword}`} initialKeyword={currentKeyword} pathname={pathname} />
+
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" className="hidden text-white hover:bg-white/8 hover:text-white md:inline-flex">
+              Tư vấn
+            </Button>
+            <Button>Đăng nhập</Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

@@ -11,7 +11,7 @@ export interface AuthResponse {
   token: string;
   message: string;
   loaiNguoiDungID: string;
-  idNguoiDung: String;
+  idNguoiDung: string;
   // Nếu backend của bạn trả về thêm field nào thì bạn cứ khai báo thêm ở đây
 }
 
