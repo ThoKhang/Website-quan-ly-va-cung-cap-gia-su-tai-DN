@@ -67,8 +67,9 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const currentKeyword = searchParams.get("keyword") ?? "";
-  const { isLoggedIn, tenDangNhap, logout } = useAuthStore();
+  const { isLoggedIn, tenDangNhap, logout, loaiNguoiDungID } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -83,6 +84,8 @@ export function SiteHeader() {
     localStorage.removeItem('idNguoiDung');
     router.push('/');
   };
+
+  const isTutor = loaiNguoiDungID === '1'; // 1 = Gia sư
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
@@ -118,7 +121,26 @@ export function SiteHeader() {
               Tư vấn
             </Button>
             {isMounted && isLoggedIn && tenDangNhap ? (
-              <div className="flex items-center gap-3">
+              <div className="relative flex items-center gap-3">
+                {isTutor && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/gia-su/ho-so">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Hồ sơ
+                      </Button>
+                    </Link>
+                    <Link href="/gia-su/lich-ranh">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Lịch rảnh
+                      </Button>
+                    </Link>
+                    <Link href="/gia-su/khoa-hoc">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Khóa học
+                      </Button>
+                    </Link>
+                  </div>
+                )}
                 <Text as="span" size="caption" tone="onDark" className="font-medium">
                   {tenDangNhap}
                 </Text>

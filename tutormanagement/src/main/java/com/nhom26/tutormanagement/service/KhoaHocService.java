@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KhoaHocService {
 
-    // Khai báo đầy đủ các Repository cần dùng
     private final KhoaHocRepository khoaHocRepository;
     private final LichDayRepository lichDayRepository;
     private final GiaSuRepository giaSuRepository;
@@ -27,9 +26,6 @@ public class KhoaHocService {
     private final TietHocRepository tietHocRepository;
     private final DanhGiaRepository danhGiaRepository;
 
-    // =========================================================================
-    // HÀM HỖ TRỢ: TỰ SINH ID KHÓA HỌC (KH001, KH002...)
-    // =========================================================================
     private String generateNextIdKhoaHoc() {
         try {
             List<String> allIds = khoaHocRepository.findAllIdsSorted();
@@ -58,9 +54,6 @@ public class KhoaHocService {
         }
     }
 
-    // =========================================================================
-    // HÀM HỖ TRỢ: LẤY SỐ THỨ TỰ LỊCH DẠY LỚN NHẤT HIỆN TẠI (Để chạy vòng lặp)
-    // =========================================================================
     private int getCurrentMaxLichDayNumber() {
         try {
             List<String> allIds = lichDayRepository.findAllIdsSorted();
@@ -89,12 +82,8 @@ public class KhoaHocService {
         }
     }
 
-    /**
-     * HÀM 1: GIA SƯ TẠO KHÓA HỌC VÀ LỊCH RẢNH
-     */
     @Transactional 
     public String taoKhoaHocVaLichRanh(KhoaHocRequestDTO request) {
-        // Lấy danh tính Gia sư từ Token đang đăng nhập (Bảo mật)
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         GiaSu giaSu = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername)
                 .orElseThrow(() -> new RuntimeException("LỖI: Bạn chưa có hồ sơ Gia sư!"));
@@ -104,7 +93,6 @@ public class KhoaHocService {
         DanhMucLop danhMucLop = danhMucLopRepository.findById(request.getIdDanhMucLop())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Danh mục lớp!"));
 
-        // 1. Tạo Khóa học mới
         KhoaHoc khoaHocMoi = new KhoaHoc();
         khoaHocMoi.setIdKhoaHoc(generateNextIdKhoaHoc()); 
         khoaHocMoi.setTenKhoaHoc(request.getTenKhoaHoc());
@@ -112,21 +100,15 @@ public class KhoaHocService {
         khoaHocMoi.setYeuCau(request.getYeuCau());
         khoaHocMoi.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHocMoi.setSoTienHoc(request.getSoTienHoc());
-        
         khoaHocMoi.setSoBuoiHoc(request.getSoBuoiHoc());
-        
-        // Mặc định khóa học vừa tạo sẽ ở trạng thái 0 (Chờ duyệt)
         khoaHocMoi.setTinhTrang(0);
-        
         khoaHocMoi.setGiaSu(giaSu);
         khoaHocMoi.setMonHoc(monHoc);
         khoaHocMoi.setDanhMucLop(danhMucLop);
         
         khoaHocRepository.save(khoaHocMoi);
 
-        // 2. Tạo Lịch dạy tương ứng
         if (request.getDanhSachIdTietHocRanh() != null && !request.getDanhSachIdTietHocRanh().isEmpty()) {
-            // Lấy con số lớn nhất hiện tại ra khỏi DB trước khi chạy vòng lặp
             int currentLDNumber = getCurrentMaxLichDayNumber(); 
             
             for (String idTietHoc : request.getDanhSachIdTietHocRanh()) {
@@ -134,11 +116,8 @@ public class KhoaHocService {
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy Tiết học có ID: " + idTietHoc));
                 
                 LichDay lichDayMoi = new LichDay();
-                
-                // Tăng dần số đếm cho mỗi vòng lặp để ID không bị trùng
                 currentLDNumber++; 
                 lichDayMoi.setIdLichDay(String.format("LD%03d", currentLDNumber)); 
-                
                 lichDayMoi.setTinhTrang(true); 
                 lichDayMoi.setGiaSu(giaSu);
                 lichDayMoi.setTietHoc(tietHoc);
@@ -149,9 +128,6 @@ public class KhoaHocService {
         return "Tạo khóa học thành công! Vui lòng chờ Admin phê duyệt.";
     }
 
-    /**
-     * HÀM 2: TÌM KIẾM + LỌC KHÓA HỌC (Dành cho trang chủ)
-     */
     public List<KhoaHocResponseDTO> timKiemKhoaHoc(String keyword, String idMonHoc, String idDanhMucLop,
                                                    BigDecimal minPrice, BigDecimal maxPrice) {
         String normalizedKeyword = chuanHoaChuoi(keyword);
@@ -167,29 +143,11 @@ public class KhoaHocService {
         );
 
         return danhSachKhoaHoc.stream()
-                // BỘ LỌC: Chỉ hiển thị những khóa học đã được Admin duyệt (tinhTrang = 1)
                 .filter(khoaHoc -> khoaHoc.getTinhTrang() != null && khoaHoc.getTinhTrang() == 1)
-                .map(khoaHoc -> {
-                    KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
-                    dto.setIdKhoaHoc(khoaHoc.getIdKhoaHoc());
-                    dto.setTenKhoaHoc(khoaHoc.getTenKhoaHoc());
-                    dto.setSoTienHoc(khoaHoc.getSoTienHoc());
-                    
-                    if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
-                    if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
-                    if (khoaHoc.getGiaSu() != null) {
-                        dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());
-                        
-                        Double sao = danhGiaRepository.calculateAverageRatingForGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
-                        dto.setSaoTrungBinh(sao != null ? Math.round(sao * 10.0) / 10.0 : 0.0);
-                    }
-                    return dto;
-                }).collect(Collectors.toList());
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * HÀM 3: ADMIN DUYỆT KHÓA HỌC
-     */
     @Transactional
     public String duyetKhoaHoc(String idKhoaHoc, Integer trangThaiMoi) {
         KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
@@ -209,5 +167,73 @@ public class KhoaHocService {
         }
         String trimmed = value.trim();
         return Objects.equals(trimmed, "") ? null : trimmed;
+    }
+
+    public List<KhoaHocResponseDTO> getKhoaHocByGiaSu(String idGiaSu) {
+        GiaSu giaSu = giaSuRepository.findById(idGiaSu)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gia sư!"));
+        
+        List<KhoaHoc> danhSachKhoaHoc = khoaHocRepository.findByGiaSu_IdGiaSu(idGiaSu);
+        
+        return danhSachKhoaHoc.stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public KhoaHocResponseDTO getKhoaHocDetail(String idKhoaHoc) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+        
+        return mapToResponseDTO(khoaHoc);
+    }
+
+    @Transactional
+    public String updateKhoaHoc(String idKhoaHoc, KhoaHocRequestDTO request) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+        
+        khoaHoc.setTenKhoaHoc(request.getTenKhoaHoc());
+        khoaHoc.setMoTa(request.getMoTa());
+        khoaHoc.setYeuCau(request.getYeuCau());
+        khoaHoc.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
+        khoaHoc.setSoTienHoc(request.getSoTienHoc());
+        khoaHoc.setSoBuoiHoc(request.getSoBuoiHoc());
+        
+        khoaHocRepository.save(khoaHoc);
+        return "Cập nhật khóa học thành công!";
+    }
+
+    @Transactional
+    public String deleteKhoaHoc(String idKhoaHoc) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+        
+        List<LichDay> lichDayList = lichDayRepository.findByGiaSu_IdGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
+        lichDayRepository.deleteAll(lichDayList);
+        
+        khoaHocRepository.delete(khoaHoc);
+        return "Xóa khóa học thành công!";
+    }
+
+    private KhoaHocResponseDTO mapToResponseDTO(KhoaHoc khoaHoc) {
+        KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
+        dto.setIdKhoaHoc(khoaHoc.getIdKhoaHoc());
+        dto.setTenKhoaHoc(khoaHoc.getTenKhoaHoc());
+        dto.setMoTa(khoaHoc.getMoTa());
+        dto.setYeuCau(khoaHoc.getYeuCau());
+        dto.setNoiDungKhoaHoc(khoaHoc.getNoiDungKhoaHoc());
+        dto.setSoTienHoc(khoaHoc.getSoTienHoc());
+        dto.setSoBuoiHoc(khoaHoc.getSoBuoiHoc());
+        dto.setTrangThai(khoaHoc.getTinhTrang());
+        
+        if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
+        if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
+        if (khoaHoc.getGiaSu() != null) {
+            dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());
+            
+            Double sao = danhGiaRepository.calculateAverageRatingForGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
+            dto.setSaoTrungBinh(sao != null ? Math.round(sao * 10.0) / 10.0 : 0.0);
+        }
+        return dto;
     }
 }

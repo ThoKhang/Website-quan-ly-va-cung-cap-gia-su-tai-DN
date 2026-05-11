@@ -341,3 +341,43 @@ DELETE FROM GiaSu WHERE idTaiKhoan = 'TK01';
 -- 3. Cuối cùng mới xóa được Tài khoản TK01
 DELETE FROM TaiKhoan WHERE idTaiKhoan = 'TK01';
 */
+
+INSERT INTO CapHoc (maCapHoc, tenCapHoc) VALUES
+('CH001', N'Cấp 1'),
+('CH002', N'Cấp 2'),
+('CH003', N'Cấp 3');
+
+-- Cấp 1: Lớp 1-5
+INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES
+('L1', N'Lớp 1', 'CH001'),
+('L2', N'Lớp 2', 'CH001'),
+('L3', N'Lớp 3', 'CH001'),
+('L4', N'Lớp 4', 'CH001'),
+('L5', N'Lớp 5', 'CH001');
+
+-- Cấp 2: Lớp 6-9
+INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES
+('L6', N'Lớp 6', 'CH002'),
+('L7', N'Lớp 7', 'CH002'),
+('L8', N'Lớp 8', 'CH002'),
+('L9', N'Lớp 9', 'CH002');
+
+-- Cấp 3: Lớp 10-12
+INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES
+('L11', N'Lớp 11', 'CH003'),
+('L12', N'Lớp 12', 'CH003');
+--('L10', N'Lớp 10', 'CH003'),
+
+INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES
+('MH001', N'Toán Học'),
+('MH002', N'Tiếng Anh'),
+('MH003', N'Tiếng Việt'),
+('MH004', N'Vật Lý'),
+('MH005', N'Hóa Học'),
+('MH006', N'Sinh Học'),
+('MH007', N'Lịch Sử'),
+('MH008', N'Địa Lý'),
+('MH009', N'Tin Học'),
+('MH010', N'Thể Dục'),
+('MH011', N'Âm Nhạc'),
+('MH012', N'Mỹ Thuật');

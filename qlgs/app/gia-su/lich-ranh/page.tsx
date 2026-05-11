@@ -19,6 +19,13 @@ interface LichRanhItem {
   tinhTrang: boolean;
 }
 
+interface EditingLichRanh {
+  idTietHoc: string;
+  thu: string;
+  gioBatDau: string;
+  gioKetThuc: string;
+}
+
 export default function GiaSuLichRanh() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,6 +36,10 @@ export default function GiaSuLichRanh() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
+
+  // State cho modal chỉnh sửa
+  const [editingLich, setEditingLich] = useState<EditingLichRanh | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -168,6 +179,45 @@ export default function GiaSuLichRanh() {
     }
   };
 
+  const handleEditLichRanh = (lich: LichRanhItem) => {
+    setEditingLich({
+      idTietHoc: lich.tietHoc.idTietHoc,
+      thu: lich.tietHoc.thu,
+      gioBatDau: lich.tietHoc.gioBatDau,
+      gioKetThuc: lich.tietHoc.gioKetThuc,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateLichRanh = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLich) return;
+
+    setLoading(true);
+    try {
+      await giaSuService.updateTietHoc(editingLich.idTietHoc, {
+        thu: editingLich.thu,
+        gioBatDau: editingLich.gioBatDau,
+        gioKetThuc: editingLich.gioKetThuc,
+      });
+
+      setMessage('Cập nhật lịch rảnh thành công!');
+      setMessageType('success');
+      setShowEditModal(false);
+      setEditingLich(null);
+
+      // Reload lịch rảnh
+      if (idGiaSu) {
+        await loadLichRanh(idGiaSu);
+      }
+    } catch (err: any) {
+      setMessage(err.message || 'Cập nhật lịch rảnh thất bại!');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -175,25 +225,34 @@ export default function GiaSuLichRanh() {
   return (
     <main className="page-shell">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
-        <div className="content-lock flex items-center justify-between px-6 py-3 md:px-10">
-          <Link href="/#quan-ly" className="text-blue-400 hover:text-blue-300">
-            <Text as="span" size="caption" tone="onDark">
-              ← Quay lại
+      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white shadow-sm">
+        <div className="content-lock flex items-center justify-between px-6 py-4 md:px-10 gap-8">
+          <Link href="/#gia-su-features" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <Text as="span" size="caption" className="font-medium whitespace-nowrap">
+              Quay Lại
             </Text>
           </Link>
-          <Text as="h1" size="title" tone="onDark">
-            Lịch Rảnh
-          </Text>
+          <div className="flex-1 text-center min-w-0">
+            <Text as="h1" size="display" className="text-gray-900 truncate">
+              Lịch Rảnh
+            </Text>
+          </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg transition text-sm font-medium flex items-center gap-2 flex-shrink-0 ${
               showForm
-                ? 'bg-white/10 text-white hover:bg-white/20'
+                ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
-            {showForm ? 'Hủy' : '+ Thêm Lịch'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="hidden sm:inline">{showForm ? 'Hủy' : 'Thêm Lịch'}</span>
+            <span className="sm:hidden">{showForm ? 'Hủy' : '+'}</span>
           </button>
         </div>
       </header>
@@ -384,18 +443,116 @@ export default function GiaSuLichRanh() {
                     </Text>
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteLichRanh(lich.idLichDay)}
-                    className="w-full px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-sm font-medium"
-                  >
-                    Xóa
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditLichRanh(lich)}
+                      className="flex-1 px-4 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition text-sm font-medium"
+                    >
+                      Chỉnh sửa
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLichRanh(lich.idLichDay)}
+                      className="flex-1 px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-sm font-medium"
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </Card>
               ))}
             </div>
           )}
         </div>
       </Section>
+
+      {/* Modal Chỉnh sửa lịch rảnh */}
+      {showEditModal && editingLich && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-white p-6">
+            <Text as="h2" size="title" className="mb-6">
+              Chỉnh Sửa Lịch Rảnh
+            </Text>
+
+            <form onSubmit={handleUpdateLichRanh} className="space-y-4">
+              {/* Chọn Thứ */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Chọn Thứ <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editingLich.thu}
+                  onChange={(e) => setEditingLich({ ...editingLich, thu: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {daysOfWeek.map(day => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Giờ bắt đầu */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Giờ Bắt Đầu <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="time"
+                      value={editingLich.gioBatDau}
+                      onChange={(e) => setEditingLich({ ...editingLich, gioBatDau: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {editingLich.gioBatDau && (
+                    <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700">
+                      {editingLich.gioBatDau}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Giờ kết thúc */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Giờ Kết Thúc <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="time"
+                      value={editingLich.gioKetThuc}
+                      onChange={(e) => setEditingLich({ ...editingLich, gioKetThuc: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {editingLich.gioKetThuc && (
+                    <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700">
+                      {editingLich.gioKetThuc}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button type="submit" disabled={loading} className="flex-1">
+                  {loading ? 'Đang cập nhật...' : 'Cập Nhật'}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingLich(null);
+                  }}
+                  className="flex-1"
+                >
+                  Hủy
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }

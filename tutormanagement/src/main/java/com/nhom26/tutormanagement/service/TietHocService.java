@@ -96,8 +96,52 @@ public class TietHocService {
     }
 
     // ==========================================
-    // GENERATE ID TIẾT HỌC MỚI
+    // CẬP NHẬT TIẾT HỌC
     // ==========================================
+    @Transactional
+    public TietHoc capNhatTietHoc(String idTietHoc, TietHocRequestDTO request) {
+        TietHoc tietHoc = tietHocRepository.findById(idTietHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tiết học!"));
+
+        try {
+            String gioBatDauStr = request.getGioBatDau().trim();
+            String gioKetThucStr = request.getGioKetThuc().trim();
+            
+            // Parse giờ bắt đầu và giờ kết thúc (định dạng: "HH:mm")
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            LocalTime startTime = LocalTime.parse(gioBatDauStr, timeFormatter);
+            LocalTime endTime = LocalTime.parse(gioKetThucStr, timeFormatter);
+
+            // Kiểm tra giờ kết thúc phải sau giờ bắt đầu
+            if (endTime.isBefore(startTime) || endTime.equals(startTime)) {
+                throw new RuntimeException("Giờ kết thúc phải sau giờ bắt đầu!");
+            }
+
+            // Tính số tiết (55 phút = 1 tiết)
+            long minutesDifference = java.time.temporal.ChronoUnit.MINUTES.between(startTime, endTime);
+            int soTiet = (int) Math.ceil(minutesDifference / 55.0);
+
+            if (soTiet <= 0) {
+                throw new RuntimeException("Khoảng thời gian phải ít nhất 55 phút (1 tiết)!");
+            }
+
+            // Cập nhật thông tin
+            tietHoc.setThu(request.getThu());
+            tietHoc.setGioBatDau(LocalDateTime.of(2024, 1, 1, startTime.getHour(), startTime.getMinute()));
+            tietHoc.setGioKetThuc(LocalDateTime.of(2024, 1, 1, endTime.getHour(), endTime.getMinute()));
+            tietHoc.setSoTiet(soTiet);
+
+            return tietHocRepository.save(tietHoc);
+
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new RuntimeException("Lỗi định dạng giờ! Vui lòng sử dụng định dạng HH:mm (VD: 17:30)");
+        } catch (Exception e) {
+            if (e.getMessage().contains("Vui lòng") || e.getMessage().contains("Giờ") || e.getMessage().contains("Khoảng")) {
+                throw e;
+            }
+            throw new RuntimeException("Lỗi cập nhật tiết học: " + e.getMessage());
+        }
+    }
     private String generateNextIdTietHoc() {
         try {
             List<String> allIds = tietHocRepository.findAllIdsSorted();

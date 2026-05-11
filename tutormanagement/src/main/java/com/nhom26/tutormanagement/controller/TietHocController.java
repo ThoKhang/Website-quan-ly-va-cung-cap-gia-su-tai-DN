@@ -23,4 +23,14 @@ public class TietHocController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    // API: Cập nhật tiết học
+    @PutMapping("/{idTietHoc}")
+    public ResponseEntity<?> capNhatTietHoc(@PathVariable String idTietHoc, @RequestBody TietHocRequestDTO request) {
+        try {
+            return ResponseEntity.ok(tietHocService.capNhatTietHoc(idTietHoc, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

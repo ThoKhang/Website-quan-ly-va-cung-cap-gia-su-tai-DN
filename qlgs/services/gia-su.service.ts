@@ -150,4 +150,13 @@ export const giaSuService = {
   getLichRanh: (idGiaSu: string): Promise<any[]> => {
     return axiosClient.get(`/gia-su/${idGiaSu}/lich-ranh`);
   },
+
+  // 13. Cập nhật tiết học
+  updateTietHoc: (idTietHoc: string, data: {
+    thu: string;
+    gioBatDau: string;
+    gioKetThuc: string;
+  }): Promise<any> => {
+    return axiosClient.put(`/tiet-hoc/${idTietHoc}`, data);
+  },
 };

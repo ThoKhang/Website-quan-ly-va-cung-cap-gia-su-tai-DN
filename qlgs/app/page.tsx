@@ -140,7 +140,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section id="quan-ly">
+      <Section id="gia-su-features">
         <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col gap-4">
             <Text as="h2" size="display">

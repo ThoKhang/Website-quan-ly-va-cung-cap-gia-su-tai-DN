@@ -290,7 +290,7 @@ export default function GiaSuHoSo() {
 
           {/* Thông tin cá nhân */}
           <Card className="bg-white p-8 mb-8">
-            <Text as="h2" size="lg" className="mb-6 font-semibold">Thông Tin Cá Nhân</Text>
+            <Text as="h2" size="display" className="mb-6 font-semibold">Thông Tin Cá Nhân</Text>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -341,7 +341,7 @@ export default function GiaSuHoSo() {
                 <Button type="submit" size="lg" disabled={loading}>
                   {loading ? 'Đang lưu...' : 'Lưu thông tin'}
                 </Button>
-                <Link href="/">
+                <Link href="/#gia-su-features">
                   <Button type="button" size="lg" variant="secondary">
                     Hủy
                   </Button>
@@ -353,7 +353,7 @@ export default function GiaSuHoSo() {
           {/* Bằng cấp */}
           <Card className="bg-white p-8">
             <div className="flex justify-between items-center mb-6">
-              <Text as="h2" size="lg" className="font-semibold">Bằng Cấp & Chứng Chỉ</Text>
+              <Text as="h2" size="display" className="font-semibold">Bằng Cấp & Chứng Chỉ</Text>
               <Button 
                 onClick={() => setShowBangCapForm(!showBangCapForm)}
                 size="sm"
@@ -447,10 +447,10 @@ export default function GiaSuHoSo() {
                   <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <Text as="h3" size="base" className="font-semibold text-gray-900">
+                        <Text as="h3" size="body" className="font-semibold text-gray-900">
                           {bangCap.tenBangCap}
                         </Text>
-                        <Text size="sm" tone="muted" className="mt-1">
+                        <Text size="caption" tone="muted" className="mt-1">
                           Ngày cấp: {new Date(bangCap.ngayCap).toLocaleDateString('vi-VN')}
                         </Text>
                       </div>
@@ -463,11 +463,11 @@ export default function GiaSuHoSo() {
                         Xóa
                       </Button>
                     </div>
-                    <Text size="sm" className="text-gray-700 mb-2">
+                    <Text size="caption" className="text-gray-700 mb-2">
                       {bangCap.thongTinBangCap}
                     </Text>
                     {bangCap.anhMinhChung && (
-                      <Text size="sm" tone="muted">
+                      <Text size="caption" tone="muted">
                         Ảnh: {bangCap.anhMinhChung}
                       </Text>
                     )}
@@ -476,7 +476,7 @@ export default function GiaSuHoSo() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Text size="sm" tone="muted">
+                <Text size="caption" tone="muted">
                   Chưa có bằng cấp nào. Hãy thêm bằng cấp của bạn để tăng độ tin cậy.
                 </Text>
               </div>

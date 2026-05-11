@@ -22,4 +22,7 @@ public interface LichDayRepository extends JpaRepository<LichDay, String> {
     
     //Kiểm tra xem Gia sư đã đăng ký Tiết học này chưa
     boolean existsByGiaSu_IdGiaSuAndTietHoc_IdTietHoc(String idGiaSu, String idTietHoc);
+    
+    // Tìm tất cả lịch dạy của gia sư
+    List<LichDay> findByGiaSu_IdGiaSu(String idGiaSu);
 }
