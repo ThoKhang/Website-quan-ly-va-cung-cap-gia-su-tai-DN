@@ -39,4 +39,7 @@ public interface KhoaHocRepository extends JpaRepository<KhoaHoc, String> {
     
     @Query("SELECT MAX(k.idKhoaHoc) FROM KhoaHoc k")
     String findMaxId();
+    
+    @Query("SELECT k.idKhoaHoc FROM KhoaHoc k ORDER BY k.idKhoaHoc DESC")
+    List<String> findAllIdsSorted();
 }

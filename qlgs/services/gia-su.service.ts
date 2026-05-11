@@ -85,17 +85,32 @@ export const giaSuService = {
     return axiosClient.post('/gia-su/them-bang-cap', data);
   },
 
-  // 3. Đăng ký lịch rảnh
+  // 3. Xóa bằng cấp
+  deleteBangCap: (idBangCap: string): Promise<string> => {
+    return axiosClient.delete(`/gia-su/bang-cap/${idBangCap}`);
+  },
+
+  // 4. Lấy thông tin chi tiết gia sư (bao gồm bằng cấp)
+  getProfileDetail: (idGiaSu: string): Promise<any> => {
+    return axiosClient.get(`/gia-su/${idGiaSu}/chi-tiet`);
+  },
+
+  // 5. Cập nhật hồ sơ gia sư
+  updateProfile: (idGiaSu: string, data: GiaSuProfile): Promise<string> => {
+    return axiosClient.put(`/gia-su/${idGiaSu}`, data);
+  },
+
+  // 6. Đăng ký lịch rảnh
   registerLichRanh: (data: LichRanh): Promise<string> => {
     return axiosClient.post('/gia-su/dang-ky-lich-ranh', data);
   },
 
-  // 4. Tạo khóa học
+  // 7. Tạo khóa học
   createKhoaHoc: (data: KhoaHoc): Promise<string> => {
     return axiosClient.post('/khoa-hoc/tao-moi', data);
   },
 
-  // 5. Đổi mật khẩu
+  // 8. Đổi mật khẩu
   changePassword: (data: {
     matKhauCu: string;
     matKhauMoi: string;
@@ -104,12 +119,7 @@ export const giaSuService = {
     return axiosClient.post('/tai-khoan/doi-mat-khau', data);
   },
 
-  // 6. Lấy thông tin chi tiết gia sư
-  getProfileDetail: (idGiaSu: string): Promise<any> => {
-    return axiosClient.get(`/gia-su/${idGiaSu}/chi-tiet`);
-  },
-
-  // 7. Get mock data for dropdowns
+  // 9. Get mock data for dropdowns
   getTietHoc: (): Promise<any[]> => {
     return Promise.resolve(mockTietHoc);
   },
@@ -120,5 +130,24 @@ export const giaSuService = {
 
   getDanhMucLop: (): Promise<any[]> => {
     return Promise.resolve(mockDanhMucLop);
+  },
+
+  // 10. Tạo tiết học mới (động)
+  createTietHoc: (data: {
+    thu: string;
+    gioBatDau: string;
+    gioKetThuc: string;
+  }): Promise<any> => {
+    return axiosClient.post('/tiet-hoc/tao-moi', data);
+  },
+
+  // 11. Xóa lịch rảnh
+  deleteLichRanh: (idLichDay: string): Promise<string> => {
+    return axiosClient.delete(`/gia-su/lich-ranh/${idLichDay}`);
+  },
+
+  // 12. Lấy lịch rảnh của gia sư
+  getLichRanh: (idGiaSu: string): Promise<any[]> => {
+    return axiosClient.get(`/gia-su/${idGiaSu}/lich-ranh`);
   },
 };

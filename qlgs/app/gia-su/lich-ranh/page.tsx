@@ -4,48 +4,102 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { giaSuService, mockTietHoc } from '@/services/gia-su.service';
+import { giaSuService } from '@/services/gia-su.service';
 import { Button, Card, Section, Text } from "@/component/ui";
+
+interface LichRanhItem {
+  idLichDay: string;
+  tietHoc: {
+    idTietHoc: string;
+    thu: string;
+    gioBatDau: string;
+    gioKetThuc: string;
+    soTiet: number;
+  };
+  tinhTrang: boolean;
+}
 
 export default function GiaSuLichRanh() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [tietHocList, setTietHocList] = useState<any[]>([]);
-  const [selectedTietHoc, setSelectedTietHoc] = useState<string[]>([]);
+  const [idGiaSu, setIdGiaSu] = useState('');
+  const [lichRanhList, setLichRanhList] = useState<LichRanhItem[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    thu: '',
+    gioBatDau: '',
+    gioKetThuc: '',
+  });
+
+  const daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const roleId = localStorage.getItem('loaiNguoiDungID');
+    const giaSuId = localStorage.getItem('idGiaSu');
     
     if (!token || roleId !== '2') {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
-      // Load mock TietHoc data
-      setTietHocList(mockTietHoc);
+      if (giaSuId) {
+        setIdGiaSu(giaSuId);
+        loadLichRanh(giaSuId);
+      }
     }
   }, [router]);
 
-  const handleTietHocToggle = (idTietHoc: string) => {
-    setSelectedTietHoc(prev => {
-      if (prev.includes(idTietHoc)) {
-        return prev.filter(id => id !== idTietHoc);
-      } else {
-        return [...prev, idTietHoc];
+  const loadLichRanh = async (giaSuId: string) => {
+    setLoadingList(true);
+    try {
+      console.log('📥 Đang tải lịch rảnh cho gia sư:', giaSuId);
+      const data = await giaSuService.getLichRanh(giaSuId);
+      console.log('✅ Dữ liệu lịch rảnh nhận được:', data);
+      console.log('📊 Số lịch rảnh:', data?.length || 0);
+      if (data && data.length > 0) {
+        console.log('📋 Lịch rảnh đầu tiên:', JSON.stringify(data[0], null, 2));
       }
-    });
+      setLichRanhList(data || []);
+    } catch (err: any) {
+      console.error('❌ Lỗi tải lịch rảnh:', err);
+      console.error('❌ Error details:', err.response || err.message);
+      setLichRanhList([]);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
 
-    if (selectedTietHoc.length === 0) {
-      setMessage('Vui lòng chọn ít nhất 1 tiết học');
+    // Validate
+    if (!formData.thu) {
+      setMessage('Vui lòng chọn thứ');
+      setMessageType('error');
+      return;
+    }
+    if (!formData.gioBatDau) {
+      setMessage('Vui lòng nhập giờ bắt đầu');
+      setMessageType('error');
+      return;
+    }
+    if (!formData.gioKetThuc) {
+      setMessage('Vui lòng nhập giờ kết thúc');
       setMessageType('error');
       return;
     }
@@ -53,16 +107,40 @@ export default function GiaSuLichRanh() {
     setLoading(true);
 
     try {
-      // Gọi API backend để thêm lịch rảnh
-      await giaSuService.registerLichRanh({
-        danhSachIdTietHoc: selectedTietHoc,
-      });
+      console.log('📝 Bắt đầu tạo lịch rảnh với dữ liệu:', formData);
       
+      // Step 1: Tạo TietHoc mới
+      const tietHocData = {
+        thu: formData.thu,
+        gioBatDau: formData.gioBatDau,
+        gioKetThuc: formData.gioKetThuc,
+      };
+      console.log('📤 Gửi TietHoc data:', JSON.stringify(tietHocData));
+      
+      const tietHocResponse = await giaSuService.createTietHoc(tietHocData);
+      console.log('✅ TietHoc tạo thành công:', tietHocResponse);
+
+      // Step 2: Đăng ký lịch rảnh với TietHoc vừa tạo
+      const lichRanhResponse = await giaSuService.registerLichRanh({
+        danhSachIdTietHoc: [tietHocResponse.idTietHoc],
+      });
+      console.log('✅ Lịch rảnh đăng ký thành công:', lichRanhResponse);
+
       setMessage('Đăng ký lịch rảnh thành công!');
       setMessageType('success');
       setShowForm(false);
-      setSelectedTietHoc([]);
+      setFormData({ thu: '', gioBatDau: '', gioKetThuc: '' });
+      
+      // Reload lịch rảnh - sử dụng giaSuId từ localStorage
+      const giaSuId = localStorage.getItem('idGiaSu');
+      console.log('🔄 Đang reload lịch rảnh cho gia sư:', giaSuId);
+      if (giaSuId) {
+        // Thêm delay nhỏ để đảm bảo backend đã lưu xong
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await loadLichRanh(giaSuId);
+      }
     } catch (err: any) {
+      console.error('❌ Lỗi tạo lịch rảnh:', err);
       setMessageType('error');
       setMessage(err.message || 'Đăng ký lịch rảnh thất bại!');
     } finally {
@@ -70,26 +148,36 @@ export default function GiaSuLichRanh() {
     }
   };
 
+  const handleDeleteLichRanh = async (idLichDay: string) => {
+    if (!confirm('Bạn chắc chắn muốn xóa lịch rảnh này?')) {
+      return;
+    }
+
+    try {
+      await giaSuService.deleteLichRanh(idLichDay);
+      setMessage('Xóa lịch rảnh thành công!');
+      setMessageType('success');
+      
+      // Reload lịch rảnh
+      if (idGiaSu) {
+        await loadLichRanh(idGiaSu);
+      }
+    } catch (err: any) {
+      setMessage(err.message || 'Xóa lịch rảnh thất bại!');
+      setMessageType('error');
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
-
-  // Group TietHoc by day
-  const groupedByDay = tietHocList.reduce((acc, tiet) => {
-    const day = tiet.thu;
-    if (!acc[day]) acc[day] = [];
-    acc[day].push(tiet);
-    return acc;
-  }, {} as Record<string, any[]>);
-
-  const daysOrder = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 
   return (
     <main className="page-shell">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
         <div className="content-lock flex items-center justify-between px-6 py-3 md:px-10">
-          <Link href="/gia-su" className="text-blue-400 hover:text-blue-300">
+          <Link href="/#quan-ly" className="text-blue-400 hover:text-blue-300">
             <Text as="span" size="caption" tone="onDark">
               ← Quay lại
             </Text>
@@ -105,7 +193,7 @@ export default function GiaSuLichRanh() {
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
-            {showForm ? 'Hủy' : '+ Đăng Ký'}
+            {showForm ? 'Hủy' : '+ Thêm Lịch'}
           </button>
         </div>
       </header>
@@ -134,59 +222,99 @@ export default function GiaSuLichRanh() {
           </div>
         )}
 
-        {/* Form Đăng Ký Lịch Rảnh */}
+        {/* Form Thêm Lịch Rảnh */}
         {showForm && (
           <Card className="space-y-6 bg-white p-8 mb-8">
             <Text as="h2" size="title">
-              Đăng Ký Lịch Rảnh
+              Thêm Lịch Rảnh Mới
             </Text>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <Text as="p" size="body" className="font-semibold">
-                  Chọn các tiết học bạn rảnh:
-                </Text>
-                
-                {daysOrder.map(day => (
-                  groupedByDay[day] && (
-                    <div key={day} className="space-y-3">
-                      <Text as="p" size="caption" className="font-semibold text-gray-700">
-                        {day}
-                      </Text>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-4">
-                        {groupedByDay[day].map(tiet => (
-                          <label key={tiet.idTietHoc} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition">
-                            <input
-                              type="checkbox"
-                              checked={selectedTietHoc.includes(tiet.idTietHoc)}
-                              onChange={() => handleTietHocToggle(tiet.idTietHoc)}
-                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                            />
-                            <div>
-                              <Text size="caption" className="font-medium">
-                                {tiet.gioBatDau} - {tiet.gioKetThuc}
-                              </Text>
-                              <Text size="fine" tone="muted">
-                                {tiet.soTiet} tiết
-                              </Text>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                ))}
+              {/* Chọn Thứ */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Chọn Thứ <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="thu"
+                  value={formData.thu}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">-- Chọn thứ --</option>
+                  {daysOfWeek.map(day => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
               </div>
 
+              {/* Giờ bắt đầu */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Giờ Bắt Đầu <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="time"
+                      name="gioBatDau"
+                      value={formData.gioBatDau}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {formData.gioBatDau && (
+                    <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700">
+                      {formData.gioBatDau}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Giờ kết thúc */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Giờ Kết Thúc <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="time"
+                      name="gioKetThuc"
+                      value={formData.gioKetThuc}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {formData.gioKetThuc && (
+                    <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700">
+                      {formData.gioKetThuc}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Hiển thị số tiết tính toán */}
+              {formData.gioBatDau && formData.gioKetThuc && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <Text size="caption" className="font-semibold text-green-900">
+                    ✓ Thời gian: {formData.gioBatDau} - {formData.gioKetThuc}
+                  </Text>
+                  <Text size="fine" tone="muted" className="text-green-800 mt-1">
+                    Số tiết sẽ được tính tự động (55 phút = 1 tiết)
+                  </Text>
+                </div>
+              )}
+
               <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={loading || selectedTietHoc.length === 0} className="flex-1">
-                  {loading ? 'Đang đăng ký...' : `Đăng Ký (${selectedTietHoc.length} tiết)`}
+                <Button type="submit" disabled={loading} className="flex-1">
+                  {loading ? 'Đang thêm...' : 'Thêm Lịch'}
                 </Button>
                 <Button 
                   type="button" 
                   variant="secondary" 
                   onClick={() => {
                     setShowForm(false);
-                    setSelectedTietHoc([]);
+                    setFormData({ thu: '', gioBatDau: '', gioKetThuc: '' });
                   }}
                   className="flex-1"
                 >
@@ -209,31 +337,64 @@ export default function GiaSuLichRanh() {
                   Hướng dẫn
                 </Text>
                 <Text size="fine" className="text-blue-800 mt-1">
-                  Chọn các tiết học bạn rảnh để học viên có thể đặt lớp với bạn. Bạn có thể thay đổi lịch rảnh bất kỳ lúc nào.
+                  Chọn các khung giờ bạn rảnh để học viên có thể đặt lớp với bạn. Bạn có thể thêm, xóa lịch rảnh bất kỳ lúc nào.
                 </Text>
               </div>
             </div>
           </Card>
         )}
 
-        {/* Selected Summary */}
-        {selectedTietHoc.length > 0 && (
-          <Card className="bg-white p-6 mb-8">
-            <Text as="p" size="caption" className="font-semibold mb-4">
-              Đã chọn {selectedTietHoc.length} tiết:
-            </Text>
-            <div className="flex flex-wrap gap-2">
-              {selectedTietHoc.map(idTiet => {
-                const tiet = tietHocList.find(t => t.idTietHoc === idTiet);
-                return (
-                  <div key={idTiet} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                    {tiet?.thu} {tiet?.gioBatDau}-{tiet?.gioKetThuc}
+        {/* Danh sách lịch rảnh */}
+        <div>
+          <Text as="h2" size="title" className="mb-6">
+            Lịch Rảnh Của Bạn ({lichRanhList.length})
+          </Text>
+
+          {loadingList ? (
+            <Card className="p-8 text-center">
+              <Text tone="muted">Đang tải...</Text>
+            </Card>
+          ) : lichRanhList.length === 0 ? (
+            <Card className="p-8 text-center bg-gray-50">
+              <Text tone="muted">
+                Bạn chưa đăng ký lịch rảnh nào. Hãy thêm lịch rảnh để học viên có thể đặt lớp với bạn.
+              </Text>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lichRanhList.map(lich => (
+                <Card key={lich.idLichDay} className="p-6 bg-white border border-gray-200 hover:border-blue-300 transition">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <Text as="p" size="caption" className="font-semibold text-gray-700">
+                        {lich.tietHoc.thu}
+                      </Text>
+                      <Text as="p" size="body" className="font-bold text-gray-900 mt-1">
+                        {lich.tietHoc.gioBatDau} - {lich.tietHoc.gioKetThuc}
+                      </Text>
+                    </div>
+                    <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                      Rảnh
+                    </span>
                   </div>
-                );
-              })}
+
+                  <div className="mb-4 pb-4 border-b border-gray-200">
+                    <Text size="fine" tone="muted">
+                      {lich.tietHoc.soTiet} tiết ({lich.tietHoc.soTiet * 55} phút)
+                    </Text>
+                  </div>
+
+                  <button
+                    onClick={() => handleDeleteLichRanh(lich.idLichDay)}
+                    className="w-full px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-sm font-medium"
+                  >
+                    Xóa
+                  </button>
+                </Card>
+              ))}
             </div>
-          </Card>
-        )}
+          )}
+        </div>
       </Section>
     </main>
   );

@@ -3,7 +3,9 @@ package com.nhom26.tutormanagement.service;
 import com.nhom26.tutormanagement.dto.AuthResponse;
 import com.nhom26.tutormanagement.dto.LoginRequest;
 import com.nhom26.tutormanagement.dto.RegisterRequest;
+import com.nhom26.tutormanagement.entity.GiaSu;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
+import com.nhom26.tutormanagement.repository.GiaSuRepository;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
 import com.nhom26.tutormanagement.security.JwtService;
 import com.nhom26.tutormanagement.util.IdGeneratorUtil;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final TaiKhoanRepository taiKhoanRepository;
+    private final GiaSuRepository giaSuRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
@@ -59,7 +62,7 @@ public class AuthService {
         TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(inputTaiKhoan, inputTaiKhoan)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hoặc email: " + inputTaiKhoan));
 
-        boolean isMatch = passwordEncoder.matches(request.getMatKhau().trim(), taiKhoan.getMatKhau().trim());
+        boolean isMatch = passwordEncoder.matches(request.getMatKhau().trim(), taiKhoan.getMatKhau());
 
         if (!isMatch) {
             throw new RuntimeException("Mật khẩu không chính xác!");
@@ -67,11 +70,23 @@ public class AuthService {
 
         String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), taiKhoan.getLoaiNguoiDungID());
         
+        // Lấy ID của người dùng tương ứng (GiaSu, PhuHuynh, v.v.)
+        String idNguoiDung = taiKhoan.getIdTaiKhoan();
+        
+        // Nếu là Gia sư (loaiNguoiDungID = 2), lấy idGiaSu
+        if ("2".equals(taiKhoan.getLoaiNguoiDungID())) {
+            GiaSu giaSu = giaSuRepository.findByTaiKhoan_IdTaiKhoan(taiKhoan.getIdTaiKhoan())
+                    .orElse(null);
+            if (giaSu != null) {
+                idNguoiDung = giaSu.getIdGiaSu();
+            }
+        }
+        
         return new AuthResponse(
             token, 
             "Đăng nhập thành công!", 
             taiKhoan.getLoaiNguoiDungID(), 
-            ""
+            idNguoiDung
         );
     }
 

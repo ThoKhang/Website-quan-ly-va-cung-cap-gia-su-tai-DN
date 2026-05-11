@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState, useTransition } from "react";
+import { useState, useTransition, useEffect, FormEvent } from "react";
 import { Button, Text } from "@/component/ui";
+import { useAuthStore } from "@/store/auth.store";
 
 function getSearchTarget(keyword: string) {
   const params = new URLSearchParams();
@@ -64,7 +65,24 @@ function HeaderSearchForm({ initialKeyword, pathname }: HeaderSearchFormProps) {
 export function SiteHeader() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
   const currentKeyword = searchParams.get("keyword") ?? "";
+  const { isLoggedIn, tenDangNhap, logout } = useAuthStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    useAuthStore.getState().loadFromStorage();
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('tenDangNhap');
+    localStorage.removeItem('loaiNguoiDungID');
+    localStorage.removeItem('idNguoiDung');
+    router.push('/');
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
@@ -99,7 +117,20 @@ export function SiteHeader() {
             <Button variant="ghost" className="hidden text-white hover:bg-white/8 hover:text-white md:inline-flex">
               Tư vấn
             </Button>
-            <Button>Đăng nhập</Button>
+            {isMounted && isLoggedIn && tenDangNhap ? (
+              <div className="flex items-center gap-3">
+                <Text as="span" size="caption" tone="onDark" className="font-medium">
+                  {tenDangNhap}
+                </Text>
+                <Button onClick={handleLogout} variant="secondary">
+                  Đăng xuất
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button>Đăng nhập</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

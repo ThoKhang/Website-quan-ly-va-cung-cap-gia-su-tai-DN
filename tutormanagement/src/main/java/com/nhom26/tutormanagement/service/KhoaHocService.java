@@ -31,11 +31,28 @@ public class KhoaHocService {
     // HÀM HỖ TRỢ: TỰ SINH ID KHÓA HỌC (KH001, KH002...)
     // =========================================================================
     private String generateNextIdKhoaHoc() {
-        String maxId = khoaHocRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "KH001";
         try {
-            int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
-            return String.format("KH%03d", nextNumber);
+            List<String> allIds = khoaHocRepository.findAllIdsSorted();
+            if (allIds == null || allIds.isEmpty()) {
+                return "KH001";
+            }
+            
+            int maxNumber = 0;
+            for (String id : allIds) {
+                try {
+                    String trimmedId = id.trim();
+                    if (trimmedId.startsWith("KH") && trimmedId.length() >= 5) {
+                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                        if (number > maxNumber) {
+                            maxNumber = number;
+                        }
+                    }
+                } catch (Exception e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            return String.format("KH%03d", maxNumber + 1);
         } catch (Exception e) {
             return "KH001";
         }
@@ -45,10 +62,28 @@ public class KhoaHocService {
     // HÀM HỖ TRỢ: LẤY SỐ THỨ TỰ LỊCH DẠY LỚN NHẤT HIỆN TẠI (Để chạy vòng lặp)
     // =========================================================================
     private int getCurrentMaxLichDayNumber() {
-        String maxId = lichDayRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return 0;
         try {
-            return Integer.parseInt(maxId.trim().substring(2));
+            List<String> allIds = lichDayRepository.findAllIdsSorted();
+            if (allIds == null || allIds.isEmpty()) {
+                return 0;
+            }
+            
+            int maxNumber = 0;
+            for (String id : allIds) {
+                try {
+                    String trimmedId = id.trim();
+                    if (trimmedId.startsWith("LD") && trimmedId.length() >= 5) {
+                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                        if (number > maxNumber) {
+                            maxNumber = number;
+                        }
+                    }
+                } catch (Exception e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            return maxNumber;
         } catch (Exception e) {
             return 0;
         }

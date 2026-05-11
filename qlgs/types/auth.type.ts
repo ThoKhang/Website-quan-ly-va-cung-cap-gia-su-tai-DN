@@ -30,3 +30,19 @@ export interface ChangePasswordRequest {
   xacNhanMatKhau: string;
 }
 
+export interface BangCap {
+  idBangCap?: string;
+  tenBangCap: string;
+  thongTinBangCap: string;
+  ngayCap: string;
+  anhMinhChung: string;
+}
+
+export interface GiaSuProfile {
+  idGiaSu?: string;
+  tenGiaSu: string;
+  sdt: string;
+  cccd: string;
+  bangCapList?: BangCap[];
+}
+

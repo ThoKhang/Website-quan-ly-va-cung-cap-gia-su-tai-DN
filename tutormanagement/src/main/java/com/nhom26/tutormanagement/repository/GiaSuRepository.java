@@ -18,6 +18,9 @@ public interface GiaSuRepository extends JpaRepository<GiaSu, String> {
     // Để lấy hồ sơ Gia sư thông qua Username (từ JWT)
     Optional<GiaSu> findByTaiKhoan_TenDangNhap(String tenDangNhap);
 
+    // Tìm GiaSu từ TaiKhoan ID
+    Optional<GiaSu> findByTaiKhoan_IdTaiKhoan(String idTaiKhoan);
+
     // THÊM HÀM NÀY: Để hệ thống tự động tìm mã ID lớn nhất (sinh mã GS001, GS002...)
     @Query("SELECT MAX(g.idGiaSu) FROM GiaSu g")
     String findMaxId();

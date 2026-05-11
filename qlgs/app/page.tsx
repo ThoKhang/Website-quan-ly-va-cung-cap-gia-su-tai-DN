@@ -1,9 +1,28 @@
+import Link from "next/link";
 import { Button, Card, Input, Section, Text } from "@/component/ui";
 
 const servicePoints = [
   "Tìm gia sư theo môn học, cấp lớp và ngân sách chỉ trong một lượt tìm.",
   "Quản lý lịch dạy, khóa học, học viên và tiến trình học tập trên cùng một hệ thống.",
   "Giảm thao tác thủ công cho trung tâm, phụ huynh và gia sư.",
+];
+
+const giaSuFeatures = [
+  {
+    title: "Hồ Sơ Cá Nhân",
+    description: "Cập nhật thông tin cá nhân, số điện thoại, CCCD và bằng cấp",
+    href: "/gia-su/ho-so",
+  },
+  {
+    title: "Lịch Rảnh",
+    description: "Đăng ký các khung giờ rảnh để học viên có thể đặt lớp",
+    href: "/gia-su/lich-ranh",
+  },
+  {
+    title: "Khóa Học",
+    description: "Tạo và quản lý các khóa học của bạn",
+    href: "/gia-su/khoa-hoc",
+  },
 ];
 
 const trustMetrics = [
@@ -30,43 +49,6 @@ const footerColumns = [
 export default function Home() {
   return (
     <main className="page-shell">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
-        <div className="content-lock flex items-center justify-between px-6 py-3 md:px-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-[13px] font-semibold">
-              M
-            </div>
-            <Text as="span" size="bodyStrong" tone="onDark">
-              MADZ Sch.
-            </Text>
-          </div>
-
-          <nav className="hidden items-center gap-7 md:flex">
-            <Text as="a" href="#dich-vu" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Dịch vụ
-            </Text>
-            <Text as="a" href="#quan-ly" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Quản lý
-            </Text>
-            <Text as="a" href="#lien-he" size="caption" tone="onDark" className="opacity-80 hover:opacity-100">
-              Liên hệ
-            </Text>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" className="hidden md:inline-flex">
-              Tư vấn
-            </Button>
-            <a href="/login" className="hidden md:inline-flex">
-              <Button variant="ghost">Đăng nhập</Button>
-            </a>
-            <a href="/register">
-              <Button>Đăng ký</Button>
-            </a>
-          </div>
-        </div>
-      </header>
-
       <Section>
         <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="flex flex-col gap-6">
@@ -162,45 +144,30 @@ export default function Home() {
         <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col gap-4">
             <Text as="h2" size="display">
-              Một bộ máy quản lý gói gọn cho trung tâm gia sư.
+              Chức năng quản lý cho gia sư.
             </Text>
             <Text tone="muted" className="max-w-xl">
-              Theo dõi khóa học đang mở, học viên đã đăng ký, lịch dạy của gia sư và
-              doanh thu phát sinh mà không cần tách nhỏ quy trình ra nhiều công cụ.
+              Tất cả những gì bạn cần để quản lý dạy học một cách chuyên nghiệp và hiệu quả.
             </Text>
             <div className="flex flex-wrap gap-3">
-              <Button>Xem dashboard</Button>
-              <Button variant="secondary">Xem quy trình</Button>
+              <Link href="/gia-su/ho-so">
+                <Button>Cập nhật hồ sơ</Button>
+              </Link>
+              <Link href="/gia-su/khoa-hoc">
+                <Button variant="secondary">Tạo khóa học</Button>
+              </Link>
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Card className="space-y-3">
-              <Text size="title">Khóa học và booking</Text>
-              <Text tone="muted">
-                Tạo khóa học, nhận booking và đổi trạng thái xử lý trong cùng một luồng
-                công việc.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Lịch dạy và học viên</Text>
-              <Text tone="muted">
-                Gom lịch dạy, tiết học và thông tin học viên để đội ngũ dễ phối hợp.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Search giữ filter</Text>
-              <Text tone="muted">
-                Người dùng có thể tìm lại nhanh mà vẫn giữ bộ lọc cũ, đúng nghiệp vụ
-                backend hiện tại.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Báo cáo thực dụng</Text>
-              <Text tone="muted">
-                Dễ mở rộng sau này với thống kê doanh thu, gia sư và hiệu suất vận hành.
-              </Text>
-            </Card>
+            {giaSuFeatures.map((feature) => (
+              <Link key={feature.href} href={feature.href}>
+                <Card className="space-y-3 hover:shadow-lg transition cursor-pointer">
+                  <Text size="title">{feature.title}</Text>
+                  <Text tone="muted">{feature.description}</Text>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </Section>
@@ -227,6 +194,117 @@ export default function Home() {
               và dùng tiếp bộ UI này để làm trang search khóa học thật.
             </Text>
             <Button>Triển khai tiếp</Button>
+          </Card>
+        </div>
+      </Section>
+
+      {/* ===== CHỨC NĂNG GIA SƯ ===== */}
+      
+      {/* Hồ Sơ Cá Nhân */}
+      <Section id="ho-so" tone="parchment">
+        <div className="space-y-6">
+          <div className="text-center">
+            <Text as="h2" size="display">Hồ Sơ Cá Nhân</Text>
+            <Text size="lead" tone="muted" className="max-w-3xl mx-auto mt-2">
+              Cập nhật thông tin cá nhân, số điện thoại, CCCD và bằng cấp của bạn
+            </Text>
+          </div>
+          <Card className="bg-white p-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                <input type="text" placeholder="Nhập họ và tên" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                <input type="tel" placeholder="Nhập số điện thoại" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">CCCD</label>
+                <input type="text" placeholder="Nhập số CCCD" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <Button fullWidth>Lưu thông tin</Button>
+            </div>
+          </Card>
+        </div>
+      </Section>
+
+      {/* Lịch Rảnh */}
+      <Section id="lich-ranh" tone="parchment">
+        <div className="space-y-6">
+          <div className="text-center">
+            <Text as="h2" size="display">Lịch Rảnh</Text>
+            <Text size="lead" tone="muted" className="max-w-3xl mx-auto mt-2">
+              Đăng ký các khung giờ rảnh để học viên có thể đặt lớp
+            </Text>
+          </div>
+          <Card className="bg-white p-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Chọn ngày</label>
+                <input type="date" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Giờ bắt đầu</label>
+                  <input type="time" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Giờ kết thúc</label>
+                  <input type="time" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+              <Button fullWidth>Đăng ký lịch rảnh</Button>
+            </div>
+          </Card>
+        </div>
+      </Section>
+
+      {/* Khóa Học */}
+      <Section id="khoa-hoc">
+        <div className="space-y-6">
+          <div className="text-center">
+            <Text as="h2" size="display">Khóa Học</Text>
+            <Text size="lead" tone="muted" className="max-w-3xl mx-auto mt-2">
+              Tạo và quản lý các khóa học của bạn
+            </Text>
+          </div>
+          <Card className="bg-white p-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tên khóa học</label>
+                <input type="text" placeholder="Ví dụ: Toán 12 Cơ Bản" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả khóa học</label>
+                <textarea placeholder="Mô tả chi tiết về khóa học" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={3}></textarea>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Môn học</label>
+                  <select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>Chọn môn học</option>
+                    <option>Toán</option>
+                    <option>Tiếng Anh</option>
+                    <option>Lý</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cấp lớp</label>
+                  <select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>Chọn cấp lớp</option>
+                    <option>Lớp 10</option>
+                    <option>Lớp 11</option>
+                    <option>Lớp 12</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Giá tiền (VNĐ)</label>
+                <input type="number" placeholder="Nhập giá tiền" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <Button fullWidth>Tạo khóa học</Button>
+            </div>
           </Card>
         </div>
       </Section>

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/gia-su")
@@ -22,7 +23,7 @@ public class GiaSuController {
         try {
             return ResponseEntity.ok(giaSuService.layLichRanhCuaGiaSu(idGiaSu));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -33,7 +34,7 @@ public class GiaSuController {
         try {
             return ResponseEntity.ok(giaSuService.taoHoSo(request));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -44,7 +45,7 @@ public class GiaSuController {
         try {
             return ResponseEntity.ok(giaSuService.themBangCap(request));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -55,7 +56,7 @@ public class GiaSuController {
         try {
             return ResponseEntity.ok(giaSuService.dangKyLichRanh(request));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
     // API: Xem thông tin chi tiết một gia sư kèm số sao đánh giá
@@ -64,7 +65,40 @@ public class GiaSuController {
         try {
             return ResponseEntity.ok(giaSuService.layChiTietGiaSu(idGiaSu));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // API: Lấy thông tin hồ sơ gia sư (để cập nhật)
+    @GetMapping("/{idGiaSu}")
+    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    public ResponseEntity<?> layThongTinGiaSu(@PathVariable String idGiaSu) {
+        try {
+            return ResponseEntity.ok(giaSuService.layThongTinGiaSu(idGiaSu));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // API: Cập nhật thông tin hồ sơ gia sư
+    @PutMapping("/{idGiaSu}")
+    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    public ResponseEntity<?> capNhatThongTinGiaSu(@PathVariable String idGiaSu, @RequestBody GiaSuRequestDTO request) {
+        try {
+            return ResponseEntity.ok(giaSuService.capNhatThongTinGiaSu(idGiaSu, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // API: Xóa lịch rảnh
+    @DeleteMapping("/lich-ranh/{idLichDay}")
+    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    public ResponseEntity<?> xoaLichRanh(@PathVariable String idLichDay) {
+        try {
+            return ResponseEntity.ok(giaSuService.xoaLichRanh(idLichDay));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }

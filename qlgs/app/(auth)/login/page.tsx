@@ -5,6 +5,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { LoginRequest } from '@/types/auth.type';
+import { useAuthStore } from '@/store/auth.store';
 
 function getErrorMessage(error: unknown) {
   if (typeof error === "string") {
@@ -89,19 +90,38 @@ function LoginContent() {
     try {
       const response = await authService.login(formData);
 
-      localStorage.setItem('token', response.token?.toString() || '');
-      localStorage.setItem('loaiNguoiDungID', response.loaiNguoiDungID?.toString() || '');
-      localStorage.setItem('idNguoiDung', response.idNguoiDung?.toString() || '');
+      const token = response.token?.toString() || '';
+      const loaiNguoiDungID = response.loaiNguoiDungID?.toString() || '';
+      const idNguoiDung = response.idNguoiDung?.toString() || '';
+
+      // Lưu vào localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('tenDangNhap', formData.tenDangNhap);
+      localStorage.setItem('loaiNguoiDungID', loaiNguoiDungID);
+      localStorage.setItem('idNguoiDung', idNguoiDung);
+      
+      // Nếu là gia sư (loaiNguoiDungID = 2), lưu thêm idGiaSu
+      if (loaiNguoiDungID === '2') {
+        localStorage.setItem('idGiaSu', idNguoiDung);
+      }
+
+      // Cập nhật auth store
+      useAuthStore.getState().setAuth(token, formData.tenDangNhap, loaiNguoiDungID, idNguoiDung);
 
       setMessage('Đăng nhập thành công! Đang chuyển hướng...');
       setMessageType('success');
 
-      const roleId = response.loaiNguoiDungID?.toString() || '';
+      const roleId = loaiNguoiDungID;
       setTimeout(() => {
         if (roleId === '1') {
           router.push('/hoc-vien');
         } else if (roleId === '2') {
-          router.push('/gia-su');
+          // Gia sư: chuyển đến trang chủ và lướt xuống phần chức năng gia sư
+          router.push('/#quan-ly');
+        } else if (roleId === '3') {
+          router.push('/nhan-vien');
+        } else if (roleId === '4') {
+          router.push('/admin');
         } else {
           router.push('/');
         }
