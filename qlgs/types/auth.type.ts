@@ -12,7 +12,6 @@ export interface AuthResponse {
   message: string;
   loaiNguoiDungID: string;
   idNguoiDung: string;
-  // Nếu backend của bạn trả về thêm field nào thì bạn cứ khai báo thêm ở đây
 }
 
 // 3. Phản chiếu lại class RegisterRequest của Spring Boot
@@ -22,3 +21,12 @@ export interface RegisterRequest {
   email: string;
   loaiNguoiDungID?: string; // Dấu chấm hỏi (?) nghĩa là trường này có thể có hoặc không (Optional)
 }
+
+
+// 4. Phản chiếu lại class ChangePasswordRequestDTO của Spring Boot
+export interface ChangePasswordRequest {
+  matKhauCu: string;
+  matKhauMoi: string;
+  xacNhanMatKhau: string;
+}
+

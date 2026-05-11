@@ -252,7 +252,7 @@ select * from PhanQuyenNguoiDung
 -- Thêm quyền Người Dùng vào hệ thống
 INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) 
 VALUES ('1', N'Người dùng');
-INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Admin');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('4', N'Admin');
 INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('3', N'Nhân viên');
 
 select * from PhuHuynh
