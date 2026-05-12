@@ -13,11 +13,15 @@ interface AuthState {
   setAuth: (token: string, tenDangNhap: string, loaiNguoiDungID: string, idNguoiDung: string) => void;
   logout: () => void;
   loadFromStorage: () => void;
+  isAdmin: () => boolean;
+  isGiaSu: () => boolean;
+  isPhuHuynh: () => boolean;
+  isNhanVien: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       tenDangNhap: null,
       loaiNguoiDungID: null,
@@ -35,6 +39,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Xóa tất cả dữ liệu từ localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('tenDangNhap');
+        localStorage.removeItem('loaiNguoiDungID');
+        localStorage.removeItem('idNguoiDung');
+        localStorage.removeItem('idGiaSu');
+        localStorage.removeItem('idPhuHuynh');
+        
         set({
           token: null,
           tenDangNhap: null,
@@ -62,6 +74,11 @@ export const useAuthStore = create<AuthState>()(
           }
         }
       },
+
+      isAdmin: () => get().loaiNguoiDungID === '4',
+      isGiaSu: () => get().loaiNguoiDungID === '2',
+      isPhuHuynh: () => get().loaiNguoiDungID === '1',
+      isNhanVien: () => get().loaiNguoiDungID === '3',
     }),
     {
       name: 'auth-storage',

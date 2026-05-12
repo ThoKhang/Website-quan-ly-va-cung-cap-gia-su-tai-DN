@@ -1,8 +1,10 @@
 // Đường dẫn: services/gia-su.service.ts
+// Service chính cho quản lý hồ sơ gia sư, bằng cấp, lịch rảnh, khóa học
 
 import axiosClient from './axiosClient';
 
-// Types
+// ==================== TYPES ====================
+
 export interface GiaSuProfile {
   tenGiaSu: string;
   sdt: string;
@@ -33,106 +35,104 @@ export interface KhoaHoc {
   danhSachIdTietHocRanh: string[];
 }
 
-// Mock data for dropdowns (since backend doesn't have endpoints for these)
-export const mockTietHoc = [
-  { idTietHoc: 'TH_T2_C1', thu: 'Thứ 2', gioBatDau: '17:30', gioKetThuc: '19:30', soTiet: 2 },
-  { idTietHoc: 'TH_T2_C2', thu: 'Thứ 2', gioBatDau: '19:30', gioKetThuc: '21:30', soTiet: 2 },
-  { idTietHoc: 'TH_T3_C1', thu: 'Thứ 3', gioBatDau: '17:30', gioKetThuc: '19:30', soTiet: 2 },
-  { idTietHoc: 'TH_T3_C2', thu: 'Thứ 3', gioBatDau: '19:30', gioKetThuc: '21:30', soTiet: 2 },
-  { idTietHoc: 'TH_T4_C1', thu: 'Thứ 4', gioBatDau: '17:30', gioKetThuc: '19:30', soTiet: 2 },
-  { idTietHoc: 'TH_T4_C2', thu: 'Thứ 4', gioBatDau: '19:30', gioKetThuc: '21:30', soTiet: 2 },
-  { idTietHoc: 'TH_T5_C1', thu: 'Thứ 5', gioBatDau: '17:30', gioKetThuc: '19:30', soTiet: 2 },
-  { idTietHoc: 'TH_T5_C2', thu: 'Thứ 5', gioBatDau: '19:30', gioKetThuc: '21:30', soTiet: 2 },
-  { idTietHoc: 'TH_T6_C1', thu: 'Thứ 6', gioBatDau: '17:30', gioKetThuc: '19:30', soTiet: 2 },
-  { idTietHoc: 'TH_T6_C2', thu: 'Thứ 6', gioBatDau: '19:30', gioKetThuc: '21:30', soTiet: 2 },
-  { idTietHoc: 'TH_T7_C1', thu: 'Thứ 7', gioBatDau: '08:00', gioKetThuc: '10:00', soTiet: 2 },
-  { idTietHoc: 'TH_T7_C2', thu: 'Thứ 7', gioBatDau: '10:00', gioKetThuc: '12:00', soTiet: 2 },
-  { idTietHoc: 'TH_T7_C3', thu: 'Thứ 7', gioBatDau: '14:00', gioKetThuc: '16:00', soTiet: 2 },
-  { idTietHoc: 'TH_CN_C1', thu: 'Chủ nhật', gioBatDau: '08:00', gioKetThuc: '10:00', soTiet: 2 },
-  { idTietHoc: 'TH_CN_C2', thu: 'Chủ nhật', gioBatDau: '10:00', gioKetThuc: '12:00', soTiet: 2 },
-  { idTietHoc: 'TH_CN_C3', thu: 'Chủ nhật', gioBatDau: '14:00', gioKetThuc: '16:00', soTiet: 2 },
-];
-
-export const mockMonHoc = [
-  { idMonHoc: 'MH001', tenMonHoc: 'Toán Học' },
-  { idMonHoc: 'MH002', tenMonHoc: 'Tiếng Anh' },
-  { idMonHoc: 'MH003', tenMonHoc: 'Tiếng Việt' },
-  { idMonHoc: 'MH004', tenMonHoc: 'Vật Lý' },
-  { idMonHoc: 'MH005', tenMonHoc: 'Hóa Học' },
-  { idMonHoc: 'MH006', tenMonHoc: 'Sinh Học' },
-  { idMonHoc: 'MH007', tenMonHoc: 'Lịch Sử' },
-  { idMonHoc: 'MH008', tenMonHoc: 'Địa Lý' },
-];
-
-export const mockDanhMucLop = [
-  { idDanhMucLop: 'L6', tenLop: 'Lớp 6', maCapHoc: 'CH001' },
-  { idDanhMucLop: 'L7', tenLop: 'Lớp 7', maCapHoc: 'CH001' },
-  { idDanhMucLop: 'L8', tenLop: 'Lớp 8', maCapHoc: 'CH001' },
-  { idDanhMucLop: 'L9', tenLop: 'Lớp 9', maCapHoc: 'CH001' },
-  { idDanhMucLop: 'L10', tenLop: 'Lớp 10', maCapHoc: 'CH002' },
-  { idDanhMucLop: 'L11', tenLop: 'Lớp 11', maCapHoc: 'CH002' },
-  { idDanhMucLop: 'L12', tenLop: 'Lớp 12', maCapHoc: 'CH002' },
-];
+// ==================== SERVICE ====================
 
 export const giaSuService = {
-  // 1. Tạo hồ sơ gia sư
+  // ========== HỒ SƠ GIA SƯ ==========
+  
+  /**
+   * Tạo hồ sơ gia sư mới
+   * POST /api/gia-su/tao-moi
+   */
   createProfile: (data: GiaSuProfile): Promise<string> => {
     return axiosClient.post('/gia-su/tao-moi', data);
   },
 
-  // 2. Thêm bằng cấp
-  addBangCap: (data: BangCap): Promise<string> => {
-    return axiosClient.post('/gia-su/them-bang-cap', data);
+  /**
+   * Lấy thông tin hồ sơ gia sư
+   * GET /api/gia-su/{idGiaSu}
+   */
+  getProfile: (idGiaSu: string): Promise<GiaSuProfile> => {
+    return axiosClient.get(`/gia-su/${idGiaSu}`);
   },
 
-  // 3. Xóa bằng cấp
-  deleteBangCap: (idBangCap: string): Promise<string> => {
-    return axiosClient.delete(`/gia-su/bang-cap/${idBangCap}`);
-  },
-
-  // 4. Lấy thông tin chi tiết gia sư (bao gồm bằng cấp)
-  getProfileDetail: (idGiaSu: string): Promise<any> => {
-    return axiosClient.get(`/gia-su/${idGiaSu}/chi-tiet`);
-  },
-
-  // 5. Cập nhật hồ sơ gia sư
+  /**
+   * Cập nhật hồ sơ gia sư
+   * PUT /api/gia-su/{idGiaSu}
+   */
   updateProfile: (idGiaSu: string, data: GiaSuProfile): Promise<string> => {
     return axiosClient.put(`/gia-su/${idGiaSu}`, data);
   },
 
-  // 6. Đăng ký lịch rảnh
+  /**
+   * Lấy thông tin chi tiết gia sư (bao gồm bằng cấp, đánh giá)
+   * GET /api/gia-su/{idGiaSu}/chi-tiet
+   */
+  getProfileDetail: (idGiaSu: string): Promise<any> => {
+    return axiosClient.get(`/gia-su/${idGiaSu}/chi-tiet`);
+  },
+
+  // ========== BẰNG CẤP ==========
+
+  /**
+   * Thêm bằng cấp mới
+   * POST /api/gia-su/them-bang-cap
+   */
+  addBangCap: (data: BangCap): Promise<string> => {
+    return axiosClient.post('/gia-su/them-bang-cap', data);
+  },
+
+  /**
+   * Xóa bằng cấp
+   * DELETE /api/gia-su/bang-cap/{idBangCap}
+   */
+  deleteBangCap: (idBangCap: string): Promise<string> => {
+    return axiosClient.delete(`/gia-su/bang-cap/${idBangCap}`);
+  },
+
+  // ========== LỊCH RẢNH ==========
+
+  /**
+   * Lấy lịch rảnh của gia sư
+   * GET /api/gia-su/{idGiaSu}/lich-ranh
+   * @param idGiaSu - ID gia sư (GS001, GS002, ...)
+   */
+  getLichRanh: (idGiaSu: string): Promise<any[]> => {
+    return axiosClient.get(`/gia-su/${idGiaSu}/lich-ranh`);
+  },
+
+  /**
+   * Đăng ký lịch rảnh
+   * POST /api/gia-su/dang-ky-lich-ranh
+   */
   registerLichRanh: (data: LichRanh): Promise<string> => {
     return axiosClient.post('/gia-su/dang-ky-lich-ranh', data);
   },
 
-  // 7. Tạo khóa học
+  /**
+   * Xóa lịch rảnh
+   * DELETE /api/gia-su/lich-ranh/{idLichDay}
+   */
+  deleteLichRanh: (idLichDay: string): Promise<string> => {
+    return axiosClient.delete(`/gia-su/lich-ranh/${idLichDay}`);
+  },
+
+  // ========== KHÓA HỌC ==========
+
+  /**
+   * Tạo khóa học mới
+   * POST /api/khoa-hoc/tao-moi
+   */
   createKhoaHoc: (data: KhoaHoc): Promise<string> => {
     return axiosClient.post('/khoa-hoc/tao-moi', data);
   },
 
-  // 8. Đổi mật khẩu
-  changePassword: (data: {
-    matKhauCu: string;
-    matKhauMoi: string;
-    xacNhanMatKhau: string;
-  }): Promise<string> => {
-    return axiosClient.post('/tai-khoan/doi-mat-khau', data);
-  },
+  // ========== TIẾT HỌC ==========
 
-  // 9. Get mock data for dropdowns
-  getTietHoc: (): Promise<any[]> => {
-    return Promise.resolve(mockTietHoc);
-  },
-
-  getMonHoc: (): Promise<any[]> => {
-    return Promise.resolve(mockMonHoc);
-  },
-
-  getDanhMucLop: (): Promise<any[]> => {
-    return Promise.resolve(mockDanhMucLop);
-  },
-
-  // 10. Tạo tiết học mới (động)
+  /**
+   * Tạo tiết học mới
+   * POST /api/tiet-hoc/tao-moi
+   */
   createTietHoc: (data: {
     thu: string;
     gioBatDau: string;
@@ -141,22 +141,29 @@ export const giaSuService = {
     return axiosClient.post('/tiet-hoc/tao-moi', data);
   },
 
-  // 11. Xóa lịch rảnh
-  deleteLichRanh: (idLichDay: string): Promise<string> => {
-    return axiosClient.delete(`/gia-su/lich-ranh/${idLichDay}`);
-  },
-
-  // 12. Lấy lịch rảnh của gia sư
-  getLichRanh: (idGiaSu: string): Promise<any[]> => {
-    return axiosClient.get(`/gia-su/${idGiaSu}/lich-ranh`);
-  },
-
-  // 13. Cập nhật tiết học
+  /**
+   * Cập nhật tiết học
+   * PUT /api/tiet-hoc/{idTietHoc}
+   */
   updateTietHoc: (idTietHoc: string, data: {
     thu: string;
     gioBatDau: string;
     gioKetThuc: string;
   }): Promise<any> => {
     return axiosClient.put(`/tiet-hoc/${idTietHoc}`, data);
+  },
+
+  // ========== TÀI KHOẢN ==========
+
+  /**
+   * Đổi mật khẩu
+   * POST /api/tai-khoan/doi-mat-khau
+   */
+  changePassword: (data: {
+    matKhauCu: string;
+    matKhauMoi: string;
+    xacNhanMatKhau: string;
+  }): Promise<string> => {
+    return axiosClient.post('/tai-khoan/doi-mat-khau', data);
   },
 };

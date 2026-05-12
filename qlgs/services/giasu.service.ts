@@ -1,7 +1,17 @@
+// Đường dẫn: services/giasu.service.ts
+// Service dành cho tìm kiếm gia sư (public API, không cần authentication)
+// Sử dụng cho phụ huynh tìm kiếm gia sư
+
 import { GiaSuSearchResult } from "@/types/giasu.type";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+/**
+ * Tìm kiếm gia sư theo từ khóa hoặc môn học
+ * GET /api/public/giasu/search
+ * @param keyword - Từ khóa tìm kiếm (tên gia sư, ...)
+ * @param idMonHoc - ID môn học
+ */
 export async function searchGiaSu(
   keyword?: string,
   idMonHoc?: string
@@ -33,6 +43,11 @@ export async function searchGiaSu(
   return response.json();
 }
 
+/**
+ * Lấy thông tin chi tiết gia sư (public)
+ * GET /api/public/giasu/{idGiaSu}
+ * @param idGiaSu - ID gia sư
+ */
 export async function getGiaSuDetail(idGiaSu: string): Promise<GiaSuSearchResult> {
   const url = `${API_BASE_URL}/public/giasu/${idGiaSu}`;
 

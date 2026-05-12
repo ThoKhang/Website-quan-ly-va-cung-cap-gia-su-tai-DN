@@ -29,7 +29,7 @@ public class GiaSuController {
 
     // API 2: Gia sư tự tạo hồ sơ chính chủ
     @PostMapping("/tao-moi")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> taoHoSoGiaSu(@RequestBody GiaSuRequestDTO request) {
         try {
             return ResponseEntity.ok(giaSuService.taoHoSo(request));
@@ -40,7 +40,7 @@ public class GiaSuController {
 
     // API 3: Gia sư tự tải lên Bằng cấp/Chứng chỉ
     @PostMapping("/them-bang-cap")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> themBangCap(@RequestBody BangCapRequestDTO request) {
         try {
             return ResponseEntity.ok(giaSuService.themBangCap(request));
@@ -51,7 +51,7 @@ public class GiaSuController {
 
     // API 4: Gia sư tự do thêm các khung giờ rảnh của mình   
     @PostMapping("/dang-ky-lich-ranh")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> dangKyLichRanh(@RequestBody DangKyLichRanhRequestDTO request) {
         try {
             return ResponseEntity.ok(giaSuService.dangKyLichRanh(request));
@@ -71,7 +71,7 @@ public class GiaSuController {
 
     // API: Lấy thông tin hồ sơ gia sư (để cập nhật)
     @GetMapping("/{idGiaSu}")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> layThongTinGiaSu(@PathVariable String idGiaSu) {
         try {
             return ResponseEntity.ok(giaSuService.layThongTinGiaSu(idGiaSu));
@@ -82,7 +82,7 @@ public class GiaSuController {
 
     // API: Cập nhật thông tin hồ sơ gia sư
     @PutMapping("/{idGiaSu}")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> capNhatThongTinGiaSu(@PathVariable String idGiaSu, @RequestBody GiaSuRequestDTO request) {
         try {
             return ResponseEntity.ok(giaSuService.capNhatThongTinGiaSu(idGiaSu, request));
@@ -93,7 +93,7 @@ public class GiaSuController {
 
     // API: Xóa lịch rảnh
     @DeleteMapping("/lich-ranh/{idLichDay}")
-    @PreAuthorize("hasAuthority('2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_2')") // CHỈ GIA SƯ (ID = 2) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> xoaLichRanh(@PathVariable String idLichDay) {
         try {
             return ResponseEntity.ok(giaSuService.xoaLichRanh(idLichDay));

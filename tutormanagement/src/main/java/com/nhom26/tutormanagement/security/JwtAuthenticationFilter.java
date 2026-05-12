@@ -62,8 +62,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         roleId = "1"; // Mặc định là phụ huynh
                     }
                     
+                    // Thêm prefix ROLE_ để Spring Security nhận diện đúng
                     List<SimpleGrantedAuthority> authorities = Collections.singletonList(
-                            new SimpleGrantedAuthority(roleId)
+                            new SimpleGrantedAuthority("ROLE_" + roleId)
                     );
                     System.out.println("   Authorities: " + authorities);
 

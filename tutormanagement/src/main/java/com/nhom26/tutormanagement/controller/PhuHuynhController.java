@@ -15,7 +15,7 @@ public class PhuHuynhController {
     private final PhuHuynhService phuHuynhService;
 
     @PostMapping("/tao-moi")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH (ID = 1) MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH (ID = 1) MỚI ĐƯỢC GỌI
     public ResponseEntity<?> taoPhuHuynh(@RequestBody PhuHuynh phuHuynh) {
         try {
             return ResponseEntity.ok(phuHuynhService.save(phuHuynh));
@@ -25,7 +25,7 @@ public class PhuHuynhController {
     }
 
     @GetMapping("/thong-tin-hien-tai")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
     public ResponseEntity<?> layThongTinHienTai() {
         try {
             return ResponseEntity.ok(phuHuynhService.layThongTinHienTai());
@@ -35,7 +35,7 @@ public class PhuHuynhController {
     }
 
     @PutMapping("/cap-nhat")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
     public ResponseEntity<?> capNhatThongTin(@RequestBody PhuHuynhUpdateDTO phuHuynh) {
         try {
             return ResponseEntity.ok(phuHuynhService.capNhatThongTin(phuHuynh));

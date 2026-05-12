@@ -29,8 +29,9 @@ interface FormData extends Omit<KhoaHocRequestDTO, 'danhSachIdTietHocRanh'> {
 }
 
 export default function KhoaHocManagement() {
-  const { idNguoiDung } = useAuthStore();
+  const { idNguoiDung, loaiNguoiDungID } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [idGiaSu, setIdGiaSu] = useState<string | null>(null);
   const [courses, setCourses] = useState<KhoaHoc[]>([]);
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
   const [classLevels, setClassLevels] = useState<ClassLevelOption[]>([]);
@@ -58,33 +59,39 @@ export default function KhoaHocManagement() {
   useEffect(() => {
     setIsMounted(true);
     useAuthStore.getState().loadFromStorage();
+    
+    // Lấy idGiaSu từ localStorage
+    if (typeof window !== 'undefined') {
+      const storedIdGiaSu = localStorage.getItem('idGiaSu');
+      setIdGiaSu(storedIdGiaSu);
+      console.log('Loaded idGiaSu from localStorage:', storedIdGiaSu);
+    }
   }, []);
 
   useEffect(() => {
-    if (isMounted && idNguoiDung) {
+    if (isMounted && idGiaSu && loaiNguoiDungID === '2') {
       loadInitialData();
     }
-  }, [isMounted, idNguoiDung]);
+  }, [isMounted, idGiaSu, loaiNguoiDungID]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      if (!idNguoiDung) {
-        setError('Vui lòng đăng nhập để xem khóa học');
-        console.warn('idNguoiDung is empty:', idNguoiDung);
+      if (!idGiaSu) {
+        setError('Vui lòng đăng nhập lại để xem khóa học');
+        console.warn('idGiaSu is empty:', idGiaSu);
         return;
       }
 
-      console.log('Loading data for tutor:', idNguoiDung);
+      console.log('Loading data for tutor (idGiaSu):', idGiaSu);
 
       // Load subjects
       let subjectsData: SubjectOption[] = [];
       try {
         const subjectsRes = await getSubjects();
         console.log('Subjects response:', subjectsRes);
-        // axiosClient trả về response.data trực tiếp, nên subjectsRes là mảng
         subjectsData = Array.isArray(subjectsRes) ? subjectsRes : [];
       } catch (err) {
         console.error('Error loading subjects:', err);
@@ -103,17 +110,17 @@ export default function KhoaHocManagement() {
       // Load courses
       let coursesData: KhoaHoc[] = [];
       try {
-        const coursesRes = await getCoursesByTutor(idNguoiDung);
+        const coursesRes = await getCoursesByTutor(idGiaSu);
         console.log('Courses response:', coursesRes);
         coursesData = Array.isArray(coursesRes) ? coursesRes : [];
       } catch (err) {
         console.error('Error loading courses:', err);
       }
 
-      // Load time slots
+      // Load time slots - SỬ DỤNG idGiaSu THAY VÌ idNguoiDung
       let lichRanhData: TietHocOption[] = [];
       try {
-        const lichRanhRes = await giaSuService.getLichRanh(idNguoiDung);
+        const lichRanhRes = await giaSuService.getLichRanh(idGiaSu);
         console.log('Lich ranh response:', lichRanhRes);
         lichRanhData = (lichRanhRes || []).map((lichDay: any) => ({
           idTietHoc: lichDay.tietHoc?.idTietHoc || '',
@@ -178,7 +185,7 @@ export default function KhoaHocManagement() {
 
       const submitData: KhoaHocRequestDTO = {
         ...formData,
-        idGiaSu: idNguoiDung || '',
+        idGiaSu: idGiaSu || '',
         danhSachIdTietHocRanh: selectedTietHoc,
       };
 
@@ -191,8 +198,8 @@ export default function KhoaHocManagement() {
       }
 
       resetForm();
-      if (idNguoiDung) {
-        const coursesRes = await getCoursesByTutor(idNguoiDung);
+      if (idGiaSu) {
+        const coursesRes = await getCoursesByTutor(idGiaSu);
         setCourses(coursesRes.data || []);
       }
     } catch (err: any) {
@@ -287,7 +294,7 @@ export default function KhoaHocManagement() {
               <Button 
                 onClick={() => setShowForm(!showForm)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={!idNguoiDung}
+                disabled={!idGiaSu}
               >
                 {showForm ? 'Hủy' : '+ Tạo Khóa Học'}
               </Button>
@@ -300,9 +307,9 @@ export default function KhoaHocManagement() {
               <Text size="body" className="text-blue-800">Đang tải...</Text>
             </div>
           )}
-          {!idNguoiDung && isMounted && (
+          {!idGiaSu && isMounted && (
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <Text size="body" className="text-yellow-800">Vui lòng đăng nhập để xem khóa học</Text>
+              <Text size="body" className="text-yellow-800">Vui lòng đăng nhập lại để xem khóa học</Text>
             </div>
           )}
           {error && (

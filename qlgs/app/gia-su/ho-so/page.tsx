@@ -6,6 +6,7 @@ import { Button, Card, Section, Text } from "@/component/ui";
 import { BangCap } from "@/types/auth.type";
 
 export default function GiaSuHoSo() {
+  const [isMounted, setIsMounted] = useState(false);
   const [formData, setFormData] = useState({
     tenGiaSu: '',
     sdt: '',
@@ -23,20 +24,32 @@ export default function GiaSuHoSo() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
+  // Đảm bảo component đã mount trước khi truy cập localStorage
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Chỉ chạy khi component đã mount
+    if (!isMounted) return;
+
     // Lấy thông tin gia sư hiện tại từ API
     const fetchGiaSuInfo = async () => {
       try {
         const token = localStorage.getItem('token');
-        const idNguoiDung = localStorage.getItem('idNguoiDung');
+        const idGiaSu = localStorage.getItem('idGiaSu');
         
-        if (!token || !idNguoiDung) {
+        console.log('📝 Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
+        console.log('📝 idGiaSu:', idGiaSu);
+        
+        if (!token || !idGiaSu) {
           setMessage('Vui lòng đăng nhập lại');
           setMessageType('error');
+          console.warn('⚠️ Thiếu token hoặc idGiaSu');
           return;
         }
 
-        const response = await fetch(`http://localhost:8080/api/gia-su/${idNguoiDung}`, {
+        const response = await fetch(`http://localhost:8080/api/gia-su/${idGiaSu}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -54,14 +67,22 @@ export default function GiaSuHoSo() {
           if (data.bangCapList && Array.isArray(data.bangCapList)) {
             setBangCapList(data.bangCapList);
           }
+          console.log('✅ Tải thông tin hồ sơ thành công');
+        } else {
+          const errorData = await response.json();
+          console.error('❌ Lỗi từ server:', response.status, errorData);
+          setMessage(`Lỗi: ${errorData.message || 'Không thể tải thông tin'}`);
+          setMessageType('error');
         }
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin:', error);
+        console.error('❌ Lỗi khi lấy thông tin:', error);
+        setMessage('Lỗi kết nối đến máy chủ');
+        setMessageType('error');
       }
     };
 
     fetchGiaSuInfo();
-  }, []);
+  }, [isMounted]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -86,11 +107,15 @@ export default function GiaSuHoSo() {
 
     try {
       const token = localStorage.getItem('token');
-      const idNguoiDung = localStorage.getItem('idNguoiDung');
+      const idGiaSu = localStorage.getItem('idGiaSu');
 
-      if (!token || !idNguoiDung) {
+      console.log('📝 Thêm bằng cấp - Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
+      console.log('📝 Thêm bằng cấp - idGiaSu:', idGiaSu);
+
+      if (!token || !idGiaSu) {
         setMessage('Vui lòng đăng nhập lại');
         setMessageType('error');
+        console.warn('⚠️ Thiếu token hoặc idGiaSu');
         return;
       }
 
@@ -226,15 +251,19 @@ export default function GiaSuHoSo() {
 
     try {
       const token = localStorage.getItem('token');
-      const idNguoiDung = localStorage.getItem('idNguoiDung');
+      const idGiaSu = localStorage.getItem('idGiaSu');
 
-      if (!token || !idNguoiDung) {
+      console.log('📝 Cập nhật hồ sơ - Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
+      console.log('📝 Cập nhật hồ sơ - idGiaSu:', idGiaSu);
+
+      if (!token || !idGiaSu) {
         setMessage('Vui lòng đăng nhập lại');
         setMessageType('error');
+        console.warn('⚠️ Thiếu token hoặc idGiaSu');
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/gia-su/${idNguoiDung}`, {
+      const response = await fetch(`http://localhost:8080/api/gia-su/${idGiaSu}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -246,11 +275,12 @@ export default function GiaSuHoSo() {
       if (response.ok) {
         setMessage('Hồ sơ đã được cập nhật thành công!');
         setMessageType('success');
+        console.log('✅ Cập nhật hồ sơ thành công');
       } else {
         let errorMessage = 'Cập nhật thất bại. Vui lòng kiểm tra dữ liệu nhập vào.';
         try {
           const errorData = await response.json();
-          console.error('Backend error:', errorData);
+          console.error('❌ Backend error:', response.status, errorData);
           errorMessage = errorData.message || errorMessage;
         } catch (e) {
           console.error('Không thể parse error response:', e);
@@ -259,7 +289,7 @@ export default function GiaSuHoSo() {
         setMessageType('error');
       }
     } catch (error) {
-      console.error('Lỗi:', error);
+      console.error('❌ Lỗi:', error);
       setMessage('Có lỗi xảy ra, vui lòng thử lại');
       setMessageType('error');
     } finally {

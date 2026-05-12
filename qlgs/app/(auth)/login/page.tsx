@@ -94,14 +94,23 @@ function LoginContent() {
       const loaiNguoiDungID = response.loaiNguoiDungID?.toString() || '';
       const idNguoiDung = response.idNguoiDung?.toString() || '';
 
+      // Kiểm tra dữ liệu hợp lệ
+      if (!token || !loaiNguoiDungID || !idNguoiDung) {
+        throw new Error('Phản hồi từ máy chủ không hợp lệ. Vui lòng thử lại.');
+      }
+
       // Lưu vào localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('tenDangNhap', formData.tenDangNhap);
       localStorage.setItem('loaiNguoiDungID', loaiNguoiDungID);
       localStorage.setItem('idNguoiDung', idNguoiDung);
       
-      // Nếu là gia sư (loaiNguoiDungID = 2), lưu thêm idGiaSu
-      if (loaiNguoiDungID === '2') {
+      // Lưu ID tương ứng với loại tài khoản
+      if (loaiNguoiDungID === '1') {
+        // Phụ huynh
+        localStorage.setItem('idPhuHuynh', idNguoiDung);
+      } else if (loaiNguoiDungID === '2') {
+        // Gia sư
         localStorage.setItem('idGiaSu', idNguoiDung);
       }
 
@@ -113,18 +122,26 @@ function LoginContent() {
 
       const roleId = loaiNguoiDungID;
       setTimeout(() => {
-        if (roleId === '1') {
-          // Học viên: chuyển đến trang chủ chính
-          router.push('/');
-        } else if (roleId === '2') {
-          // Gia sư: chuyển đến trang chủ và lướt xuống phần chức năng gia sư
-          router.push('/#quan-ly');
-        } else if (roleId === '3') {
-          router.push('/nhan-vien');
-        } else if (roleId === '4') {
-          router.push('/admin');
-        } else {
-          router.push('/');
+        switch (roleId) {
+          case '1':
+            // Phụ huynh: chuyển đến trang chủ
+            router.push('/');
+            break;
+          case '2':
+            // Gia sư: chuyển đến trang quản lý gia sư
+            router.push('/gia-su/khoa-hoc');
+            break;
+          case '3':
+            // Nhân viên: chuyển đến trang nhân viên
+            router.push('/nhan-vien');
+            break;
+          case '4':
+            // Admin: chuyển đến trang admin
+            router.push('/admin');
+            break;
+          default:
+            // Mặc định: chuyển đến trang chủ
+            router.push('/');
         }
       }, 1500);
     } catch (err: any) {

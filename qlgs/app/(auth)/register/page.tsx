@@ -82,10 +82,17 @@ export default function RegisterPage() {
       return;
     }
 
+    // Kiểm tra loại tài khoản hợp lệ
+    const validRoles = ['1', '2', '3', '4'];
+    if (!validRoles.includes(formData.loaiNguoiDungID || '')) {
+      setMessage('Loại tài khoản không hợp lệ. Vui lòng chọn lại.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await authService.register(formData);
+      await authService.register(formData);
       setMessage('');
       router.push('/login?registered=true');
     } catch (err: any) {
@@ -188,9 +195,14 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
               >
-                <option value="1">👨‍👩‍👧 Phụ huynh</option>
+                <option value="1">👨‍👩‍👧 Phụ huynh (Học viên)</option>
                 <option value="2">👨‍🏫 Gia sư</option>
+                <option value="3">👔 Nhân viên</option>
+                <option value="4">🔐 Quản trị viên</option>
               </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Chọn loại tài khoản phù hợp với vai trò của bạn
+              </p>
             </div>
 
             {/* Password Field */}

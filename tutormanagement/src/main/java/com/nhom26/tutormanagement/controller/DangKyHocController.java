@@ -21,7 +21,7 @@ public class DangKyHocController {
      * GET /api/dang-ky-hoc/phu-huynh/{idPhuHuynh}
      */
     @GetMapping("/phu-huynh/{idPhuHuynh}")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
     public ResponseEntity<?> layLichSuKhoaHoc(@PathVariable String idPhuHuynh) {
         try {
             List<DangKyHocResponseDTO> lichSu = dangKyHocService.layLichSuKhoaHoc(idPhuHuynh);
