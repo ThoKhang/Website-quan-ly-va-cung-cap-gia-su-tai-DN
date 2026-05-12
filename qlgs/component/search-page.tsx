@@ -92,7 +92,9 @@ function SearchExperience({
         const response = await searchCourses(debouncedFilters);
 
         if (isMounted) {
-          setResults(response);
+          // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
+          const data = response.data ? response.data : response;
+          setResults(Array.isArray(data) ? data : []);
         }
       } catch {
         if (isMounted) {
@@ -257,6 +259,9 @@ function SearchExperience({
                 </div>
                 <div className="rounded-[var(--radius-pill)] bg-[var(--color-canvas-parchment)] px-4 py-2 text-right">
                   <Text size="bodyStrong">{formatCurrency(course.soTienHoc)}</Text>
+                  <Text size="caption" tone="muted" className="block mt-1">
+                    {course.soBuoiHoc ? `${course.soBuoiHoc} buổi` : ""}
+                  </Text>
                 </div>
               </div>
 
@@ -327,8 +332,12 @@ export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
           return;
         }
 
-        setSubjects(subjectResponse);
-        setClassLevels(classLevelResponse);
+        // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
+        const subjectData = subjectResponse.data ? subjectResponse.data : subjectResponse;
+        const classLevelData = classLevelResponse.data ? classLevelResponse.data : classLevelResponse;
+        
+        setSubjects(Array.isArray(subjectData) ? subjectData : []);
+        setClassLevels(Array.isArray(classLevelData) ? classLevelData : []);
       } catch {
         if (isMounted) {
           setMetadataError("Không tải được dữ liệu bộ lọc.");

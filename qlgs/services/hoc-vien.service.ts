@@ -43,11 +43,18 @@ export interface PhuongXaDTO {
   quanHuyen: QuanHuyenDTO;
 }
 
+export interface ThoiGianHocDetail {
+  idLichDay: string;
+  gioBatDau: string;
+  gioKetThuc: string;
+}
+
 export interface BookingRequest {
   idPhuHuynh: string;
   idHocVien: string;
   idKhoaHoc: string;
   danhSachIdLichDay: string[];
+  danhSachThoiGianHoc?: ThoiGianHocDetail[];
   phuongThucThanhToan: string;
   ngayBatDauHoc: string;
 }

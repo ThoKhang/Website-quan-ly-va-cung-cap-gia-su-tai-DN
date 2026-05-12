@@ -124,9 +124,6 @@ export default function CourseDetailPage() {
             <Text as="h1" size="display">
               Chi Tiết Khóa Học
             </Text>
-            <Text size="lead" tone="muted" className="mt-2">
-              Mã đơn: {idDangKy}
-            </Text>
           </div>
           <Link href="/search">
             <Button variant="secondary">Quay lại</Button>
@@ -183,10 +180,18 @@ export default function CourseDetailPage() {
                 </div>
                 <div>
                   <Text size="caption" tone="muted" className="mb-1">
-                    Giá tiền / buổi
+                    Tổng tiền khóa học
                   </Text>
                   <Text size="body" className="font-semibold text-blue-600">
                     {formatCurrency(khoaHoc.soTienHoc)}
+                  </Text>
+                </div>
+                <div>
+                  <Text size="caption" tone="muted" className="mb-1">
+                    Tiền / buổi
+                  </Text>
+                  <Text size="body" className="font-semibold text-gray-600">
+                    {formatCurrency(khoaHoc.soTienHoc / (khoaHoc.soBuoiHoc || 1))}
                   </Text>
                 </div>
                 <div>

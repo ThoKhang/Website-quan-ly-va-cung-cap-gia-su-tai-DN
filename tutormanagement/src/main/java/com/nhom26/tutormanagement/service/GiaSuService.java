@@ -4,6 +4,7 @@ import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
+import com.nhom26.tutormanagement.dto.LichRanhDTO;
 import com.nhom26.tutormanagement.entity.BangCap;
 import com.nhom26.tutormanagement.entity.GiaSu;
 import com.nhom26.tutormanagement.entity.LichDay;
@@ -37,9 +38,32 @@ public class GiaSuService {
     // ==========================================
     // 1. LẤY LỊCH RẢNH CỦA GIA SƯ
     // ==========================================
-    public List<LichDay> layLichRanhCuaGiaSu(String idGiaSu) {
+    public List<LichRanhDTO> layLichRanhCuaGiaSu(String idGiaSu) {
         List<LichDay> danhSachLichRanh = lichDayRepository.findByGiaSu_IdGiaSuAndTinhTrangTrue(idGiaSu);
-        return danhSachLichRanh;
+        
+        // Loại bỏ trùng lặp dựa trên idTietHoc - chỉ giữ lại LichDay đầu tiên của mỗi TietHoc
+        java.util.Map<String, LichDay> uniqueLichDayMap = new java.util.LinkedHashMap<>();
+        for (LichDay lichDay : danhSachLichRanh) {
+            String idTietHoc = lichDay.getTietHoc().getIdTietHoc();
+            if (!uniqueLichDayMap.containsKey(idTietHoc)) {
+                uniqueLichDayMap.put(idTietHoc, lichDay);
+            }
+        }
+        
+        // Chuyển đổi từ LichDay entity sang LichRanhDTO
+        return uniqueLichDayMap.values().stream()
+                .map(lichDay -> LichRanhDTO.builder()
+                        .idLichDay(lichDay.getIdLichDay())
+                        .tinhTrang(lichDay.getTinhTrang())
+                        .tietHoc(LichRanhDTO.TietHocDTO.builder()
+                                .idTietHoc(lichDay.getTietHoc().getIdTietHoc())
+                                .thu(lichDay.getTietHoc().getThu())
+                                .gioBatDau(lichDay.getTietHoc().getGioBatDau())
+                                .gioKetThuc(lichDay.getTietHoc().getGioKetThuc())
+                                .soTiet(lichDay.getTietHoc().getSoTiet())
+                                .build())
+                        .build())
+                .toList();
     }
 
     // ==========================================

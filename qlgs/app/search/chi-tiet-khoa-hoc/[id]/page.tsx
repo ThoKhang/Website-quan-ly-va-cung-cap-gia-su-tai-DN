@@ -33,11 +33,6 @@ export default function CourseDetailPage() {
       const data = await getCourseDetail(idKhoaHoc);
       const courseData = (data.data || data) as any;
       
-      // Ensure idGiaSu is set (fallback to extracting from response)
-      if (!courseData.idGiaSu && courseData.giaSu?.idGiaSu) {
-        courseData.idGiaSu = courseData.giaSu.idGiaSu;
-      }
-      
       setCourse(courseData);
       
       console.log("Course data:", courseData);
@@ -252,10 +247,18 @@ export default function CourseDetailPage() {
               </div>
               <div>
                 <Text size="caption" tone="muted" className="mb-1">
-                  Giá tiền / buổi
+                  Tổng tiền khóa học ({course.soBuoiHoc} buổi)
                 </Text>
                 <Text size="body" className="font-semibold text-blue-600">
                   {formatCurrency(course.soTienHoc)}
+                </Text>
+              </div>
+              <div>
+                <Text size="caption" tone="muted" className="mb-1">
+                  Tiền / buổi
+                </Text>
+                <Text size="body" className="font-semibold text-gray-600">
+                  {formatCurrency(course.soTienHoc / (course.soBuoiHoc || 1))}
                 </Text>
               </div>
               <div>

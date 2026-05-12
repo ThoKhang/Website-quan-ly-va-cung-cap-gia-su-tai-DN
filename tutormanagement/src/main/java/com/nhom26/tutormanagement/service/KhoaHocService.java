@@ -215,7 +215,7 @@ public class KhoaHocService {
         return "Xóa khóa học thành công!";
     }
 
-    private KhoaHocResponseDTO mapToResponseDTO(KhoaHoc khoaHoc) {
+    public KhoaHocResponseDTO mapToResponseDTO(KhoaHoc khoaHoc) {
         KhoaHocResponseDTO dto = new KhoaHocResponseDTO();
         dto.setIdKhoaHoc(khoaHoc.getIdKhoaHoc());
         dto.setTenKhoaHoc(khoaHoc.getTenKhoaHoc());
@@ -229,6 +229,7 @@ public class KhoaHocService {
         if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
         if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
         if (khoaHoc.getGiaSu() != null) {
+            dto.setIdGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
             dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());
             
             Double sao = danhGiaRepository.calculateAverageRatingForGiaSu(khoaHoc.getGiaSu().getIdGiaSu());

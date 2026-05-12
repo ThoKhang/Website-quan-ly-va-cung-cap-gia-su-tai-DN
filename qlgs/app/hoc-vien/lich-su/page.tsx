@@ -13,6 +13,14 @@ export default function BookingHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [bookings, setBookings] = useState<DangKyHocResponse[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all"); // Filter state
+
+  const statusOptions = [
+    { value: "all", label: "Tất cả" },
+    { value: "Chưa bắt đầu", label: "Chưa bắt đầu" },
+    { value: "Đang học", label: "Đang học" },
+    { value: "Đã hoàn thành", label: "Kết thúc" },
+  ];
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -30,10 +38,13 @@ export default function BookingHistoryPage() {
         setError("Không tìm thấy thông tin người dùng");
         return;
       }
+      console.log("📝 Đang tải lịch sử cho idNguoiDung:", idNguoiDung);
       const data = await hocVienService.getBookingHistory(idNguoiDung);
+      console.log("✅ Dữ liệu lịch sử nhận được:", data);
       setBookings(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Có lỗi xảy ra khi tải lịch sử");
+      console.error("❌ Lỗi khi tải lịch sử:", err);
+      setError(err.response?.data?.message || err.message || "Có lỗi xảy ra khi tải lịch sử");
     } finally {
       setLoading(false);
     }
@@ -65,6 +76,19 @@ export default function BookingHistoryPage() {
     }).format(value);
   };
 
+  // Lọc khóa học theo trạng thái
+  const getFilteredBookings = () => {
+    if (selectedStatus === "all") {
+      return bookings;
+    }
+    return bookings.filter((booking) => {
+      if (booking.chiTietLichHoc.length === 0) return false;
+      return booking.chiTietLichHoc[0].tinhTrang === selectedStatus;
+    });
+  };
+
+  const filteredBookings = getFilteredBookings();
+
   if (loading) {
     return (
       <main className="page-shell">
@@ -95,6 +119,33 @@ export default function BookingHistoryPage() {
           </div>
         )}
 
+        {/* Bộ lọc trạng thái */}
+        {bookings.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {statusOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedStatus(option.value)}
+                className={`px-4 py-2 rounded-full font-medium transition ${
+                  selectedStatus === option.value
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <Text size="body" className="text-red-700">
+              {error}
+            </Text>
+          </div>
+        )}
+
         {bookings.length === 0 ? (
           <Card className="bg-white p-8 text-center">
             <Text size="title" className="mb-2">
@@ -107,9 +158,18 @@ export default function BookingHistoryPage() {
               <Button>Tìm khóa học</Button>
             </Link>
           </Card>
+        ) : filteredBookings.length === 0 ? (
+          <Card className="bg-white p-8 text-center">
+            <Text size="title" className="mb-2">
+              Không có khóa học nào
+            </Text>
+            <Text tone="muted">
+              Không tìm thấy khóa học với trạng thái "{statusOptions.find(o => o.value === selectedStatus)?.label}"
+            </Text>
+          </Card>
         ) : (
           <div className="space-y-4">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <Card key={booking.idDangKy} className="bg-white p-6 hover:shadow-lg transition">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div>
@@ -130,6 +190,9 @@ export default function BookingHistoryPage() {
                     </Text>
                     <Text size="body" className="font-semibold">
                       {formatCurrency(Number(booking.khoaHoc.soTienHoc))}
+                    </Text>
+                    <Text size="caption" tone="muted" className="mt-1">
+                      ({booking.khoaHoc.soBuoiHoc} buổi)
                     </Text>
                   </div>
                   <div>
