@@ -20,8 +20,13 @@ public class HocVienService {
     private final PhuHuynhRepository phuHuynhRepository;
 
     private String generateNextId() {
-        // Use UUID to avoid concurrent duplicate key errors
-        return "HV" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String maxId = hocVienRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) {
+            return "HV001";
+        }
+        // Cắt bỏ chữ "HV" (2 ký tự đầu), lấy phần số cộng thêm 1
+        int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+        return String.format("HV%03d", nextNumber);
     }
 
     public HocVien save(HocVien hocVien) {

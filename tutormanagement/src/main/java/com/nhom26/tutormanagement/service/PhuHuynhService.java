@@ -22,8 +22,13 @@ public class PhuHuynhService {
     private final PhuongXaRepository phuongXaRepository;
 
     private String generateNextId() {
-        // Use UUID to avoid concurrent duplicate key errors
-        return "PH" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String maxId = phuHuynhRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) {
+            return "PH001";
+        }
+        // Cắt bỏ chữ "PH" (2 ký tự đầu), lấy phần số cộng thêm 1
+        int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+        return String.format("PH%03d", nextNumber);
     }
 
     @Transactional
