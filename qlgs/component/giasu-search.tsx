@@ -5,24 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, Input, Section, Text } from "@/component/ui";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { getClassLevels, getSubjects, searchCourses } from "@/services/khoa-hoc.service";
+import { getSubjects } from "@/services/khoa-hoc.service";
+import { searchGiaSu } from "@/services/giasu.service";
 import { useAuthStore } from "@/store/auth.store";
-import type {
-  ClassLevelOption,
-  CourseSearchResult,
-  SearchFilters,
-  SubjectOption,
-} from "@/types/search.type";
+import type { GiaSuSearchResult, SubjectOption } from "@/types/search.type";
 
-const defaultFilters: SearchFilters = {
+const defaultFilters = {
   keyword: "",
   idMonHoc: "",
-  idDanhMucLop: "",
-  minPrice: "",
-  maxPrice: "",
 };
 
-function buildQueryString(filters: SearchFilters) {
+function buildQueryString(filters: typeof defaultFilters) {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(filters)) {
@@ -35,46 +28,32 @@ function buildQueryString(filters: SearchFilters) {
   return params.toString();
 }
 
-function formatCurrency(value?: number) {
-  if (value == null || Number.isNaN(value)) {
-    return "Liên hệ để nhận báo giá";
-  }
-
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-type SearchPageProps = {
-  initialFilters: SearchFilters;
+type GiaSuSearchPageProps = {
+  initialFilters: typeof defaultFilters;
   queryKey: string;
 };
 
-type SearchExperienceProps = SearchPageProps & {
-  classLevels: ClassLevelOption[];
-  isMetadataLoading: boolean;
+type GiaSuSearchExperienceProps = GiaSuSearchPageProps & {
   subjects: SubjectOption[];
+  isMetadataLoading: boolean;
 };
 
-function SearchExperience({
+function GiaSuSearchExperience({
   initialFilters,
   queryKey,
-  classLevels,
-  isMetadataLoading,
   subjects,
-}: SearchExperienceProps) {
+  isMetadataLoading,
+}: GiaSuSearchExperienceProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoggedIn, loaiNguoiDungID } = useAuthStore();
-  const [filters, setFilters] = useState<SearchFilters>(initialFilters);
+  const [filters, setFilters] = useState(initialFilters);
   const debouncedFilters = useDebouncedValue(filters, 300);
-  const [results, setResults] = useState<CourseSearchResult[]>([]);
+  const [results, setResults] = useState<GiaSuSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isParent = loaiNguoiDungID === '1'; // 1 = Phụ huynh
+  const isParent = loaiNguoiDungID === "1"; // 1 = Phụ huynh
 
   useEffect(() => {
     const nextQuery = buildQueryString(debouncedFilters);
@@ -89,14 +68,14 @@ function SearchExperience({
       try {
         setIsLoading(true);
         setError(null);
-        const response = await searchCourses(debouncedFilters);
+        const response = await searchGiaSu(debouncedFilters.keyword, debouncedFilters.idMonHoc);
 
         if (isMounted) {
           setResults(response);
         }
       } catch {
         if (isMounted) {
-          setError("Không thể tải kết quả tìm kiếm.");
+          setError("Không thể tải kết quả tìm kiếm gia sư.");
           setResults([]);
         }
       } finally {
@@ -117,7 +96,7 @@ function SearchExperience({
     return Object.values(filters).filter((value) => value.trim() !== "").length;
   }, [filters]);
 
-  function updateFilter<Key extends keyof SearchFilters>(key: Key, value: SearchFilters[Key]) {
+  function updateFilter<Key extends keyof typeof filters>(key: Key, value: (typeof filters)[Key]) {
     setFilters((current) => ({
       ...current,
       [key]: value,
@@ -133,16 +112,16 @@ function SearchExperience({
       <Card className="h-fit space-y-5 bg-white/88 p-5 backdrop-blur">
         <div className="space-y-2">
           <Text as="h1" size="title">
-            Tìm khóa học
+            Tìm gia sư
           </Text>
           <Text tone="muted">
-            Nhập từ khóa hoặc chỉnh bộ lọc. Sau 300ms không đổi, hệ thống sẽ gọi lại API.
+            Nhập từ khóa hoặc chọn môn học để tìm gia sư phù hợp.
           </Text>
         </div>
 
         <Input
           label="Từ khóa"
-          placeholder="Toán, lớp 10, gia sư Anh văn..."
+          placeholder="Tên gia sư, môn học..."
           value={filters.keyword}
           onChange={(event) => updateFilter("keyword", event.target.value)}
         />
@@ -166,42 +145,6 @@ function SearchExperience({
           </select>
         </label>
 
-        <label className="flex flex-col gap-2">
-          <span className="text-[14px] font-semibold leading-[1.42] tracking-[-0.01em] text-[var(--color-ink)]">
-            Lớp học
-          </span>
-          <select
-            value={filters.idDanhMucLop}
-            onChange={(event) => updateFilter("idDanhMucLop", event.target.value)}
-            disabled={isMetadataLoading}
-            className="h-11 rounded-[var(--radius-pill)] border border-black/8 bg-white px-5 text-[17px] leading-[1.47] tracking-[-0.02em] text-[var(--color-ink)] focus:border-[var(--color-primary-focus)] focus:outline-none disabled:opacity-60"
-          >
-            <option value="">Tất cả lớp học</option>
-            {classLevels.map((classLevel) => (
-              <option key={classLevel.idDanhMucLop} value={classLevel.idDanhMucLop}>
-                {classLevel.tenLop}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          <Input
-            label="Giá từ"
-            inputMode="numeric"
-            placeholder="200000"
-            value={filters.minPrice}
-            onChange={(event) => updateFilter("minPrice", event.target.value.replace(/[^\d]/g, ""))}
-          />
-          <Input
-            label="Đến"
-            inputMode="numeric"
-            placeholder="800000"
-            value={filters.maxPrice}
-            onChange={(event) => updateFilter("maxPrice", event.target.value.replace(/[^\d]/g, ""))}
-          />
-        </div>
-
         <div className="flex items-center justify-between gap-3">
           <Text size="caption" tone="muted">
             {activeFilterCount} trường đang áp dụng
@@ -216,15 +159,12 @@ function SearchExperience({
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
             <Text as="h2" size="display">
-              Kết quả tìm kiếm
+              Danh sách gia sư
             </Text>
             <Text tone="muted">
-              {isLoading ? "Đang cập nhật danh sách..." : `${results.length} khóa học phù hợp.`}
+              {isLoading ? "Đang cập nhật danh sách..." : `${results.length} gia sư phù hợp.`}
             </Text>
           </div>
-          <Text size="caption" tone="primary">
-            Search + filter đồng thời
-          </Text>
         </div>
 
         {error ? (
@@ -235,60 +175,83 @@ function SearchExperience({
 
         {!isLoading && results.length === 0 && !error ? (
           <Card className="space-y-3 bg-white">
-            <Text size="title">Chưa có kết quả phù hợp</Text>
+            <Text size="title">Chưa có gia sư phù hợp</Text>
             <Text tone="muted">
-              Thử đổi từ khóa, nới giá tiền hoặc chọn môn học khác để mở rộng kết quả.
+              Thử đổi từ khóa hoặc chọn môn học khác để mở rộng kết quả.
             </Text>
           </Card>
         ) : null}
 
         <div className="grid gap-4">
-          {results.map((course) => (
-            <Card key={course.idKhoaHoc} className="space-y-4 bg-white">
+          {results.map((giaSu) => (
+            <Card key={giaSu.idGiaSu} className="space-y-4 bg-white">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <Text as="h3" size="title">
-                    {course.tenKhoaHoc}
+                    {giaSu.tenGiaSu}
                   </Text>
                   <Text tone="muted">
-                    {course.tenMonHoc ?? "Chưa rõ môn học"} · {course.tenLop ?? "Chưa rõ lớp"} · Gia sư{" "}
-                    {course.tenGiaSu ?? "đang cập nhật"}
+                    {giaSu.soLuongKhoaHoc} khóa học · {giaSu.soLuongDanhGia} đánh giá
                   </Text>
+                  {giaSu.bangCap && (
+                    <Text size="caption" tone="muted">
+                      Bằng cấp: {giaSu.bangCap.tenBangCap}
+                    </Text>
+                  )}
                 </div>
                 <div className="rounded-[var(--radius-pill)] bg-[var(--color-canvas-parchment)] px-4 py-2 text-right">
-                  <Text size="bodyStrong">{formatCurrency(course.soTienHoc)}</Text>
+                  <Text size="bodyStrong">
+                    {giaSu.soSaoTrungBinh > 0 ? `${giaSu.soSaoTrungBinh}/5 ⭐` : "Chưa có đánh giá"}
+                  </Text>
                 </div>
               </div>
 
-              {course.moTa && (
-                <div className="border-t border-gray-200 pt-3">
-                  <Text size="caption" tone="muted" className="mb-2 block">
-                    Mô tả
+              <div className="space-y-2">
+                <Text size="caption" tone="muted">
+                  Mã gia sư: {giaSu.idGiaSu}
+                </Text>
+                {giaSu.sdt && (
+                  <Text size="caption" tone="muted">
+                    Điện thoại: {giaSu.sdt}
                   </Text>
-                  <Text size="body" className="line-clamp-2">
-                    {course.moTa}
+                )}
+              </div>
+
+              {giaSu.khoaHocs && giaSu.khoaHocs.length > 0 && (
+                <div className="space-y-2">
+                  <Text size="caption" tone="muted">
+                    Khóa học nổi bật:
                   </Text>
+                  <div className="flex flex-wrap gap-2">
+                    {giaSu.khoaHocs.slice(0, 3).map((khoaHoc) => (
+                      <span
+                        key={khoaHoc.idKhoaHoc}
+                        className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700"
+                      >
+                        {khoaHoc.tenKhoaHoc}
+                      </span>
+                    ))}
+                    {giaSu.khoaHocs.length > 3 && (
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
+                        +{giaSu.khoaHocs.length - 3} khóa khác
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-2">
-                <Text size="caption" tone="primary">
-                  {course.saoTrungBinh != null ? `${course.saoTrungBinh}/5 sao` : "Chưa có đánh giá"}
-                </Text>
-              </div>
-
               <div className="flex gap-3 pt-2">
-                <Link href={`/hoc-vien/booking/${course.idKhoaHoc}`} className="flex-1">
-                  <Button 
-                    className="w-full"
+                <Link href={`/hoc-vien/chi-tiet-gia-su/${giaSu.idGiaSu}`} className="flex-1">
+                  <Button className="w-full">Xem chi tiết</Button>
+                </Link>
+                <Link href={`/hoc-vien/booking/${giaSu.idGiaSu}`}>
+                  <Button
+                    variant="secondary"
                     disabled={!isLoggedIn || !isParent}
                     title={!isLoggedIn ? "Vui lòng đăng nhập" : !isParent ? "Chỉ phụ huynh mới có thể đặt lớp" : ""}
                   >
-                    {!isLoggedIn ? "Đăng nhập để đặt lớp" : !isParent ? "Chỉ phụ huynh" : "Đặt lớp"}
+                    {!isLoggedIn ? "Đăng nhập" : !isParent ? "Chỉ phụ huynh" : "Đặt lớp"}
                   </Button>
-                </Link>
-                <Link href={`/search/chi-tiet-khoa-hoc/${course.idKhoaHoc}`}>
-                  <Button variant="secondary">Xem chi tiết</Button>
                 </Link>
               </div>
             </Card>
@@ -305,9 +268,8 @@ function SearchExperience({
   );
 }
 
-export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
+export function GiaSuSearchPage({ initialFilters, queryKey }: GiaSuSearchPageProps) {
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
-  const [classLevels, setClassLevels] = useState<ClassLevelOption[]>([]);
   const [isMetadataLoading, setIsMetadataLoading] = useState(true);
   const [metadataError, setMetadataError] = useState<string | null>(null);
 
@@ -318,17 +280,13 @@ export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
       try {
         setIsMetadataLoading(true);
         setMetadataError(null);
-        const [subjectResponse, classLevelResponse] = await Promise.all([
-          getSubjects(),
-          getClassLevels(),
-        ]);
+        const subjectResponse = await getSubjects();
 
         if (!isMounted) {
           return;
         }
 
         setSubjects(subjectResponse);
-        setClassLevels(classLevelResponse);
       } catch {
         if (isMounted) {
           setMetadataError("Không tải được dữ liệu bộ lọc.");
@@ -356,12 +314,11 @@ export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
           </Card>
         ) : null}
 
-        <SearchExperience
+        <GiaSuSearchExperience
           key={queryKey}
           initialFilters={initialFilters}
           queryKey={queryKey}
           subjects={subjects}
-          classLevels={classLevels}
           isMetadataLoading={isMetadataLoading}
         />
       </Section>

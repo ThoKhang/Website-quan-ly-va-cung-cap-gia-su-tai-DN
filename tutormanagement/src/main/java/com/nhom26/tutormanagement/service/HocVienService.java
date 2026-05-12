@@ -5,6 +5,11 @@ import com.nhom26.tutormanagement.entity.PhuHuynh;
 import com.nhom26.tutormanagement.repository.HocVienRepository;
 import com.nhom26.tutormanagement.repository.PhuHuynhRepository;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +20,8 @@ public class HocVienService {
     private final PhuHuynhRepository phuHuynhRepository;
 
     private String generateNextId() {
-        String maxId = hocVienRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) {
-            return "HV001";
-        }
-        String cleanId = maxId.trim();
-        int nextNumber = Integer.parseInt(cleanId.substring(2)) + 1;
-        return String.format("HV%03d", nextNumber);
+        // Use UUID to avoid concurrent duplicate key errors
+        return "HV" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
     public HocVien save(HocVien hocVien) {
@@ -39,5 +39,17 @@ public class HocVienService {
             hocVien.setIdHocVien(generateNextId());
         }
         return hocVienRepository.save(hocVien);
+    }
+
+    public List<HocVien> layDanhSachHocVienCuaPhuHuynh() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<PhuHuynh> phuHuynhOpt = phuHuynhRepository.findByTaiKhoan_TenDangNhap(currentUsername);
+        
+        if (phuHuynhOpt.isEmpty()) {
+            // Nếu chưa có hồ sơ phụ huynh, trả về danh sách trống
+            return new java.util.ArrayList<>();
+        }
+        
+        return hocVienRepository.findByPhuHuynh_IdPhuHuynh(phuHuynhOpt.get().getIdPhuHuynh());
     }
 }

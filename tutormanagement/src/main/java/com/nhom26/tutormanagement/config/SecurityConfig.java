@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/khoa-hoc/tim-kiem").permitAll()
                 .requestMatchers("/api/mon-hoc/**").permitAll()
                 .requestMatchers("/api/danh-muc-lop/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
                 // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                 .anyRequest().authenticated() 
             );

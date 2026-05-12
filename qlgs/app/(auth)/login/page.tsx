@@ -114,7 +114,8 @@ function LoginContent() {
       const roleId = loaiNguoiDungID;
       setTimeout(() => {
         if (roleId === '1') {
-          router.push('/hoc-vien');
+          // Học viên: chuyển đến trang chủ chính
+          router.push('/');
         } else if (roleId === '2') {
           // Gia sư: chuyển đến trang chủ và lướt xuống phần chức năng gia sư
           router.push('/#quan-ly');

@@ -23,8 +23,12 @@ axiosClient.interceptors.request.use(
     
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
+      console.log(`📝 Token từ localStorage:`, token ? `${token.substring(0, 20)}...` : "KHÔNG CÓ TOKEN");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log(`✅ Đã gắn Authorization header`);
+      } else {
+        console.warn(`⚠️ CẢNH BÁO: Không tìm thấy token trong localStorage`);
       }
     }
     return config;

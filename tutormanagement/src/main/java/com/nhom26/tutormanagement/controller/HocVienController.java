@@ -16,4 +16,13 @@ public class HocVienController {
     public ResponseEntity<HocVien> taoHocVien(@RequestBody HocVien hocVien) {
         return ResponseEntity.ok(hocVienService.save(hocVien));
     }
+
+    @GetMapping("/danh-sach")
+    public ResponseEntity<?> layDanhSachHocVien() {
+        try {
+            return ResponseEntity.ok(hocVienService.layDanhSachHocVienCuaPhuHuynh());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

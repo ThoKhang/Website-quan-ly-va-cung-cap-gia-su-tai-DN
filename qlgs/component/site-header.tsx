@@ -85,7 +85,8 @@ export function SiteHeader() {
     router.push('/');
   };
 
-  const isTutor = loaiNguoiDungID === '1'; // 1 = Gia sư
+  const isTutor = loaiNguoiDungID === '2'; // 2 = Gia sư
+  const isParent = loaiNguoiDungID === '1'; // 1 = Phụ huynh
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
@@ -137,6 +138,20 @@ export function SiteHeader() {
                     <Link href="/gia-su/khoa-hoc">
                       <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
                         Khóa học
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                {isParent && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/hoc-vien/ho-so">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Hồ sơ
+                      </Button>
+                    </Link>
+                    <Link href="/hoc-vien/lich-su">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Lịch sử
                       </Button>
                     </Link>
                   </div>
