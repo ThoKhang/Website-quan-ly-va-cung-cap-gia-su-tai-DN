@@ -36,6 +36,7 @@ export interface BangCap {
   thongTinBangCap: string;
   ngayCap: string;
   anhMinhChung: string;
+  trangThai?: boolean; 
 }
 
 export interface GiaSuProfile {

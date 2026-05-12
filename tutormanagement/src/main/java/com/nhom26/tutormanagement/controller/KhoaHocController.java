@@ -47,11 +47,12 @@ public class KhoaHocController {
     }
 
     @GetMapping("/gia-su/{idGiaSu}")
-    public ResponseEntity<List<KhoaHocResponseDTO>> getKhoaHocByGiaSu(@PathVariable String idGiaSu) {
+    public ResponseEntity<?> getKhoaHocByGiaSu(@PathVariable String idGiaSu) {
         try {
             return ResponseEntity.ok(khoaHocService.getKhoaHocByGiaSu(idGiaSu));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
+            //Trả về thông báo lỗi thật để Frontend hiển thị
+            return ResponseEntity.badRequest().body(e.getMessage()); 
         }
     }
 

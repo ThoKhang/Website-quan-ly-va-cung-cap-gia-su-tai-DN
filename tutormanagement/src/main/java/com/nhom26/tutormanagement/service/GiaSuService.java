@@ -65,15 +65,10 @@ public class GiaSuService {
                         .build())
                 .toList();
     }
-
     // ==========================================
     // 2. TẠO HỒ SƠ GIA SƯ (DÙNG JWT)
     // ==========================================
-    private String generateNextIdGiaSu() {
-        String maxId = giaSuRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "GS001";
-        return String.format("GS%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
-    }
+
     private int getCurrentMaxLichDayNumber() {
         try {
             List<String> allIds = lichDayRepository.findAllIdsSorted();
@@ -283,4 +278,32 @@ public class GiaSuService {
         lichDayRepository.delete(lichDay);
         return "Xóa lịch rảnh thành công!";
     }
+
+        private String generateNextIdGiaSu() {
+            String maxId = giaSuRepository.findMaxId(); 
+            if (maxId == null || maxId.trim().isEmpty()) {
+                return "GS001";
+            }
+            int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+            return String.format("GS%03d", nextNumber);
+        }
+
+        // 2. Hàm lấy thông tin hiện tại (để tự động cấp Profile trống khi Gia sư mới đăng nhập)
+        @Transactional
+        public GiaSu layThongTinHienTai() {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            Optional<GiaSu> giaSuOpt = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername);
+
+            if (giaSuOpt.isEmpty()) {
+                TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                        .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy tài khoản người dùng!"));
+
+                GiaSu giaSuMoi = new GiaSu();
+                giaSuMoi.setIdGiaSu(generateNextIdGiaSu()); 
+                giaSuMoi.setTaiKhoan(taiKhoan);
+                return giaSuRepository.save(giaSuMoi);
+            }
+
+            return giaSuOpt.get();
+        }
 }

@@ -101,4 +101,14 @@ public class GiaSuController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    // Thêm API này vào GiaSuController.java
+
+    @GetMapping("/thong-tin-hien-tai")
+    public ResponseEntity<?> getThongTinHienTai() {
+        try {
+            return ResponseEntity.ok(giaSuService.layThongTinHienTai());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

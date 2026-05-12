@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button, Card, Section, Text } from "@/component/ui";
 import { BangCap } from "@/types/auth.type";
+import axiosClient from '@/services/axiosClient'; // Đảm bảo import axiosClient
 
 export default function GiaSuHoSo() {
   const [isMounted, setIsMounted] = useState(false);
@@ -24,6 +25,9 @@ export default function GiaSuHoSo() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
+  // Kiểm tra xem có ít nhất 1 bằng cấp đã được duyệt hay chưa
+  const hasApprovedDegree = bangCapList.some(bc => bc.trangThai === true);
+
   // Đảm bảo component đã mount trước khi truy cập localStorage
   useEffect(() => {
     setIsMounted(true);
@@ -33,50 +37,31 @@ export default function GiaSuHoSo() {
     // Chỉ chạy khi component đã mount
     if (!isMounted) return;
 
-    // Lấy thông tin gia sư hiện tại từ API
+    // Lấy thông tin gia sư hiện tại từ API thông qua axiosClient
     const fetchGiaSuInfo = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const idGiaSu = localStorage.getItem('idGiaSu');
+        // Dùng API "thong-tin-hien-tai" sẽ tự động tạo hồ sơ trống nếu chưa có
+        const data: any = await axiosClient.get('/gia-su/thong-tin-hien-tai');
         
-        console.log('📝 Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
-        console.log('📝 idGiaSu:', idGiaSu);
-        
-        if (!token || !idGiaSu) {
-          setMessage('Vui lòng đăng nhập lại');
-          setMessageType('error');
-          console.warn('⚠️ Thiếu token hoặc idGiaSu');
-          return;
+        // Lưu idGiaSu vào localStorage phòng khi cần dùng ở chỗ khác
+        if (data.idGiaSu) {
+            localStorage.setItem('idGiaSu', data.idGiaSu);
         }
 
-        const response = await fetch(`http://localhost:8080/api/gia-su/${idGiaSu}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+        setFormData({
+          tenGiaSu: data.tenGiaSu || '',
+          sdt: data.sdt || '',
+          cccd: data.cccd || '',
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          setFormData({
-            tenGiaSu: data.tenGiaSu || '',
-            sdt: data.sdt || '',
-            cccd: data.cccd || '',
-          });
-          // Lấy danh sách bằng cấp
-          if (data.bangCapList && Array.isArray(data.bangCapList)) {
-            setBangCapList(data.bangCapList);
-          }
-          console.log('✅ Tải thông tin hồ sơ thành công');
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Lỗi từ server:', response.status, errorData);
-          setMessage(`Lỗi: ${errorData.message || 'Không thể tải thông tin'}`);
-          setMessageType('error');
+        
+        // Lấy danh sách bằng cấp
+        if (data.bangCapList && Array.isArray(data.bangCapList)) {
+          setBangCapList(data.bangCapList);
         }
-      } catch (error) {
+        console.log('✅ Tải thông tin hồ sơ thành công');
+      } catch (error: any) {
         console.error('❌ Lỗi khi lấy thông tin:', error);
-        setMessage('Lỗi kết nối đến máy chủ');
+        setMessage(typeof error === 'string' ? error : 'Lỗi kết nối đến máy chủ');
         setMessageType('error');
       }
     };
@@ -106,56 +91,33 @@ export default function GiaSuHoSo() {
     setMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      const idGiaSu = localStorage.getItem('idGiaSu');
+      // Dùng axiosClient gửi request thêm bằng cấp
+      const response: any = await axiosClient.post('/gia-su/them-bang-cap', bangCapForm);
 
-      console.log('📝 Thêm bằng cấp - Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
-      console.log('📝 Thêm bằng cấp - idGiaSu:', idGiaSu);
-
-      if (!token || !idGiaSu) {
-        setMessage('Vui lòng đăng nhập lại');
-        setMessageType('error');
-        console.warn('⚠️ Thiếu token hoặc idGiaSu');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/api/gia-su/them-bang-cap', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bangCapForm),
+      setMessage('Đã gửi yêu cầu thêm bằng cấp. Vui lòng chờ Admin duyệt!');
+      setMessageType('success');
+      
+      // Thêm bằng cấp vào danh sách UI với trạng thái mặc định là chưa duyệt (false)
+      // Nếu API trả về object bằng cấp mới, ta dùng nó, nếu không thì dùng form hiện tại
+      const newBangCap = { 
+          ...bangCapForm, 
+          idBangCap: response.idBangCap || Date.now().toString(), // fallback id
+          trangThai: false 
+      };
+      
+      setBangCapList([...bangCapList, newBangCap]);
+      
+      // Reset form
+      setBangCapForm({
+        tenBangCap: '',
+        thongTinBangCap: '',
+        ngayCap: '',
+        anhMinhChung: '',
       });
-
-      if (response.ok) {
-        setMessage('Bằng cấp đã được thêm thành công!');
-        setMessageType('success');
-        // Thêm bằng cấp vào danh sách
-        setBangCapList([...bangCapList, bangCapForm]);
-        // Reset form
-        setBangCapForm({
-          tenBangCap: '',
-          thongTinBangCap: '',
-          ngayCap: '',
-          anhMinhChung: '',
-        });
-        setShowBangCapForm(false);
-      } else {
-        let errorMessage = 'Thêm bằng cấp thất bại. Vui lòng thử lại.';
-        try {
-          const errorData = await response.json();
-          console.error('Backend error:', errorData);
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          console.error('Không thể parse error response:', e);
-        }
-        setMessage(errorMessage);
-        setMessageType('error');
-      }
-    } catch (error) {
+      setShowBangCapForm(false);
+    } catch (error: any) {
       console.error('Lỗi:', error);
-      setMessage('Có lỗi xảy ra, vui lòng thử lại');
+      setMessage(typeof error === 'string' ? error : 'Thêm bằng cấp thất bại. Vui lòng thử lại.');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -168,42 +130,22 @@ export default function GiaSuHoSo() {
     }
 
     try {
-      const token = localStorage.getItem('token');
       const bangCap = bangCapList[index];
 
-      if (!token || !bangCap.idBangCap) {
+      if (!bangCap.idBangCap) {
         setMessage('Không thể xóa bằng cấp này');
         setMessageType('error');
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/gia-su/bang-cap/${bangCap.idBangCap}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      await axiosClient.delete(`/gia-su/bang-cap/${bangCap.idBangCap}`);
 
-      if (response.ok) {
-        setMessage('Bằng cấp đã được xóa thành công!');
-        setMessageType('success');
-        setBangCapList(bangCapList.filter((_, i) => i !== index));
-      } else {
-        let errorMessage = 'Xóa bằng cấp thất bại. Vui lòng thử lại.';
-        try {
-          const errorData = await response.json();
-          console.error('Backend error:', errorData);
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          console.error('Không thể parse error response:', e);
-        }
-        setMessage(errorMessage);
-        setMessageType('error');
-      }
-    } catch (error) {
+      setMessage('Bằng cấp đã được xóa thành công!');
+      setMessageType('success');
+      setBangCapList(bangCapList.filter((_, i) => i !== index));
+    } catch (error: any) {
       console.error('Lỗi:', error);
-      setMessage('Có lỗi xảy ra, vui lòng thử lại');
+      setMessage(typeof error === 'string' ? error : 'Xóa bằng cấp thất bại. Vui lòng thử lại.');
       setMessageType('error');
     }
   };
@@ -250,47 +192,22 @@ export default function GiaSuHoSo() {
     }
 
     try {
-      const token = localStorage.getItem('token');
       const idGiaSu = localStorage.getItem('idGiaSu');
 
-      console.log('📝 Cập nhật hồ sơ - Token:', token ? `${token.substring(0, 20)}...` : 'KHÔNG CÓ');
-      console.log('📝 Cập nhật hồ sơ - idGiaSu:', idGiaSu);
-
-      if (!token || !idGiaSu) {
+      if (!idGiaSu) {
         setMessage('Vui lòng đăng nhập lại');
         setMessageType('error');
-        console.warn('⚠️ Thiếu token hoặc idGiaSu');
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/gia-su/${idGiaSu}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      await axiosClient.put(`/gia-su/${idGiaSu}`, formData);
 
-      if (response.ok) {
-        setMessage('Hồ sơ đã được cập nhật thành công!');
-        setMessageType('success');
-        console.log('✅ Cập nhật hồ sơ thành công');
-      } else {
-        let errorMessage = 'Cập nhật thất bại. Vui lòng kiểm tra dữ liệu nhập vào.';
-        try {
-          const errorData = await response.json();
-          console.error('❌ Backend error:', response.status, errorData);
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          console.error('Không thể parse error response:', e);
-        }
-        setMessage(errorMessage);
-        setMessageType('error');
-      }
-    } catch (error) {
+      setMessage('Hồ sơ đã được cập nhật thành công!');
+      setMessageType('success');
+      console.log('✅ Cập nhật hồ sơ thành công');
+    } catch (error: any) {
       console.error('❌ Lỗi:', error);
-      setMessage('Có lỗi xảy ra, vui lòng thử lại');
+      setMessage(typeof error === 'string' ? error : 'Cập nhật thất bại. Vui lòng kiểm tra lại.');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -307,6 +224,13 @@ export default function GiaSuHoSo() {
               Cập nhật thông tin cá nhân, số điện thoại, CCCD và bằng cấp của bạn
             </Text>
           </div>
+
+          {/* CẢNH BÁO TÌNH TRẠNG CẤP PHÉP TẠO KHÓA HỌC */}
+          {!hasApprovedDegree && bangCapList.length > 0 && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg shadow-sm">
+              <span className="font-bold">⚠️ Lưu ý:</span> Bằng cấp của bạn đang chờ Admin phê duyệt. Bạn chỉ có thể tạo Khóa học sau khi có ít nhất 1 bằng cấp được duyệt hợp lệ.
+            </div>
+          )}
 
           {message && (
             <div className={`mb-6 p-4 rounded-lg ${
@@ -474,14 +398,19 @@ export default function GiaSuHoSo() {
             {bangCapList.length > 0 ? (
               <div className="space-y-4">
                 {bangCapList.map((bangCap, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                    <div className="flex justify-between items-start mb-3">
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition relative overflow-hidden">
+                    {/* HUY HIỆU TRẠNG THÁI (Được thêm vào góc phải trên) */}
+                    <div className={`absolute top-0 right-0 px-3 py-1 text-xs font-bold text-white ${bangCap.trangThai ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                      {bangCap.trangThai ? '✅ Đã duyệt' : '⏳ Chờ duyệt'}
+                    </div>
+
+                    <div className="flex justify-between items-start mt-2 mb-3">
                       <div className="flex-1">
                         <Text as="h3" size="body" className="font-semibold text-gray-900">
                           {bangCap.tenBangCap}
                         </Text>
                         <Text size="caption" tone="muted" className="mt-1">
-                          Ngày cấp: {new Date(bangCap.ngayCap).toLocaleDateString('vi-VN')}
+                          Ngày cấp: {bangCap.ngayCap ? new Date(bangCap.ngayCap).toLocaleDateString('vi-VN') : 'N/A'}
                         </Text>
                       </div>
                       <Button
@@ -507,7 +436,7 @@ export default function GiaSuHoSo() {
             ) : (
               <div className="text-center py-8">
                 <Text size="caption" tone="muted">
-                  Chưa có bằng cấp nào. Hãy thêm bằng cấp của bạn để tăng độ tin cậy.
+                  Chưa có bằng cấp nào. Hãy thêm bằng cấp của bạn để tăng độ tin cậy và có thể tạo Khóa học.
                 </Text>
               </div>
             )}
