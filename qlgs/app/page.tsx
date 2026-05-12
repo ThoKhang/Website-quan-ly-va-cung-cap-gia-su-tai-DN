@@ -1,5 +1,10 @@
-import { Button, Card, Input, Section, Text } from "@/component/ui";
+'use client';
+import React, { useState } from 'react';
 
+import { Button, Card, Input, Section, Text } from "@/component/ui";
+import Link from 'next/link';
+import ProcessModal from '../component/ProcessModal';
+import { useRouter } from 'next/navigation';
 const servicePoints = [
   "Tìm gia sư theo môn học, cấp lớp và ngân sách chỉ trong một lượt tìm.",
   "Quản lý lịch dạy, khóa học, học viên và tiến trình học tập trên cùng một hệ thống.",
@@ -28,6 +33,9 @@ const footerColumns = [
 ];
 
 export default function Home() {
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const router = useRouter();
+
   return (
     <main className="page-shell">
       <Section>
@@ -131,10 +139,18 @@ export default function Home() {
               Theo dõi khóa học đang mở, học viên đã đăng ký, lịch dạy của gia sư và
               doanh thu phát sinh mà không cần tách nhỏ quy trình ra nhiều công cụ.
             </Text>
+            
             <div className="flex flex-wrap gap-3">
-              <Button>Xem dashboard</Button>
-              <Button variant="secondary">Xem quy trình</Button>
+              {/* Đã gỡ bỏ thẻ Link và dùng router.push */}
+              <Button onClick={() => router.push('/dashboard')}>
+                Xem dashboard
+              </Button>
+              
+              <Button variant="secondary" onClick={() => setIsProcessModalOpen(true)}>
+                Xem quy trình
+              </Button>
             </div>
+
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -238,6 +254,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Component Modal được gọi ở đây để nó có thể hiển thị lên màn hình */}
+      <ProcessModal 
+        isOpen={isProcessModalOpen} 
+        onClose={() => setIsProcessModalOpen(false)} 
+      />
     </main>
   );
 }
