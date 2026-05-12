@@ -171,4 +171,8 @@ public class TietHocService {
             return "TH001";
         }
     }
+    public List<TietHoc> getAllTietHoc() {
+        // Lấy tất cả Tiết học từ Database trả về cho Frontend
+        return tietHocRepository.findAll();
+    }
 }

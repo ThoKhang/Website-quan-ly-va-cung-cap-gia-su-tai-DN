@@ -33,4 +33,15 @@ public class TietHocController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    @GetMapping
+    public ResponseEntity<?> getAllTietHoc() {
+        try {
+            // Gọi qua Service hoặc gọi thẳng Repository (nếu bạn chưa viết Service cho hàm này)
+            // Giả sử bạn gọi qua Service:
+            return ResponseEntity.ok(tietHocService.getAllTietHoc()); 
+            
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

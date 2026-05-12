@@ -166,4 +166,14 @@ export const giaSuService = {
   }): Promise<string> => {
     return axiosClient.post('/tai-khoan/doi-mat-khau', data);
   },
+  // Lấy toàn bộ danh sách Tiết Học từ hệ thống
+  getAllTietHoc: async () => {
+    try {
+      // Đổi đường dẫn này theo đúng Backend Controller của Khang nhé (ví dụ: /tiet-hoc/all)
+      const response = await axiosClient.get('/tiet-hoc'); 
+      return response.data || response;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
