@@ -1,12 +1,10 @@
-﻿USE master;
-IF EXISTS (SELECT name FROM sys.databases WHERE name = 'QuanLyCungCapGiaSuDN')
+﻿IF EXISTS (SELECT * FROM sys.databases WHERE name = N'QuanLyCungCapGiaSuDN')
 BEGIN
+    USE master;
     ALTER DATABASE QuanLyCungCapGiaSuDN SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE QuanLyCungCapGiaSuDN;
-END;
--- =====================================================================
--- TẠO CÁC BẢNG DANH MỤC (KHÔNG CÓ KHÓA NGOẠI) TRƯỚC
--- =====================================================================
+END
+GO
 create database QuanLyCungCapGiaSuDN
 go 
 use QuanLyCungCapGiaSuDN
@@ -155,6 +153,8 @@ CREATE TABLE KhoaHoc (
     yeuCau NVARCHAR(30),
     noiDungKhoaHoc NVARCHAR(MAX),
     soTienHoc MONEY,
+    tinhTrang INT DEFAULT 0,
+    soBuoiHoc INT,  
     idGiaSu CHAR(20),
     idMonHoc CHAR(20),
     idDanhMucLop CHAR(20),
@@ -181,10 +181,11 @@ CREATE TABLE DangKyHoc (
     loaiDangKy NVARCHAR(50),
     trangThaiThanhToan BIT,
     trangThaiHoanThanh BIT,
+    ngayBatDauHoc DATETIME,
     FOREIGN KEY (idPhuHuynh) REFERENCES PhuHuynh(idPhuHuynh),
     FOREIGN KEY (idHocVien) REFERENCES HocVien(idHocVien),
     FOREIGN KEY (idKhoaHoc) REFERENCES KhoaHoc(idKhoaHoc)
-);
+	);
 
 CREATE TABLE DanhGia (
     idDanhGia CHAR(20) PRIMARY KEY,
@@ -226,89 +227,13 @@ CREATE TABLE NoiDungNghi (
 USE QuanLyCungCapGiaSuDN;
 GO
 
--- 1. Thêm Quyền và Tài khoản để test Login
-INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Gia Sư');
-INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID) VALUES ('TK01', 'giasu01', '123456', '2');
-
--- 2. Thêm Gia sư, Môn, Lớp, Tiết để test Tạo Khóa Học
-INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu) VALUES ('GS01', 'TK01', N'Nguyễn Văn A');
-INSERT INTO CapHoc (maCapHoc, tenCapHoc) VALUES ('C3', N'Cấp 3');
-INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES ('L10', N'Lớp 10', 'C3');
-INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES ('MH01', N'Toán Học');
-INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2 - Ca 1', 2);
-INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH02', N'Thứ 4 - Ca 2', 2);
-
-select * from TaiKhoan
-USE QuanLyCungCapGiaSuDN;
-GO
-UPDATE TaiKhoan 
-SET email = 'giasu@gmail.com' 
-WHERE tenDangNhap = 'giasu01';
-
-USE QuanLyCungCapGiaSuDN;
-GO
-
-select * from PhanQuyenNguoiDung
 -- Thêm quyền Người Dùng vào hệ thống
-INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) 
-VALUES ('1', N'Người dùng');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('1', N'Người dùng');
+INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('2', N'Gia Sư');
 INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('4', N'Admin');
 INSERT INTO PhanQuyenNguoiDung (LoaiNguoiDungID, LoaiNguoiDung) VALUES ('3', N'Nhân viên');
 
-select * from PhuHuynh
-select * from KhoaHoc
 
-USE QuanLyCungCapGiaSuDN;
-GO
-
-/*
--- 2. Tạo tài khoản Gia sư (Mật khẩu băm của '123456')
-INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID, email) 
-VALUES ('TK001', 'giasua', '$2a$10$7R.v/u.6U3DUM1SIs1iGzeXpUqX0.gJ6p.6Y5/5f1l/v9rG2M5/W.', '2', 'giasu@gmail.com');
-
--- 3. Tạo thông tin Gia sư
-INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu, trangThai) VALUES ('GS001', 'TK001', N'Nguyễn Văn Gia Sư', 1);
-
--- 4. Tạo Danh mục (Môn, Cấp, Lớp)
-INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES ('MH001', N'Toán Học');
-INSERT INTO CapHoc (maCapHoc, tenCapHoc) VALUES ('CH001', N'Cấp 3');
-INSERT INTO DanhMucLop (idDanhMucLop, tenLop, maCapHoc) VALUES ('L12', N'Lớp 12', 'CH001');
-
--- 5. Tạo Khóa học của Gia sư GS001
-INSERT INTO KhoaHoc (idKhoaHoc, tenKhoaHoc, soTienHoc, idGiaSu, idMonHoc, idDanhMucLop) 
-VALUES ('KH001', N'Toán 12 Cơ Bản', 500000, 'GS001', 'MH001', 'L12');
-
--- 6. Tạo Tiết học và Lịch dạy (Trạng thái 1 = Đang rảnh)
-INSERT INTO TietHoc (idTietHoc, thu, soTiet) VALUES ('TH01', N'Thứ 2', 2), ('TH02', N'Thứ 4', 2);
-INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES ('LD001', 1, 'GS001', 'TH01'), ('LD002', 1, 'GS001', 'TH02');
-
--- 7. Tạo tài khoản Phụ huynh và Hồ sơ Phụ huynh + Học viên
-INSERT INTO TaiKhoan (idTaiKhoan, tenDangNhap, matKhau, LoaiNguoiDungID, email) 
-VALUES ('TK002', 'phuhuynha', '$2a$10$7R.v/u.6U3DUM1SIs1iGzeXpUqX0.gJ6p.6Y5/5f1l/v9rG2M5/W.', '1', 'phuhuynh@gmail.com');
-
-INSERT INTO PhuHuynh (idPhuHuynh, idTaiKhoan, tenPhuHuynh) VALUES ('PH001', 'TK002', N'Trần Thị Phụ Huynh');
-
-INSERT INTO HocVien (idHocVien, idPhuHuynh, tenHocVien) VALUES ('HV001', 'PH001', N'Nguyễn Văn Học Viên');
-*/
-select * from DangKyHoc
-select * from ChiTietLichHoc
-select * from LichDay
-select * from TietHoc
-select * from PhuHuynh
-select * from TaiKhoan
-select * from HocVien
-select * from KhoaHoc
-select * from GiaSu
-select * from MonHoc
-select * from PhanQuyenNguoiDung
-select * from LichDay
-select * from DanhMucLop
-select * from DanhGia
-USE QuanLyCungCapGiaSuDN;
-GO
-ALTER TABLE DangKyHoc ADD ngayBatDauHoc DATETIME;
-ALTER TABLE KhoaHoc ADD tinhTrang INT DEFAULT 0;
-ALTER TABLE KhoaHoc ADD soBuoiHoc int;
 INSERT INTO TietHoc (idTietHoc, thu, gioBatDau, gioKetThuc, soTiet) VALUES
 ('TH_T2_C1', N'Thứ 2', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
 ('TH_T2_C2', N'Thứ 2', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
@@ -321,26 +246,6 @@ INSERT INTO TietHoc (idTietHoc, thu, gioBatDau, gioKetThuc, soTiet) VALUES
 ('TH_T6_C1', N'Thứ 6', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
 ('TH_T6_C2', N'Thứ 6', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2);
 
--- 2. TẠO LỊCH DẠY CHO GIA SƯ (Giả sử idGiaSu là 'GS01' như DB của bạn)
--- tinhTrang = 1 (Tương đương True) nghĩa là Gia sư ĐANG RẢNH ở ca này
-INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
-('LD001', 1, 'GS01', 'TH_T2_C1'), -- Rảnh Thứ 2, 17h30-19h30
-('LD002', 1, 'GS01', 'TH_T4_C1'), -- Rảnh Thứ 4, 17h30-19h30
-('LD003', 1, 'GS01', 'TH_T6_C1'), -- Rảnh Thứ 6, 17h30-19h30
-('LD004', 1, 'GS01', 'TH_T3_C2'); -- Rảnh Thứ 3, 19h30-21h30
-/* xoa gia su 
-USE QuanLyCungCapGiaSuDN;
-GO
-
--- 1. Xóa lịch dạy của ông GS01 trước (Nếu có)
-DELETE FROM LichDay WHERE idGiaSu = (SELECT idGiaSu FROM GiaSu WHERE idTaiKhoan = 'TK01');
-
--- 2. Xóa hồ sơ Gia sư của TK01
-DELETE FROM GiaSu WHERE idTaiKhoan = 'TK01';
-
--- 3. Cuối cùng mới xóa được Tài khoản TK01
-DELETE FROM TaiKhoan WHERE idTaiKhoan = 'TK01';
-*/
 
 -- THÊMDỮ LIỆU QUẬN/HUYỆN VÀ PHƯỜNG/XÃ (ĐÀ NẴNG)
 INSERT INTO QuanHuyen (idQuanHuyen, tenQuanHuyen) VALUES
@@ -433,9 +338,9 @@ INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES
 ('MH011', N'Âm Nhạc'),
 ('MH012', N'Mỹ Thuật');
 
--- INSERT DỮ LIỆU
+
 -- 1. INSERT DỮ LIỆU VÀO BẢNG TaiKhoan
--- Tài khoản Gia sư
+-- Tài khoản Gia sư (Format: TK_GS00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK_GS001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(), '2'),
 ('TK_GS002', 'giasu.anh@gmail.com', 'giasu_anh', 'avatar2.jpg', '123456', GETDATE(), '2'),
@@ -446,7 +351,7 @@ INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayT
 ('TK_GS007', 'giasu.su@gmail.com', 'giasu_su', 'avatar7.jpg', '123456', GETDATE(), '2'),
 ('TK_GS008', 'giasu.dia@gmail.com', 'giasu_dia', 'avatar8.jpg', '123456', GETDATE(), '2');
 
--- Tài khoản Phụ huynh
+-- Tài khoản Phụ huynh (Format: TK_PH00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK_PH001', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '123456', GETDATE(), '1'),
 ('TK_PH002', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '123456', GETDATE(), '1'),
@@ -454,18 +359,21 @@ INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayT
 ('TK_PH004', 'phuhuynh.mai@gmail.com', 'phuhuynh_mai', 'avatar_ph4.jpg', '123456', GETDATE(), '1'),
 ('TK_PH005', 'phuhuynh.duc@gmail.com', 'phuhuynh_duc', 'avatar_ph5.jpg', '123456', GETDATE(), '1');
 
+
 /*-- Tài khoản Admin
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK_ADMIN', 'admin@gmail.com', 'admin', 'avatar_admin.jpg', '123456', GETDATE(), '4');
+
 
 -- Tài khoản Nhân viên
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK_NV001', 'nhanvien.support@gmail.com', 'nhanvien_support', 'avatar_nv1.jpg', '123456', GETDATE(), '3');*/
 
 
--- 2. INSERT DỮ LIỆU VÀO BẢNG GiaSu
+-- 2. INSERT DỮ LIỆU VÀO BẢNG GiaSu (Format: GS00x)
 INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu, SDT, CCCD, ngay, trangThai, heSoLuong, luongHienCon) VALUES
 ('GS001', 'TK_GS001', N'Nguyễn Văn Toán', '0912345001', '123456789001', GETDATE(), 1, 1.0, 5000000),
+('GS002', 'TK_GS002', N'Trần Thị Anh', '0912345002', '123456789002', GETDATE(), 1, 1.2, 6000000),
 ('GS003', 'TK_GS003', N'Lê Minh Lý', '0912345003', '123456789003', GETDATE(), 1, 1.1, 5500000),
 ('GS004', 'TK_GS004', N'Phạm Hồng Hóa', '0912345004', '123456789004', GETDATE(), 1, 1.0, 5000000),
 ('GS005', 'TK_GS005', N'Đỗ Quốc Sinh', '0912345005', '123456789005', GETDATE(), 1, 1.3, 6500000),
@@ -476,17 +384,20 @@ INSERT INTO GiaSu (idGiaSu, idTaiKhoan, tenGiaSu, SDT, CCCD, ngay, trangThai, he
 
 -- 3. INSERT DỮ LIỆU VÀO BẢNG BangCap (Mỗi gia sư có 1 bằng cấp)
 INSERT INTO BangCap (idBangCap, idGiaSu, tenBangCap, thongTinBangCap, ngayCap, trangThai, anhMinhChung) VALUES
+('BC001', 'GS001', N'Bằng Cấp TOIECE', N'Tốt nghiệp Đại học NN', '2020-06-20', 1, 'bangcap1.jpg'),
+('BC002', 'GS002', N'Bằng Cấp 3 Tiếng Anh', N'Tốt nghiệp Đại học Ngoại ngữ', '2019-06-20', 1, 'bangcap2.jpg'),
 ('BC003', 'GS003', N'Bằng Cấp 3 Vật Lý', N'Tốt nghiệp Đại học Sư phạm Vật Lý', '2021-06-10', 1, 'bangcap3.jpg'),
 ('BC004', 'GS004', N'Bằng Cấp 3 Hóa Học', N'Tốt nghiệp Đại học Sư phạm Hóa Học', '2020-06-15', 1, 'bangcap4.jpg'),
 ('BC005', 'GS005', N'Bằng Cấp 3 Sinh Học', N'Tốt nghiệp Đại học Sư phạm Sinh Học', '2019-06-20', 1, 'bangcap5.jpg'),
 ('BC006', 'GS006', N'Bằng Cấp 3 Tiếng Việt', N'Tốt nghiệp Đại học Sư phạm Tiếng Việt', '2021-06-10', 1, 'bangcap6.jpg'),
 ('BC007', 'GS007', N'Bằng Cấp 3 Lịch Sử', N'Tốt nghiệp Đại học Sư phạm Lịch Sử', '2020-06-15', 1, 'bangcap7.jpg'),
-('BC008', 'GS008', N'Bằng Cấp 3 Địa Lý', N'Tốt nghiệp Đại học Sư phạm Địa Lý', '2019-06-20', 1, 'bangcap8.jpg'),
-('BC009', 'GS001', N'Bằng Cấp 3 Tiếng Anh', N'Tốt nghiệp Đại học Ngoại ngữ', '2019-06-20', 1, 'bangcap2.jpg');
+('BC008', 'GS008', N'Bằng Cấp 3 Địa Lý', N'Tốt nghiệp Đại học Sư phạm Địa Lý', '2019-06-20', 1, 'bangcap8.jpg');
 
 
 -- 4. INSERT DỮ LIỆU VÀO BẢNG KhoaHoc
 INSERT INTO KhoaHoc (idKhoaHoc, tenKhoaHoc, moTa, yeuCau, noiDungKhoaHoc, soTienHoc, idGiaSu, idMonHoc, idDanhMucLop, tinhTrang, soBuoiHoc) VALUES
+('KH001', N'Toán 10 Cơ Bản', N'Khóa học toán lớp 10', N'Lớp 10', N'Lượng giác, phương trình', 500000, 'GS001', 'MH001', 'L11', 1, 10),
+('KH002', N'Toán 11 Nâng Cao', N'Khóa học toán lớp 11 nâng cao', N'Lớp 11', N'Lượng giác, đạo hàm, tích phân', 600000, 'GS001', 'MH001', 'L11', 1, 15),
 ('KH003', N'Toán 12 Ôn Thi', N'Khóa học ôn thi THPT Quốc Gia', N'Lớp 12', N'Ôn tập toàn bộ kiến thức lớp 12', 700000, 'GS001', 'MH001', 'L12', 1, 20);
 
 INSERT INTO KhoaHoc (idKhoaHoc, tenKhoaHoc, moTa, yeuCau, noiDungKhoaHoc, soTienHoc, idGiaSu, idMonHoc, idDanhMucLop, tinhTrang, soBuoiHoc) VALUES
@@ -526,94 +437,91 @@ INSERT INTO KhoaHoc (idKhoaHoc, tenKhoaHoc, moTa, yeuCau, noiDungKhoaHoc, soTien
 ('KH025', N'Địa Lý 12 Ôn Thi', N'Khóa học ôn thi THPT', N'Lớp 12', N'Ôn tập toàn bộ kiến thức', 550000, 'GS008', 'MH008', 'L12', 1, 15),
 ('KH026', N'Địa Lý Cấp 2', N'Khóa học địa lý cấp 2', N'Lớp 6-9', N'Kiến thức địa lý cơ bản', 350000, 'GS008', 'MH008', 'L9', 1, 10);
 
-
 -- 5. INSERT DỮ LIỆU VÀO BẢNG PhuHuynh
 INSERT INTO PhuHuynh (idPhuHuynh, tenPhuHuynh, gioiTinh, ngaySinh, SDT, CCCD, soNhaTenDuong, idTaiKhoan, idPhuongXa) VALUES
+('PH001', N'Trần Văn Tuấn', 1, '1980-05-15', '0901234001', '123456789001', N'123 Đường Nguyễn Huệ', 'TK_PH001', 'PX001'),
 ('PH002', N'Lê Thị Linh', 0, '1985-08-20', '0901234002', '123456789002', N'456 Đường Trần Phú', 'TK_PH002', 'PX002'),
 ('PH003', N'Phạm Văn Hùng', 1, '1982-03-10', '0901234003', '123456789003', N'789 Đường Lê Lợi', 'TK_PH003', 'PX003'),
 ('PH004', N'Nguyễn Thị Mai', 0, '1988-11-25', '0901234004', '123456789004', N'321 Đường Hàng Đẫy', 'TK_PH004', 'PX004'),
-('PH005', N'Đỗ Văn Đức', 1, '1983-07-12', '0901234005', '123456789005', N'654 Đường Bà Triệu', 'TK_PH005', 'PX005'),
-('PH006', N'Trần Văn Tuấn', 1, '1980-05-15', '0901234001', '123456789001', N'123 Đường Nguyễn Huệ', 'TK_PH001', 'PX001');
+('PH005', N'Đỗ Văn Đức', 1, '1983-07-12', '0901234005', '123456789005', N'654 Đường Bà Triệu', 'TK_PH005', 'PX005');
 
--- 6. INSERT DỮ LIỆU VÀO BẢNG HocVien
+
+
+-- 6. INSERT DỮ LIỆU VÀO BẢNG HocVien (Format: HV00x)
 INSERT INTO HocVien (idHocVien, tenHocVien, gioiTinh, CCCD, ngaySinh, idPhuHuynh) VALUES
-('HV001', N'Trần Văn Bình', 1, '123456789001', '2008-05-15', 'PH002'),
-('HV002', N'Lê Thị Hương', 0, '123456789002', '2009-08-20', 'PH003'),
-('HV003', N'Phạm Văn Hải', 1, '123456789003', '2007-03-10', 'PH004'),
-('HV004', N'Nguyễn Thị Hoa', 0, '123456789004', '2010-11-25', 'PH005'),
-('HV005', N'Đỗ Văn Minh', 1, '123456789005', '2008-07-12', 'PH006');
+('HV001', N'Trần Văn Bình', 1, '123456789001', '2008-05-15', 'PH001'),
+('HV002', N'Lê Thị Hương', 0, '123456789002', '2009-08-20', 'PH002'),
+('HV003', N'Phạm Văn Hải', 1, '123456789003', '2007-03-10', 'PH003'),
+('HV004', N'Nguyễn Thị Hoa', 0, '123456789004', '2010-11-25', 'PH004'),
+('HV005', N'Đỗ Văn Minh', 1, '123456789005', '2008-07-12', 'PH005');
 
 -- 7. INSERT DỮ LIỆU VÀO BẢNG DangKyHoc
 INSERT INTO DangKyHoc (idDangKy, idPhuHuynh, idHocVien, idKhoaHoc, ngayDangKy, loaiDangKy, trangThaiThanhToan, trangThaiHoanThanh, ngayBatDauHoc) VALUES
 ('DK001', 'PH001', 'HV001', 'KH001', '2024-01-10', N'Đăng ký', 1, 0, '2024-01-15'),
 ('DK002', 'PH001', 'HV001', 'KH002', '2024-02-10', N'Đăng ký', 1, 0, '2024-02-15'),
-
 ('DK003', 'PH002', 'HV002', 'KH004', '2024-01-12', N'Đăng ký', 1, 0, '2024-01-17'),
 ('DK004', 'PH002', 'HV002', 'KH005', '2024-02-12', N'Đăng ký', 1, 0, '2024-02-17'),
-
 ('DK005', 'PH003', 'HV003', 'KH008', '2024-01-14', N'Đăng ký', 1, 0, '2024-01-19'),
 ('DK006', 'PH003', 'HV003', 'KH009', '2024-02-14', N'Đăng ký', 1, 0, '2024-02-19'),
-
 ('DK007', 'PH004', 'HV004', 'KH011', '2024-01-16', N'Đăng ký', 1, 0, '2024-01-21'),
 ('DK008', 'PH004', 'HV004', 'KH012', '2024-02-16', N'Đăng ký', 1, 0, '2024-02-21'),
-
 ('DK009', 'PH005', 'HV005', 'KH013', '2024-01-18', N'Đăng ký', 1, 0, '2024-01-23'),
 ('DK010', 'PH005', 'HV005', 'KH014', '2024-02-18', N'Đăng ký', 1, 0, '2024-02-23');
 
-
 -- 8. INSERT DỮ LIỆU VÀO BẢNG DanhGia
--- Đánh giá cho khóa học KH001 (GS001 - Toán 10)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG001', 'DK001', 5, N'Gia sư rất tâm huyết, giảng dạy rõ ràng, con em tôi tiến bộ rất nhiều', '2024-02-01'),
 ('DG002', 'DK001', 4, N'Tốt, nhưng có thể cải thiện tốc độ giảng dạy', '2024-02-15');
 
--- Đánh giá cho khóa học KH002 (GS001 - Toán 11)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG003', 'DK002', 5, N'Xuất sắc! Gia sư giải thích rất kỹ lưỡng', '2024-03-01'),
 ('DG004', 'DK002', 5, N'Rất hài lòng với chất lượng dạy học', '2024-03-15');
 
--- Đánh giá cho khóa học KH004 (GS002 - Tiếng Anh 10)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG005', 'DK003', 5, N'Gia sư rất nhiệt tình, con em tôi yêu thích tiếng Anh hơn', '2024-02-05'),
 ('DG006', 'DK003', 4, N'Tốt, nhưng cần thêm bài tập thực hành', '2024-02-20');
 
--- Đánh giá cho khóa học KH005 (GS002 - Tiếng Anh 11)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG007', 'DK004', 5, N'Phương pháp dạy rất hiệu quả, con em tôi đã cải thiện điểm số', '2024-03-05'),
 ('DG008', 'DK004', 5, N'Rất chuyên nghiệp và tận tâm', '2024-03-20');
 
--- Đánh giá cho khóa học KH008 (GS003 - Vật Lý 10)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG009', 'DK005', 4, N'Gia sư giải thích tốt, nhưng có thể thêm ví dụ thực tế', '2024-02-10'),
 ('DG010', 'DK005', 5, N'Rất tốt, con em tôi hiểu bài hơn', '2024-02-25');
 
--- Đánh giá cho khóa học KH009 (GS003 - Vật Lý 11)
+
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG011', 'DK006', 5, N'Xuất sắc! Gia sư rất am hiểu môn học', '2024-03-10'),
 ('DG012', 'DK006', 4, N'Tốt, nhưng cần cải thiện kỹ năng giao tiếp', '2024-03-25');
 
--- Đánh giá cho khóa học KH011 (GS004 - Hóa Học 10)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG013', 'DK007', 5, N'Gia sư rất tâm huyết, giảng dạy rõ ràng', '2024-02-12'),
 ('DG014', 'DK007', 5, N'Rất hài lòng, con em tôi yêu thích hóa học', '2024-02-27');
 
--- Đánh giá cho khóa học KH012 (GS004 - Hóa Học 11-12)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG015', 'DK008', 4, N'Tốt, nhưng có thể cải thiện tốc độ giảng dạy', '2024-03-12'),
 ('DG016', 'DK008', 5, N'Rất chuyên nghiệp', '2024-03-27');
 
--- Đánh giá cho khóa học KH013 (GS005 - Sinh Học 10)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG017', 'DK009', 5, N'Gia sư rất giỏi, con em tôi tiến bộ rất nhanh', '2024-02-14'),
 ('DG018', 'DK009', 5, N'Xuất sắc! Rất tâm huyết', '2024-02-29');
 
--- Đánh giá cho khóa học KH014 (GS005 - Sinh Học 11)
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
 ('DG019', 'DK010', 5, N'Rất tốt, con em tôi yêu thích sinh học', '2024-03-14'),
 ('DG020', 'DK010', 4, N'Tốt, nhưng cần thêm bài tập', '2024-03-29');
 
 -- =====================================================================
--- INSERT LỊCH RẢNH CHO CÁC GIA SƯ 
+-- INSERT LỊCH RẢNH CHO CÁC GIA SƯ
+INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
+('LD_GS001_001', 1, 'GS001', 'TH_T2_C1'),  -- Thứ 2, 17:30-19:30
+('LD_GS001_002', 1, 'GS001', 'TH_T4_C1'),  -- Thứ 4, 17:30-19:30
+('LD_GS001_003', 1, 'GS001', 'TH_T6_C2');  -- Thứ 6, 19:30-21:30
+
+INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
+('LD_GS002_001', 1, 'GS002', 'TH_T3_C1'),  -- Thứ 3, 17:30-19:30
+('LD_GS002_002', 1, 'GS002', 'TH_T5_C1'),  -- Thứ 5, 17:30-19:30
+('LD_GS002_003', 1, 'GS002', 'TH_T4_C2'),  -- Thứ 4, 19:30-21:30
+('LD_GS002_004', 1, 'GS002', 'TH_T2_C2');  -- Thứ 2, 19:30-21:30
 INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
 ('LD_GS003_001', 1, 'GS003', 'TH_T2_C1'),  -- Thứ 2, 17:30-19:30
 ('LD_GS003_002', 1, 'GS003', 'TH_T4_C2'),  -- Thứ 4, 19:30-21:30
@@ -642,3 +550,20 @@ INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
 ('LD_GS008_001', 1, 'GS008', 'TH_T2_C2'),  -- Thứ 2, 19:30-21:30
 ('LD_GS008_002', 1, 'GS008', 'TH_T4_C2'),  -- Thứ 4, 19:30-21:30
 ('LD_GS008_003', 1, 'GS008', 'TH_T5_C1');  -- Thứ 5, 17:30-19:30
+
+select * from PhuHuynh
+select * from KhoaHoc
+select * from DangKyHoc
+select * from ChiTietLichHoc
+select * from LichDay
+select * from TietHoc
+select * from PhuHuynh
+select * from TaiKhoan
+select * from HocVien
+select * from KhoaHoc
+select * from GiaSu
+select * from MonHoc
+select * from PhanQuyenNguoiDung
+select * from LichDay
+select * from DanhMucLop
+select * from DanhGia
