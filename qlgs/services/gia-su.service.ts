@@ -171,7 +171,7 @@ export const giaSuService = {
     try {
       // Đổi đường dẫn này theo đúng Backend Controller của Khang nhé (ví dụ: /tiet-hoc/all)
       const response = await axiosClient.get('/tiet-hoc'); 
-      return response.data || response;
+      return response;
     } catch (error) {
       throw error;
     }

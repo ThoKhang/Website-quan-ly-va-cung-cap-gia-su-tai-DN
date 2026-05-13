@@ -56,12 +56,12 @@ export default function EditCoursePage() {
         getClassLevels(),
       ]);
 
-      setCourse(courseRes.data);
-      setSubjects(subjectsRes.data);
-      setClassLevels(classLevelsRes.data);
+      setCourse(courseRes);
+      setSubjects(subjectsRes);
+      setClassLevels(classLevelsRes);
 
       // Populate form
-      const courseData = courseRes.data;
+      const courseData = courseRes;
       setFormData({
         tenKhoaHoc: courseData.tenKhoaHoc,
         moTa: courseData.moTa,

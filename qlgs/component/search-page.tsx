@@ -327,12 +327,8 @@ export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
           return;
         }
 
-        // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
-        const subjectData = subjectResponse.data ? subjectResponse.data : subjectResponse;
-        const classLevelData = classLevelResponse.data ? classLevelResponse.data : classLevelResponse;
-        
-        setSubjects(Array.isArray(subjectData) ? subjectData : []);
-        setClassLevels(Array.isArray(classLevelData) ? classLevelData : []);
+        setSubjects(Array.isArray(subjectResponse) ? subjectResponse : []);
+        setClassLevels(Array.isArray(classLevelResponse) ? classLevelResponse : []);
       } catch {
         if (isMounted) {
           setMetadataError("Không tải được dữ liệu bộ lọc.");

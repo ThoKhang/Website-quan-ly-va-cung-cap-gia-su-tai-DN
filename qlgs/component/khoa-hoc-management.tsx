@@ -200,7 +200,7 @@ export default function KhoaHocManagement() {
       resetForm();
       if (idGiaSu) {
         const coursesRes = await getCoursesByTutor(idGiaSu);
-        setCourses(coursesRes.data || []);
+        setCourses(Array.isArray(coursesRes) ? coursesRes : []);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Lỗi khi lưu khóa học');
