@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.service;
 
 import com.nhom26.tutormanagement.dto.AuthResponse;
+import com.nhom26.tutormanagement.dto.ForgotPasswordRequest;
 import com.nhom26.tutormanagement.dto.LoginRequest;
 import com.nhom26.tutormanagement.dto.RegisterRequest;
 import com.nhom26.tutormanagement.entity.GiaSu;
@@ -25,6 +26,7 @@ public class AuthService {
     private final PhuHuynhRepository phuHuynhRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailOtpService emailOtpService;
 
     public String register(RegisterRequest request) {
         String inputTenDangNhap = request.getTenDangNhap() != null ? request.getTenDangNhap().trim() : "";
@@ -111,6 +113,19 @@ public class AuthService {
             roleId, 
             idNguoiDung
         );
+    }
+
+    public String forgotPassword(ForgotPasswordRequest request) {
+        String inputEmail = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (inputEmail.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập email.");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanRepository.findByEmail(inputEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email: " + inputEmail));
+
+        emailOtpService.sendForgotPasswordOtp(taiKhoan.getEmail(), taiKhoan.getTenDangNhap());
+        return "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
     }
 
     private String generateNextId() {

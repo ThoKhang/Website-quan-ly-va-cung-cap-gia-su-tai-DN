@@ -92,9 +92,7 @@ function SearchExperience({
         const response = await searchCourses(debouncedFilters);
 
         if (isMounted) {
-          // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
-          const data = response.data ? response.data : response;
-          setResults(Array.isArray(data) ? data : []);
+          setResults(Array.isArray(response) ? response : []);
         }
       } catch {
         if (isMounted) {
@@ -224,9 +222,6 @@ function SearchExperience({
               {isLoading ? "Đang cập nhật danh sách..." : `${results.length} khóa học phù hợp.`}
             </Text>
           </div>
-          <Text size="caption" tone="primary">
-            Search + filter đồng thời
-          </Text>
         </div>
 
         {error ? (

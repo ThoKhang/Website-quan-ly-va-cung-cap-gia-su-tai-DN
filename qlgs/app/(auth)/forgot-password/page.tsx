@@ -3,6 +3,19 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/auth.service';
+
+function getErrorMessage(error: unknown) {
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+
+  return 'Có lỗi xảy ra, vui lòng thử lại!';
+}
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -44,13 +57,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // TODO: Gọi API backend để gửi email reset password
-      // const response = await authService.forgotPassword({ email });
-      
-      // Tạm thời hiển thị thông báo thành công
-      setMessage(
-        'Hướng dẫn reset mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra email (bao gồm thư mục Spam) và làm theo hướng dẫn.'
-      );
+      const response = await authService.forgotPassword({ email: email.trim() });
+      setMessage(response);
       setMessageType('success');
       setSubmitted(true);
       setEmail('');
@@ -59,15 +67,9 @@ export default function ForgotPasswordPage() {
       setTimeout(() => {
         router.push('/login');
       }, 5000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessageType('error');
-      if (err.response?.data) {
-        setMessage(err.response.data);
-      } else if (err.message) {
-        setMessage(err.message);
-      } else {
-        setMessage('Có lỗi xảy ra, vui lòng thử lại!');
-      }
+      setMessage(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Quên Mật Khẩu</h1>
-          <p className="text-gray-600">Nhập email của bạn để nhận hướng dẫn reset mật khẩu</p>
+          <p className="text-gray-600">Nhập email của bạn để nhận mã OTP khôi phục mật khẩu</p>
         </div>
 
         {/* Card */}
@@ -168,7 +170,7 @@ export default function ForgotPasswordPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Email đã được gửi!</h3>
               <p className="text-gray-600 mb-6">
-                Vui lòng kiểm tra email của bạn để nhận hướng dẫn reset mật khẩu. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.
+                Vui lòng kiểm tra email của bạn để nhận mã OTP. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.
               </p>
               <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
                 Quay lại trang đăng nhập
