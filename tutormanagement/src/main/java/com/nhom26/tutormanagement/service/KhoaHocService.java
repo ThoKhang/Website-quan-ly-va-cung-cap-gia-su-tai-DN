@@ -25,7 +25,7 @@ public class KhoaHocService {
     private final DanhMucLopRepository danhMucLopRepository;
     private final TietHocRepository tietHocRepository;
     private final DanhGiaRepository danhGiaRepository;
-
+    private final DangKyHocRepository dangKyHocRepository;
     private String generateNextIdKhoaHoc() {
         try {
             List<String> allIds = khoaHocRepository.findAllIdsSorted();
@@ -236,5 +236,54 @@ public class KhoaHocService {
             dto.setSaoTrungBinh(sao != null ? Math.round(sao * 10.0) / 10.0 : 0.0);
         }
         return dto;
+    }
+    // ==========================================
+    // 1. HÀM CẬP NHẬT KHÓA HỌC
+    // ==========================================
+    @Transactional
+    public KhoaHoc capNhatKhoaHoc(String idKhoaHoc, KhoaHocRequestDTO request) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+
+        // Chỉ khóa khi có học viên ĐANG HỌC (chưa hoàn thành)
+        boolean isLocked = dangKyHocRepository.existsHocVienDangHoc(idKhoaHoc);
+        if (isLocked) {
+            throw new RuntimeException("Không thể chỉnh sửa! Khóa học này đang có học viên ĐANG HỌC.");
+        }
+
+        // Cập nhật thông tin
+        khoaHoc.setTenKhoaHoc(request.getTenKhoaHoc());
+        khoaHoc.setMoTa(request.getMoTa());
+        khoaHoc.setYeuCau(request.getYeuCau());
+        khoaHoc.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
+        khoaHoc.setSoTienHoc(request.getSoTienHoc());
+        khoaHoc.setSoBuoiHoc(request.getSoBuoiHoc());
+
+        // Đưa về trạng thái Chờ duyệt (0)
+        khoaHoc.setTinhTrang(0); 
+
+        return khoaHocRepository.save(khoaHoc);
+    }
+
+    // ==========================================
+    // 2. HÀM XÓA KHÓA HỌC (XÓA MỀM)
+    // ==========================================
+    @Transactional
+    public String xoaKhoaHoc(String idKhoaHoc) {
+        KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
+
+        // Chỉ chặn xóa nếu có người ĐANG HỌC
+        boolean isLocked = dangKyHocRepository.existsHocVienDangHoc(idKhoaHoc);
+        if (isLocked) {
+            throw new RuntimeException("Không thể xóa! Khóa học này đang có học viên ĐANG HỌC.");
+        }
+
+        // XÓA MỀM: Đổi tinhTrang thành -1 (Ẩn/Đã xóa) thay vì dùng lệnh delete()
+        // Việc này giúp lịch sử học của học viên cũ (đã hoàn thành) không bị sụp đổ
+        khoaHoc.setTinhTrang(-1);
+        khoaHocRepository.save(khoaHoc);
+        
+        return "Đã xóa (ẩn) khóa học thành công!";
     }
 }
