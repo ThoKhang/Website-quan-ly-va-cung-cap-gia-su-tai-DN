@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button, Card, Input, Section, Text } from "@/component/ui";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getClassLevels, getSubjects, searchCourses } from "@/services/khoa-hoc.service";
+import { useAuthStore } from "@/store/auth.store";
 import type {
   ClassLevelOption,
   CourseSearchResult,
@@ -65,11 +67,14 @@ function SearchExperience({
 }: SearchExperienceProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isLoggedIn, loaiNguoiDungID } = useAuthStore();
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const debouncedFilters = useDebouncedValue(filters, 300);
   const [results, setResults] = useState<CourseSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isParent = loaiNguoiDungID === '1'; // 1 = Phụ huynh
 
   useEffect(() => {
     const nextQuery = buildQueryString(debouncedFilters);
@@ -87,7 +92,9 @@ function SearchExperience({
         const response = await searchCourses(debouncedFilters);
 
         if (isMounted) {
-          setResults(response);
+          // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
+          const data = response.data ? response.data : response;
+          setResults(Array.isArray(data) ? data : []);
         }
       } catch {
         if (isMounted) {
@@ -252,16 +259,42 @@ function SearchExperience({
                 </div>
                 <div className="rounded-[var(--radius-pill)] bg-[var(--color-canvas-parchment)] px-4 py-2 text-right">
                   <Text size="bodyStrong">{formatCurrency(course.soTienHoc)}</Text>
+                  <Text size="caption" tone="muted" className="block mt-1">
+                    {course.soBuoiHoc ? `${course.soBuoiHoc} buổi` : ""}
+                  </Text>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <Text size="caption" tone="muted">
-                  Mã khóa học: {course.idKhoaHoc}
-                </Text>
+              {course.moTa && (
+                <div className="border-t border-gray-200 pt-3">
+                  <Text size="caption" tone="muted" className="mb-2 block">
+                    Mô tả
+                  </Text>
+                  <Text size="body" className="line-clamp-2">
+                    {course.moTa}
+                  </Text>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2">
                 <Text size="caption" tone="primary">
                   {course.saoTrungBinh != null ? `${course.saoTrungBinh}/5 sao` : "Chưa có đánh giá"}
                 </Text>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Link href={`/hoc-vien/booking/${course.idKhoaHoc}`} className="flex-1">
+                  <Button 
+                    className="w-full"
+                    disabled={!isLoggedIn || !isParent}
+                    title={!isLoggedIn ? "Vui lòng đăng nhập" : !isParent ? "Chỉ phụ huynh mới có thể đặt lớp" : ""}
+                  >
+                    {!isLoggedIn ? "Đăng nhập để đặt lớp" : !isParent ? "Chỉ phụ huynh" : "Đặt lớp"}
+                  </Button>
+                </Link>
+                <Link href={`/search/chi-tiet-khoa-hoc/${course.idKhoaHoc}`}>
+                  <Button variant="secondary">Xem chi tiết</Button>
+                </Link>
               </div>
             </Card>
           ))}
@@ -299,8 +332,12 @@ export function SearchPage({ initialFilters, queryKey }: SearchPageProps) {
           return;
         }
 
-        setSubjects(subjectResponse);
-        setClassLevels(classLevelResponse);
+        // Lấy data từ response.data nếu là AxiosResponse, hoặc trực tiếp nếu là array
+        const subjectData = subjectResponse.data ? subjectResponse.data : subjectResponse;
+        const classLevelData = classLevelResponse.data ? classLevelResponse.data : classLevelResponse;
+        
+        setSubjects(Array.isArray(subjectData) ? subjectData : []);
+        setClassLevels(Array.isArray(classLevelData) ? classLevelData : []);
       } catch {
         if (isMounted) {
           setMetadataError("Không tải được dữ liệu bộ lọc.");

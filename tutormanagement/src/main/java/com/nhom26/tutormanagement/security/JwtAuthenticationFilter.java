@@ -51,10 +51,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(username).orElse(null);
 
                 if (taiKhoan != null) {
+                    // DEBUG: In ra thông tin tài khoản
+                    System.out.println("✅ Tìm thấy tài khoản: " + username);
+                    System.out.println("   loaiNguoiDungID: " + taiKhoan.getLoaiNguoiDungID());
+                    
                     // 2. BIẾN loaiNguoiDungID THÀNH AUTHORITY
+                    String roleId = taiKhoan.getLoaiNguoiDungID();
+                    if (roleId == null || roleId.trim().isEmpty()) {
+                        System.out.println("⚠️ CẢNH BÁO: loaiNguoiDungID bị NULL hoặc rỗng! Mặc định thành '1'");
+                        roleId = "1"; // Mặc định là phụ huynh
+                    }
+                    
+                    // Thêm prefix ROLE_ để Spring Security nhận diện đúng
                     List<SimpleGrantedAuthority> authorities = Collections.singletonList(
-                            new SimpleGrantedAuthority(taiKhoan.getLoaiNguoiDungID())
+                            new SimpleGrantedAuthority("ROLE_" + roleId)
                     );
+                    System.out.println("   Authorities: " + authorities);
 
                     // 3. TẠO PHIÊN ĐĂNG NHẬP KÈM QUYỀN (AUTHORITIES)
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -64,7 +76,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("✅ Đã set authentication với authorities: " + roleId);
+                } else {
+                    System.out.println("❌ Không tìm thấy tài khoản: " + username);
                 }
+            } else {
+                System.out.println("❌ Token không hợp lệ hoặc hết hạn");
             }
         }
         filterChain.doFilter(request, response);

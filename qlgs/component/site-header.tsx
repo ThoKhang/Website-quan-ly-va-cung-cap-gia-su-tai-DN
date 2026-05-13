@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState, useTransition } from "react";
+import { useState, useTransition, useEffect, FormEvent } from "react";
 import { Button, Text } from "@/component/ui";
+import { useAuthStore } from "@/store/auth.store";
 
 function getSearchTarget(keyword: string) {
   const params = new URLSearchParams();
@@ -64,7 +65,31 @@ function HeaderSearchForm({ initialKeyword, pathname }: HeaderSearchFormProps) {
 export function SiteHeader() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
   const currentKeyword = searchParams.get("keyword") ?? "";
+  const { isLoggedIn, tenDangNhap, logout, loaiNguoiDungID } = useAuthStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    useAuthStore.getState().loadFromStorage();
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('tenDangNhap');
+    localStorage.removeItem('loaiNguoiDungID');
+    localStorage.removeItem('idNguoiDung');
+    localStorage.removeItem('idGiaSu');
+    localStorage.removeItem('idPhuHuynh');
+    router.push('/');
+  };
+
+  const isTutor = loaiNguoiDungID === '2'; // 2 = Gia sư
+  const isParent = loaiNguoiDungID === '1'; // 1 = Phụ huynh
+  const isStaff = loaiNguoiDungID === '3'; // 3 = Nhân viên
+  const isAdmin = loaiNguoiDungID === '4'; // 4 = Admin
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(0,0,0,0.88)] text-white backdrop-blur-xl">
@@ -99,7 +124,86 @@ export function SiteHeader() {
             <Button variant="ghost" className="hidden text-white hover:bg-white/8 hover:text-white md:inline-flex">
               Tư vấn
             </Button>
-            <Button>Đăng nhập</Button>
+            {isMounted && isLoggedIn && tenDangNhap ? (
+              <div className="relative flex items-center gap-3">
+                {isTutor && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/gia-su/ho-so">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Hồ sơ
+                      </Button>
+                    </Link>
+                    <Link href="/gia-su/lich-ranh">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Lịch rảnh
+                      </Button>
+                    </Link>
+                    <Link href="/gia-su/khoa-hoc">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Khóa học
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                {isParent && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/hoc-vien/ho-so">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Hồ sơ
+                      </Button>
+                    </Link>
+                    <Link href="/hoc-vien/lich-su">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Lịch sử
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                {isStaff && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/nhan-vien/dashboard">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Link href="/nhan-vien/quan-ly">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Quản lý
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                {isAdmin && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link href="/admin/dashboard">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Link href="/admin/users">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Người dùng
+                      </Button>
+                    </Link>
+                    <Link href="/admin/settings">
+                      <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white text-sm">
+                        Cài đặt
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                <Text as="span" size="caption" tone="onDark" className="font-medium">
+                  {tenDangNhap}
+                </Text>
+                <Button onClick={handleLogout} variant="secondary">
+                  Đăng xuất
+                </Button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button>Đăng nhập</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

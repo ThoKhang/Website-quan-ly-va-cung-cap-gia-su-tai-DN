@@ -15,7 +15,7 @@ public class DanhGiaController {
     private final DanhGiaService danhGiaService;
 
     @PostMapping("/tao-moi")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC ĐÁNH GIÁ
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC ĐÁNH GIÁ
     public ResponseEntity<?> taoDanhGia(@RequestBody DanhGiaRequestDTO request) {
         try {
             return ResponseEntity.ok(danhGiaService.taoDanhGia(request));
