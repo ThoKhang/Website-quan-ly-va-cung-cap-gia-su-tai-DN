@@ -22,6 +22,14 @@ export interface LichRanh {
   danhSachIdTietHoc: string[];
 }
 
+export interface TietHocItem {
+  idTietHoc: string;
+  thu: string;
+  gioBatDau: string;
+  gioKetThuc: string;
+  soTiet: number;
+}
+
 export interface KhoaHoc {
   tenKhoaHoc: string;
   moTa: string;
@@ -137,8 +145,8 @@ export const giaSuService = {
     thu: string;
     gioBatDau: string;
     gioKetThuc: string;
-  }): Promise<any> => {
-    return axiosClient.post('/tiet-hoc/tao-moi', data);
+  }): Promise<TietHocItem> => {
+    return axiosClient.post('/tiet-hoc/tao-moi', data) as Promise<TietHocItem>;
   },
 
   /**
@@ -149,8 +157,8 @@ export const giaSuService = {
     thu: string;
     gioBatDau: string;
     gioKetThuc: string;
-  }): Promise<any> => {
-    return axiosClient.put(`/tiet-hoc/${idTietHoc}`, data);
+  }): Promise<TietHocItem> => {
+    return axiosClient.put(`/tiet-hoc/${idTietHoc}`, data) as Promise<TietHocItem>;
   },
 
   // ========== TÀI KHOẢN ==========
@@ -167,11 +175,11 @@ export const giaSuService = {
     return axiosClient.post('/tai-khoan/doi-mat-khau', data);
   },
   // Lấy toàn bộ danh sách Tiết Học từ hệ thống
-  getAllTietHoc: async () => {
+  getAllTietHoc: async (): Promise<TietHocItem[]> => {
     try {
       // Đổi đường dẫn này theo đúng Backend Controller của Khang nhé (ví dụ: /tiet-hoc/all)
-      const response = await axiosClient.get('/tiet-hoc'); 
-      return response.data || response;
+      const response = await axiosClient.get('/tiet-hoc');
+      return response as unknown as TietHocItem[];
     } catch (error) {
       throw error;
     }

@@ -28,7 +28,8 @@ axiosClient.interceptors.request.use(
 
         const publicApis = [
             '/auth/login',
-            '/auth/register'
+            '/auth/register',
+            '/auth/forgot-password'
         ];
 
         const isPublicApi = publicApis.some(api =>

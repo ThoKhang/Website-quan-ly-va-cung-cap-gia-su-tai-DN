@@ -13,6 +13,7 @@ public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
     // Spring Data JPA sẽ tự động dịch câu này thành: 
     // SELECT * FROM TaiKhoan WHERE tenDangNhap = ? OR email = ?
     Optional<TaiKhoan> findByTenDangNhapOrEmail(String tenDangNhap, String email);
+    Optional<TaiKhoan> findByEmail(String email);
     // Lấy ID tài khoản lớn nhất hiện có
     @Query("SELECT MAX(t.idTaiKhoan) FROM TaiKhoan t")
     String findMaxId();

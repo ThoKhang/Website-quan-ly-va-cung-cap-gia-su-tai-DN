@@ -30,6 +30,10 @@ export interface ChangePasswordRequest {
   xacNhanMatKhau: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
 export interface BangCap {
   idBangCap?: string;
   tenBangCap: string;
@@ -46,4 +50,3 @@ export interface GiaSuProfile {
   cccd: string;
   bangCapList?: BangCap[];
 }
-

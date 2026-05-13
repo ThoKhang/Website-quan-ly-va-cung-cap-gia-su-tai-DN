@@ -24,7 +24,7 @@ export default function CourseDetailPage() {
     try {
       setLoading(true);
       const response = await getCourseDetail(courseId);
-      setCourse(response.data);
+      setCourse(response);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Lỗi khi tải chi tiết khóa học');
       console.error(err);

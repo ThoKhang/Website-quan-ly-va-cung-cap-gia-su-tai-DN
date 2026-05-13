@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition, useEffect, FormEvent } from "react";
+import { FormEvent, useEffect, useState, useTransition } from "react";
 import { Button, Text } from "@/component/ui";
 import { useAuthStore } from "@/store/auth.store";
 

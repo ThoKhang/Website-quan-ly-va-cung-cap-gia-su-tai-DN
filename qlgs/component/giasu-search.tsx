@@ -8,7 +8,8 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getSubjects } from "@/services/khoa-hoc.service";
 import { searchGiaSu } from "@/services/giasu.service";
 import { useAuthStore } from "@/store/auth.store";
-import type { GiaSuSearchResult, SubjectOption } from "@/types/search.type";
+import type { SubjectOption } from "@/types/search.type";
+import type { GiaSuSearchResult } from "@/types/giasu.type";
 
 const defaultFilters = {
   keyword: "",

@@ -31,7 +31,7 @@ export default function CourseDetailPage() {
       setLoading(true);
       setError("");
       const data = await getCourseDetail(idKhoaHoc);
-      const courseData = (data.data || data) as any;
+      const courseData = data as any;
       
       setCourse(courseData);
       
