@@ -5,15 +5,15 @@ import type {
   SearchFilters,
   SubjectOption,
 } from "@/types/search.type";
-import type { KhoaHoc, KhoaHocRequestDTO, KhoaHocResponseDTO } from "@/types/khoa-hoc.type";
+import type { KhoaHoc, KhoaHocRequestDTO } from "@/types/khoa-hoc.type";
 
 function normalizeNumber(value: string) {
   const trimmed = value.trim();
   return trimmed === "" ? undefined : trimmed;
 }
 
-export async function searchCourses(filters: SearchFilters) {
-  return axiosClient.get<CourseSearchResult[]>("/khoa-hoc/tim-kiem", {
+export async function searchCourses(filters: SearchFilters): Promise<CourseSearchResult[]> {
+  return axiosClient.get("/khoa-hoc/tim-kiem", {
     params: {
       keyword: filters.keyword.trim() || undefined,
       idMonHoc: filters.idMonHoc || undefined,
@@ -21,34 +21,34 @@ export async function searchCourses(filters: SearchFilters) {
       minPrice: normalizeNumber(filters.minPrice),
       maxPrice: normalizeNumber(filters.maxPrice),
     },
-  });
+  }) as Promise<CourseSearchResult[]>;
 }
 
-export async function getSubjects() {
-  return axiosClient.get<SubjectOption[]>("/mon-hoc");
+export async function getSubjects(): Promise<SubjectOption[]> {
+  return axiosClient.get("/mon-hoc") as Promise<SubjectOption[]>;
 }
 
-export async function getClassLevels() {
-  return axiosClient.get<ClassLevelOption[]>("/danh-muc-lop");
+export async function getClassLevels(): Promise<ClassLevelOption[]> {
+  return axiosClient.get("/danh-muc-lop") as Promise<ClassLevelOption[]>;
 }
 
 // Quản lý khóa học của gia sư
-export async function createCourse(data: KhoaHocRequestDTO) {
-  return axiosClient.post<string>("/khoa-hoc/tao-moi", data);
+export async function createCourse(data: KhoaHocRequestDTO): Promise<string> {
+  return axiosClient.post("/khoa-hoc/tao-moi", data) as Promise<string>;
 }
 
-export async function getCoursesByTutor(idGiaSu: string) {
-  return axiosClient.get<KhoaHoc[]>("/khoa-hoc/gia-su/" + idGiaSu);
+export async function getCoursesByTutor(idGiaSu: string): Promise<KhoaHoc[]> {
+  return axiosClient.get("/khoa-hoc/gia-su/" + idGiaSu) as Promise<KhoaHoc[]>;
 }
 
-export async function updateCourse(idKhoaHoc: string, data: Partial<KhoaHocRequestDTO>) {
-  return axiosClient.put<string>("/khoa-hoc/" + idKhoaHoc, data);
+export async function updateCourse(idKhoaHoc: string, data: Partial<KhoaHocRequestDTO>): Promise<string> {
+  return axiosClient.put("/khoa-hoc/" + idKhoaHoc, data) as Promise<string>;
 }
 
-export async function deleteCourse(idKhoaHoc: string) {
-  return axiosClient.delete<string>("/khoa-hoc/" + idKhoaHoc);
+export async function deleteCourse(idKhoaHoc: string): Promise<string> {
+  return axiosClient.delete("/khoa-hoc/" + idKhoaHoc) as Promise<string>;
 }
 
-export async function getCourseDetail(idKhoaHoc: string) {
-  return axiosClient.get<KhoaHoc>("/khoa-hoc/" + idKhoaHoc);
+export async function getCourseDetail(idKhoaHoc: string): Promise<KhoaHoc> {
+  return axiosClient.get("/khoa-hoc/" + idKhoaHoc) as Promise<KhoaHoc>;
 }
