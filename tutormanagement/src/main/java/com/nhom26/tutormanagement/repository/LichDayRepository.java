@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface LichDayRepository extends JpaRepository<LichDay, String> {
@@ -25,4 +26,15 @@ public interface LichDayRepository extends JpaRepository<LichDay, String> {
     
     // Tìm tất cả lịch dạy của gia sư
     List<LichDay> findByGiaSu_IdGiaSu(String idGiaSu);
+    
+    @Query("""
+        SELECT kh.tenKhoaHoc, hv.tenHocVien, ph.tenPhuHuynh, ph.sdt
+        FROM ChiTietLichHoc ctlh 
+        JOIN ctlh.dangKyHoc dk 
+        JOIN dk.khoaHoc kh 
+        JOIN dk.hocVien hv 
+        JOIN dk.phuHuynh ph 
+        WHERE ctlh.lichDay.idLichDay = :idLichDay
+        """)
+    List<Object[]> findThongTinLopHocByIdLichDay(@Param("idLichDay") String idLichDay);
 }

@@ -4,6 +4,7 @@ import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
 import com.nhom26.tutormanagement.service.GiaSuService;
+import com.nhom26.tutormanagement.service.LichDayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +17,13 @@ import java.util.Map;
 public class GiaSuController {
 
     private final GiaSuService giaSuService;
-
-    // API 1: Lấy danh sách lịch rảnh (Ai cũng xem được, không cần chặn Role)
+    private final LichDayService lichDayService;
+    // API 1: Lấy danh sách lịch rảnh
     @GetMapping("/{idGiaSu}/lich-ranh")
     public ResponseEntity<?> layLichRanh(@PathVariable String idGiaSu) {
         try {
-            return ResponseEntity.ok(giaSuService.layLichRanhCuaGiaSu(idGiaSu));
+            // SỬA TỪ giaSuService THÀNH lichDayService
+            return ResponseEntity.ok(lichDayService.getLichRanhCuaGiaSu(idGiaSu)); 
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

@@ -17,6 +17,11 @@ public class LichRanhDTO {
     private Boolean tinhTrang;
     private TietHocDTO tietHoc;
 
+    private String tenKhoaHoc;
+    private String tenHocVien;
+    private String tenPhuHuynh;
+    private String sdtPhuHuynh;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
