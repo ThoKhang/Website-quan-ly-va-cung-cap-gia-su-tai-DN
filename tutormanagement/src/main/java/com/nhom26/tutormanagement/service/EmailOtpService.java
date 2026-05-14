@@ -5,11 +5,14 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,17 +37,17 @@ public class EmailOtpService {
 
         otpStorage.put(normalizedEmail, new OtpPayload(otpCode, expiresAt));
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(normalizedEmail);
-        message.setSubject("Ma OTP khoi phuc mat khau");
-        message.setText(buildForgotPasswordContent(tenDangNhap, otpCode, expiresAt));
-
         try {
-            javaMailSender.send(message);
-        } catch (MailException exception) {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            helper.setFrom(new InternetAddress(fromEmail));
+            helper.setTo(normalizedEmail);
+            helper.setSubject("Mã OTP khôi phục mật khẩu");
+            helper.setText(buildForgotPasswordContent(tenDangNhap, otpCode, expiresAt), false);
+            javaMailSender.send(mimeMessage);
+        } catch (MailException | MessagingException exception) {
             otpStorage.remove(normalizedEmail);
-            throw new RuntimeException("Khong the gui OTP den email nay. Vui long thu lai sau.");
+            throw new RuntimeException("Không thể gửi OTP đến email này. Vui lòng thử lại sau.");
         }
     }
 
@@ -70,7 +73,7 @@ public class EmailOtpService {
 
     private void validateMailConfiguration() {
         if (fromEmail == null || fromEmail.isBlank()) {
-            throw new RuntimeException("Chua cau hinh email gui OTP. Hay cap nhat bien moi truong mail.");
+            throw new RuntimeException("Chưa cấu hình email gửi OTP. Hãy cập nhật biến môi trường mail.");
         }
     }
 
@@ -86,13 +89,13 @@ public class EmailOtpService {
     private String buildForgotPasswordContent(String tenDangNhap, String otpCode, LocalDateTime expiresAt) {
         long minutesRemaining = Math.max(1, Duration.between(LocalDateTime.now(), expiresAt).toMinutes());
         return String.join("\n",
-                "Xin chao " + tenDangNhap + ",",
+                "Xin chào " + tenDangNhap + ",",
                 "",
-                "He thong Quan Ly va Cung Cap Gia Su tai Da Nang vua nhan yeu cau khoi phuc mat khau.",
-                "Ma OTP cua ban la: " + otpCode,
-                "Ma nay co hieu luc trong " + minutesRemaining + " phut.",
+                "Hệ thống Quản Lý và Cung ấp Gia Sư tại Đà Nẵng vừa nhận được yêu cầu khôi phục mật khẩu.",
+                "Mã OTP của bạn là: " + otpCode,
+                "Mã này có hiệu lực trong " + minutesRemaining + " phút.",
                 "",
-                "Neu ban khong thuc hien yeu cau nay, vui long bo qua email nay.");
+                "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.");
     }
 
     private record OtpPayload(String code, LocalDateTime expiresAt) {
