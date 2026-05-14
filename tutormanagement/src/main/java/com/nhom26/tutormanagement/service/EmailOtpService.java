@@ -1,13 +1,13 @@
 package com.nhom26.tutormanagement.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
@@ -45,9 +45,16 @@ public class EmailOtpService {
             helper.setSubject("Mã OTP khôi phục mật khẩu");
             helper.setText(buildForgotPasswordContent(tenDangNhap, otpCode, expiresAt), false);
             javaMailSender.send(mimeMessage);
+            
+            System.out.println("✅ Gửi OTP thành công đến: " + normalizedEmail);
+            
         } catch (MailException | MessagingException exception) {
+            System.err.println("=== CHI TIẾT LỖI GỬI MAIL ===");
+            exception.printStackTrace(); 
+            System.err.println("=============================");
+            
             otpStorage.remove(normalizedEmail);
-            throw new RuntimeException("Không thể gửi OTP đến email này. Vui lòng thử lại sau.");
+            throw new RuntimeException("Không thể gửi OTP đến email này. Lỗi: " + exception.getMessage());
         }
     }
 
