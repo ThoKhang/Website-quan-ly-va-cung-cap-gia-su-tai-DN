@@ -16,7 +16,6 @@ import java.util.List;
 public class KhoaHocController {
     private final KhoaHocService khoaHocService;
 
-    // 1. Gia sư tạo khóa học
     @PostMapping("/tao-moi")
     public ResponseEntity<String> taoKhoaHoc(@RequestBody KhoaHocRequestDTO request) {
         try {
@@ -26,7 +25,6 @@ public class KhoaHocController {
         }
     }
 
-    // 2. Học viên/Phụ huynh tìm kiếm khóa học (Chỉ hiện khóa đã duyệt)
     @GetMapping("/tim-kiem")
     public ResponseEntity<List<KhoaHocResponseDTO>> timKiem(
             @RequestParam(required = false) String keyword,
@@ -39,11 +37,47 @@ public class KhoaHocController {
         );
     }
 
-    // 3. THÊM MỚI: Admin duyệt khóa học (status = 1: Duyệt, status = 2: Từ chối)
     @PutMapping("/{id}/duyet")
     public ResponseEntity<String> duyetKhoaHoc(@PathVariable String id, @RequestParam Integer status) {
         try {
             return ResponseEntity.ok(khoaHocService.duyetKhoaHoc(id, status));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/gia-su/{idGiaSu}")
+    public ResponseEntity<?> getKhoaHocByGiaSu(@PathVariable String idGiaSu) {
+        try {
+            return ResponseEntity.ok(khoaHocService.getKhoaHocByGiaSu(idGiaSu));
+        } catch (RuntimeException e) {
+            //Trả về thông báo lỗi thật để Frontend hiển thị
+            return ResponseEntity.badRequest().body(e.getMessage()); 
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<KhoaHocResponseDTO> getKhoaHocDetail(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(khoaHocService.getKhoaHocDetail(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateKhoaHoc(@PathVariable String id, @RequestBody KhoaHocRequestDTO request) {
+        try {
+            return ResponseEntity.ok(khoaHocService.updateKhoaHoc(id, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteKhoaHoc(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(khoaHocService.deleteKhoaHoc(id));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

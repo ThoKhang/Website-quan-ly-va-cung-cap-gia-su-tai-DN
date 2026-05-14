@@ -1,9 +1,14 @@
 package com.nhom26.tutormanagement.service;
 
 import com.nhom26.tutormanagement.dto.AuthResponse;
+import com.nhom26.tutormanagement.dto.ForgotPasswordRequest;
 import com.nhom26.tutormanagement.dto.LoginRequest;
 import com.nhom26.tutormanagement.dto.RegisterRequest;
+import com.nhom26.tutormanagement.entity.GiaSu;
+import com.nhom26.tutormanagement.entity.PhuHuynh;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
+import com.nhom26.tutormanagement.repository.GiaSuRepository;
+import com.nhom26.tutormanagement.repository.PhuHuynhRepository;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
 import com.nhom26.tutormanagement.security.JwtService;
 import com.nhom26.tutormanagement.util.IdGeneratorUtil;
@@ -17,8 +22,11 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final TaiKhoanRepository taiKhoanRepository;
+    private final GiaSuRepository giaSuRepository;
+    private final PhuHuynhRepository phuHuynhRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailOtpService emailOtpService;
 
     public String register(RegisterRequest request) {
         String inputTenDangNhap = request.getTenDangNhap() != null ? request.getTenDangNhap().trim() : "";
@@ -45,7 +53,8 @@ public class AuthService {
         String roleId = (request.getLoaiNguoiDungID() != null && !request.getLoaiNguoiDungID().trim().isEmpty()) 
                         ? request.getLoaiNguoiDungID().trim() 
                         : "1";
-        taiKhoanMoi.setLoaiNguoiDungID(roleId); 
+        taiKhoanMoi.setLoaiNguoiDungID(roleId);
+        System.out.println("📝 Đăng ký tài khoản: " + inputTenDangNhap + " với loaiNguoiDungID: " + roleId);
         // -----------------------
 
         taiKhoanRepository.save(taiKhoanMoi);
@@ -59,20 +68,64 @@ public class AuthService {
         TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(inputTaiKhoan, inputTaiKhoan)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hoặc email: " + inputTaiKhoan));
 
-        boolean isMatch = passwordEncoder.matches(request.getMatKhau().trim(), taiKhoan.getMatKhau().trim());
+        boolean isMatch = passwordEncoder.matches(request.getMatKhau().trim(), taiKhoan.getMatKhau());
 
         if (!isMatch) {
             throw new RuntimeException("Mật khẩu không chính xác!");
         }
 
-        String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), taiKhoan.getLoaiNguoiDungID());
+        String roleId = taiKhoan.getLoaiNguoiDungID();
+        if (roleId == null || roleId.trim().isEmpty()) {
+            System.out.println("⚠️ CẢNH BÁO: loaiNguoiDungID bị NULL cho tài khoản " + inputTaiKhoan + ". Mặc định thành '1'");
+            roleId = "1";
+        }
+        
+        System.out.println("✅ Đăng nhập thành công: " + inputTaiKhoan + " với loaiNguoiDungID: " + roleId);
+        
+        String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), roleId);
+        
+        // Lấy ID của người dùng tương ứng (GiaSu, PhuHuynh, v.v.)
+        String idNguoiDung = taiKhoan.getIdTaiKhoan();
+        
+        // Nếu là Gia sư (loaiNguoiDungID = 2), lấy idGiaSu
+        if ("2".equals(roleId)) {
+            GiaSu giaSu = giaSuRepository.findByTaiKhoan_IdTaiKhoan(taiKhoan.getIdTaiKhoan())
+                    .orElse(null);
+            if (giaSu != null) {
+                idNguoiDung = giaSu.getIdGiaSu();
+            }
+        }
+        // Nếu là Phụ huynh (loaiNguoiDungID = 1), lấy idPhuHuynh
+        else if ("1".equals(roleId)) {
+            PhuHuynh phuHuynh = phuHuynhRepository.findByTaiKhoan_TenDangNhap(taiKhoan.getTenDangNhap())
+                    .orElse(null);
+            if (phuHuynh != null) {
+                idNguoiDung = phuHuynh.getIdPhuHuynh();
+                System.out.println("✅ Tìm thấy idPhuHuynh: " + idNguoiDung);
+            } else {
+                System.out.println("⚠️ CẢNH BÁO: Không tìm thấy hồ sơ PhuHuynh cho tài khoản: " + taiKhoan.getTenDangNhap());
+            }
+        }
         
         return new AuthResponse(
             token, 
             "Đăng nhập thành công!", 
-            taiKhoan.getLoaiNguoiDungID(), 
-            ""
+            roleId, 
+            idNguoiDung
         );
+    }
+
+    public String forgotPassword(ForgotPasswordRequest request) {
+        String inputEmail = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (inputEmail.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập email.");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanRepository.findByEmail(inputEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email: " + inputEmail));
+
+        emailOtpService.sendForgotPasswordOtp(taiKhoan.getEmail(), taiKhoan.getTenDangNhap());
+        return "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
     }
 
     private String generateNextId() {

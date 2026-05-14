@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.AuthResponse;
+import com.nhom26.tutormanagement.dto.ForgotPasswordRequest;
 import com.nhom26.tutormanagement.dto.LoginRequest;
 import com.nhom26.tutormanagement.dto.RegisterRequest;
 import com.nhom26.tutormanagement.service.AuthService;
@@ -21,5 +22,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
     }
 }

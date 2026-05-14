@@ -4,6 +4,7 @@ import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
+import com.nhom26.tutormanagement.dto.LichRanhDTO;
 import com.nhom26.tutormanagement.entity.BangCap;
 import com.nhom26.tutormanagement.entity.GiaSu;
 import com.nhom26.tutormanagement.entity.LichDay;
@@ -37,30 +38,63 @@ public class GiaSuService {
     // ==========================================
     // 1. LẤY LỊCH RẢNH CỦA GIA SƯ
     // ==========================================
-    public List<LichDay> layLichRanhCuaGiaSu(String idGiaSu) {
+    public List<LichRanhDTO> layLichRanhCuaGiaSu(String idGiaSu) {
         List<LichDay> danhSachLichRanh = lichDayRepository.findByGiaSu_IdGiaSuAndTinhTrangTrue(idGiaSu);
         
-        if (danhSachLichRanh.isEmpty()) {
-            throw new RuntimeException("Gia sư này hiện không có lịch rảnh nào!");
+        // Loại bỏ trùng lặp dựa trên idTietHoc - chỉ giữ lại LichDay đầu tiên của mỗi TietHoc
+        java.util.Map<String, LichDay> uniqueLichDayMap = new java.util.LinkedHashMap<>();
+        for (LichDay lichDay : danhSachLichRanh) {
+            String idTietHoc = lichDay.getTietHoc().getIdTietHoc();
+            if (!uniqueLichDayMap.containsKey(idTietHoc)) {
+                uniqueLichDayMap.put(idTietHoc, lichDay);
+            }
         }
         
-        return danhSachLichRanh;
+        // Chuyển đổi từ LichDay entity sang LichRanhDTO
+        return uniqueLichDayMap.values().stream()
+                .map(lichDay -> LichRanhDTO.builder()
+                        .idLichDay(lichDay.getIdLichDay())
+                        .tinhTrang(lichDay.getTinhTrang())
+                        .tietHoc(LichRanhDTO.TietHocDTO.builder()
+                                .idTietHoc(lichDay.getTietHoc().getIdTietHoc())
+                                .thu(lichDay.getTietHoc().getThu())
+                                .gioBatDau(lichDay.getTietHoc().getGioBatDau())
+                                .gioKetThuc(lichDay.getTietHoc().getGioKetThuc())
+                                .soTiet(lichDay.getTietHoc().getSoTiet())
+                                .build())
+                        .build())
+                .toList();
     }
-
     // ==========================================
     // 2. TẠO HỒ SƠ GIA SƯ (DÙNG JWT)
     // ==========================================
-    private String generateNextIdGiaSu() {
-        String maxId = giaSuRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "GS001";
-        return String.format("GS%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
-    }
+
     private int getCurrentMaxLichDayNumber() {
-        String maxId = lichDayRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return 0;
         try {
-            return Integer.parseInt(maxId.trim().substring(2));
+            List<String> allIds = lichDayRepository.findAllIdsSorted();
+            if (allIds == null || allIds.isEmpty()) {
+                return 0;
+            }
+            
+            // Tìm ID lớn nhất bằng cách parse từng ID
+            int maxNumber = 0;
+            for (String id : allIds) {
+                try {
+                    String trimmedId = id.trim();
+                    if (trimmedId.startsWith("LD") && trimmedId.length() >= 5) {
+                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                        if (number > maxNumber) {
+                            maxNumber = number;
+                        }
+                    }
+                } catch (Exception e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            return maxNumber;
         } catch (Exception e) {
+            System.out.println("❌ DEBUG: Error in getCurrentMaxLichDayNumber: " + e.getMessage());
             return 0;
         }
     }
@@ -196,4 +230,80 @@ public class GiaSuService {
 
         return dto;
     }
+
+    // ==========================================
+    // 4. LẤY THÔNG TIN HỒ SƠ GIA SƯ (ĐỂ CẬP NHẬT)
+    // ==========================================
+    public GiaSuRequestDTO layThongTinGiaSu(String idGiaSu) {
+        GiaSu giaSu = giaSuRepository.findById(idGiaSu)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy gia sư!"));
+
+        GiaSuRequestDTO dto = new GiaSuRequestDTO();
+        dto.setTenGiaSu(giaSu.getTenGiaSu());
+        dto.setSdt(giaSu.getSdt());
+        dto.setCccd(giaSu.getCccd());
+
+        return dto;
+    }
+
+    // ==========================================
+    // 5. CẬP NHẬT THÔNG TIN HỒ SƠ GIA SƯ
+    // ==========================================
+    @Transactional
+    public GiaSu capNhatThongTinGiaSu(String idGiaSu, GiaSuRequestDTO request) {
+        GiaSu giaSu = giaSuRepository.findById(idGiaSu)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy gia sư!"));
+
+        if (request.getTenGiaSu() != null && !request.getTenGiaSu().isEmpty()) {
+            giaSu.setTenGiaSu(request.getTenGiaSu());
+        }
+        if (request.getSdt() != null && !request.getSdt().isEmpty()) {
+            giaSu.setSdt(request.getSdt());
+        }
+        if (request.getCccd() != null && !request.getCccd().isEmpty()) {
+            giaSu.setCccd(request.getCccd());
+        }
+
+        return giaSuRepository.save(giaSu);
+    }
+
+    // ==========================================
+    // 6. XÓA LỊCH RẢNH
+    // ==========================================
+    @Transactional
+    public String xoaLichRanh(String idLichDay) {
+        LichDay lichDay = lichDayRepository.findById(idLichDay)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy lịch rảnh!"));
+
+        lichDayRepository.delete(lichDay);
+        return "Xóa lịch rảnh thành công!";
+    }
+
+        private String generateNextIdGiaSu() {
+            String maxId = giaSuRepository.findMaxId(); 
+            if (maxId == null || maxId.trim().isEmpty()) {
+                return "GS001";
+            }
+            int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
+            return String.format("GS%03d", nextNumber);
+        }
+
+        // 2. Hàm lấy thông tin hiện tại (để tự động cấp Profile trống khi Gia sư mới đăng nhập)
+        @Transactional
+        public GiaSu layThongTinHienTai() {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            Optional<GiaSu> giaSuOpt = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername);
+
+            if (giaSuOpt.isEmpty()) {
+                TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                        .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy tài khoản người dùng!"));
+
+                GiaSu giaSuMoi = new GiaSu();
+                giaSuMoi.setIdGiaSu(generateNextIdGiaSu()); 
+                giaSuMoi.setTaiKhoan(taiKhoan);
+                return giaSuRepository.save(giaSuMoi);
+            }
+
+            return giaSuOpt.get();
+        }
 }

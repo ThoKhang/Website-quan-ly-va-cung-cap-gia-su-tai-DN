@@ -15,7 +15,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping("/dat-lop")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH (ID = 1) MỚI CÓ QUYỀN GỌI API ĐẶT LỚP NÀY
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH (ID = 1) MỚI CÓ QUYỀN GỌI API ĐẶT LỚP NÀY
     public ResponseEntity<?> datLop(@RequestBody BookingRequestDTO request) {
         try {
             return ResponseEntity.ok(bookingService.datLop(request));

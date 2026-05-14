@@ -96,7 +96,7 @@ public class BookingService {
         dangKy.setNgayBatDauHoc(ngayBatDau);
         
         dangKy.setLoaiDangKy("Booking Trực Tiếp");
-        dangKy.setTrangThaiThanhToan(false);
+        dangKy.setTrangThaiThanhToan(true); // ✅ Đã thanh toán (người dùng đã quét QR hoặc chuyển khoản)
         dangKy.setTrangThaiHoanThanh(false);
         dangKyHocRepository.save(dangKy);
 
