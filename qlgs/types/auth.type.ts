@@ -31,6 +31,7 @@ export interface ChangePasswordRequest {
 }
 
 export interface ForgotPasswordRequest {
+  tenDangNhap: string;
   email: string;
 }
 

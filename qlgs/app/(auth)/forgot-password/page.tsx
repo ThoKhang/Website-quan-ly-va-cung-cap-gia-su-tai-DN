@@ -18,7 +18,8 @@ function getErrorMessage(error: unknown) {
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>('');
+  // Đổi từ email sang identifier (Dùng chung cho cả Tên đăng nhập hoặc Email)
+  const [identifier, setIdentifier] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -27,10 +28,8 @@ export default function ForgotPasswordPage() {
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = 'Vui lòng nhập email';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Email không hợp lệ';
+    if (!identifier.trim()) {
+      newErrors.identifier = 'Vui lòng nhập Email hoặc Tên đăng nhập';
     }
 
     setErrors(newErrors);
@@ -38,8 +37,8 @@ export default function ForgotPasswordPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (errors.email) {
+    setIdentifier(e.target.value);
+    if (errors.identifier) {
       setErrors({});
     }
   };
@@ -55,17 +54,23 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await authService.forgotPassword({ email: email.trim() });
-      setMessage(response || 'Đã gửi mã OTP thành công! Đang chuyển trang...');
+      // Gửi identifier (email hoặc tên đăng nhập) xuống Backend
+      const response = await authService.forgotPassword({ identifier: identifier.trim() });
+      
+      // Backend trả về email đã bị che (VD: kha***@gmail.com)
+      const maskedEmail = response || 'email của bạn';
+      
+      setMessage(`Mã OTP đang được gửi đến: ${maskedEmail}`);
       setMessageType('success');
       
-      // LƯU TẠM EMAIL VÀ CHUYỂN SANG TRANG NHẬP OTP
-      localStorage.setItem('resetEmail', email.trim());
+      // LƯU TẠM DỮ LIỆU ĐỂ CHUYỂN SANG TRANG NHẬP OTP
+      localStorage.setItem('resetIdentifier', identifier.trim());
+      localStorage.setItem('maskedEmail', maskedEmail);
       
-      // Chuyển thẳng sang trang verify-otp sau 1.5s
+      // Chuyển thẳng sang trang verify-otp sau 2s (để người dùng kịp đọc email đã che)
       setTimeout(() => {
         router.push('/verify-otp');
-      }, 1500); 
+      }, 2000); 
       
     } catch (err: unknown) {
       setMessageType('error');
@@ -88,7 +93,7 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Quên Mật Khẩu</h1>
-          <p className="text-gray-600">Nhập email của bạn để nhận mã OTP khôi phục mật khẩu</p>
+          <p className="text-gray-600">Nhập email hoặc tên đăng nhập để nhận mã OTP</p>
         </div>
 
         {/* Card */}
@@ -106,33 +111,33 @@ export default function ForgotPasswordPage() {
                 </svg>
               ) : (
                 <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               )}
-              <p className={messageType === 'success' ? 'text-green-800' : 'text-red-800'}>
+              <p className={messageType === 'success' ? 'text-green-800 font-medium' : 'text-red-800'}>
                 {message}
               </p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
+            {/* Identifier Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                Email hoặc Tên đăng nhập
               </label>
               <input
-                type="email"
-                value={email}
+                type="text" // Chuyển từ type="email" sang "text" để nhập được username
+                value={identifier}
                 onChange={handleChange}
                 disabled={isRedirecting}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition ${
-                  errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                  errors.identifier ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 } ${isRedirecting ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
-                placeholder="Nhập email của bạn"
+                placeholder="Nhập email hoặc tên đăng nhập"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              {errors.identifier && (
+                <p className="mt-1 text-sm text-red-600">{errors.identifier}</p>
               )}
             </div>
 

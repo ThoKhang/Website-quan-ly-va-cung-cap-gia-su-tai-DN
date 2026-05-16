@@ -32,8 +32,7 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         try {
-            authService.verifyOtp(request.get("email"), request.get("otp"));
-            // Trả về JSON để Frontend đọc được
+            authService.verifyOtp(request.get("identifier"), request.get("otp"));
             return ResponseEntity.ok(Map.of("message", "OTP hợp lệ"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -43,11 +42,7 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
         try {
-            authService.resetPassword(
-                request.get("email"), 
-                request.get("otp"), 
-                request.get("matKhauMoi")
-            );
+            authService.resetPassword(request.get("identifier"), request.get("otp"), request.get("matKhauMoi"));
             return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

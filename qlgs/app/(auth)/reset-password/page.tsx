@@ -6,7 +6,7 @@ import { authService } from '@/services/auth.service';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [otp, setOtp] = useState('');
   
   const [formData, setFormData] = useState({ matKhauMoi: '', xacNhanMatKhau: '' });
@@ -16,15 +16,15 @@ export default function ResetPasswordPage() {
   const [showPasswords, setShowPasswords] = useState({ new: false, confirm: false });
 
   useEffect(() => {
-    // Lấy Email và OTP hợp lệ từ bước trước truyền sang
-    const savedEmail = localStorage.getItem('resetEmail');
+    // Lấy Identifier và OTP hợp lệ từ 2 bước trước truyền sang
+    const savedIdentifier = localStorage.getItem('resetIdentifier');
     const savedOtp = localStorage.getItem('validOtp');
 
-    if (!savedEmail || !savedOtp) {
-      // Nếu không có dữ liệu (ai đó cố tình gõ URL) -> Đuổi về trang quên mật khẩu
+    if (!savedIdentifier || !savedOtp) {
+      // Bắt quả tang ai đó gõ URL nhảy cóc -> Đuổi về
       router.push('/forgot-password');
     } else {
-      setEmail(savedEmail);
+      setIdentifier(savedIdentifier);
       setOtp(savedOtp);
     }
   }, [router]);
@@ -52,32 +52,32 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      // Gọi API đặt lại mật khẩu xuống Spring Boot
+      // Gọi API đặt lại mật khẩu với IDENTIFIER
       await authService.resetPassword({
-        email: email,
+        identifier: identifier,
         otp: otp,
         matKhauMoi: formData.matKhauMoi
       });
 
-      setSuccess('Đặt lại mật khẩu thành công! Đang chuyển hướng đến trang đăng nhập...');
+      setSuccess('Đặt lại mật khẩu thành công! Đang chuyển hướng đến đăng nhập...');
       
-      // Xóa sạch dấu vết để bảo mật
-      localStorage.removeItem('resetEmail');
+      // Bẻ khóa an toàn: Xóa sạch dấu vết
+      localStorage.removeItem('resetIdentifier');
       localStorage.removeItem('validOtp');
+      localStorage.removeItem('maskedEmail'); // Dọn luôn cái email đã che
 
-      // Chuyển về trang đăng nhập sau 2s
       setTimeout(() => {
         router.push('/login');
       }, 2000);
       
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Có lỗi xảy ra, vui lòng thử lại quá trình quên mật khẩu!');
+      setError(err.response?.data?.message || err.message || 'Có lỗi xảy ra, vui lòng thử lại!');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!email || !otp) return null; // Chống chớp giật UI khi đang check useEffect
+  if (!identifier || !otp) return null; 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
@@ -92,8 +92,8 @@ export default function ResetPasswordPage() {
           <p className="text-gray-600">Vui lòng nhập mật khẩu mới cho tài khoản của bạn.</p>
         </div>
 
-        {error && <div className="mb-5 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm">{error}</div>}
-        {success && <div className="mb-5 p-3 bg-green-50 text-green-800 border border-green-200 rounded-lg text-sm font-medium">{success}</div>}
+        {error && <div className="mb-5 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm text-center font-medium">{error}</div>}
+        {success && <div className="mb-5 p-3 bg-green-50 text-green-800 border border-green-200 rounded-lg text-sm text-center font-medium">{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Mật khẩu mới */}
