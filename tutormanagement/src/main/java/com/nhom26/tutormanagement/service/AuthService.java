@@ -127,7 +127,30 @@ public class AuthService {
         emailOtpService.sendForgotPasswordOtp(taiKhoan.getEmail(), taiKhoan.getTenDangNhap());
         return "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
     }
+    // Hàm 1: Kiểm tra OTP có đúng không
+    public void verifyOtp(String email, String otp) {
+        if (!emailOtpService.isOtpValid(email, otp)) {
+            throw new RuntimeException("Mã OTP không chính xác hoặc đã hết hạn!");
+        }
+    }
 
+    // Hàm 2: Đặt lại mật khẩu mới
+    public void resetPassword(String email, String otp, String newPassword) {
+        // Kiểm tra OTP lại lần cuối (đề phòng ai đó gọi thẳng API bypass bước 1)
+        if (!emailOtpService.isOtpValid(email, otp)) {
+            throw new RuntimeException("Mã OTP không hợp lệ hoặc đã hết hạn!");
+        }
+
+        // Tìm tài khoản và đổi pass
+        TaiKhoan taiKhoan = taiKhoanRepository.findByEmail(email.trim())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này!"));
+
+        taiKhoan.setMatKhau(passwordEncoder.encode(newPassword));
+        taiKhoanRepository.save(taiKhoan);
+
+        // Đổi thành công thì xóa luôn OTP trong RAM
+        emailOtpService.clearOtp(email);
+    }
     private String generateNextId() {
         String maxId = taiKhoanRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) {
