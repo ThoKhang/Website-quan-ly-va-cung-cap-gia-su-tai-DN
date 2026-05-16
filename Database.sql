@@ -43,7 +43,7 @@ CREATE TABLE TietHoc (
 
 CREATE TABLE TaiKhoan (
     idTaiKhoan CHAR(20) PRIMARY KEY,
-    email CHAR(50),
+    email CHAR(50) unique,
     tenDangNhap NVARCHAR(50) unique,
     anhDaiDien NVARCHAR(50),
     matKhau VARCHAR(100),
