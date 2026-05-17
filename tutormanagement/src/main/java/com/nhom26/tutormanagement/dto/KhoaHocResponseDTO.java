@@ -16,7 +16,7 @@ public class KhoaHocResponseDTO {
     private String noiDungKhoaHoc;
     private BigDecimal soTienHoc;
     private Integer soBuoiHoc;
-    
+    private String anhMinhHoa;
     // Gom dữ liệu từ các bảng khác lại thành chuỗi dễ đọc
     private String idGiaSu; // ID của gia sư (để lấy lịch rảnh)
     private String tenMonHoc;

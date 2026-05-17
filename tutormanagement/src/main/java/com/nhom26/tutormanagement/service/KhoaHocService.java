@@ -26,6 +26,7 @@ public class KhoaHocService {
     private final TietHocRepository tietHocRepository;
     private final DanhGiaRepository danhGiaRepository;
     private final DangKyHocRepository dangKyHocRepository;
+
     private String generateNextIdKhoaHoc() {
         try {
             List<String> allIds = khoaHocRepository.findAllIdsSorted();
@@ -101,6 +102,10 @@ public class KhoaHocService {
         khoaHocMoi.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHocMoi.setSoTienHoc(request.getSoTienHoc());
         khoaHocMoi.setSoBuoiHoc(request.getSoBuoiHoc());
+        
+        // THÊM: Gán link ảnh lúc tạo mới
+        khoaHocMoi.setAnhMinhHoa(request.getAnhMinhHoa());
+        
         khoaHocMoi.setTinhTrang(0);
         khoaHocMoi.setGiaSu(giaSu);
         khoaHocMoi.setMonHoc(monHoc);
@@ -199,6 +204,11 @@ public class KhoaHocService {
         khoaHoc.setSoTienHoc(request.getSoTienHoc());
         khoaHoc.setSoBuoiHoc(request.getSoBuoiHoc());
         
+        // THÊM: Gán link ảnh lúc update
+        if(request.getAnhMinhHoa() != null) {
+            khoaHoc.setAnhMinhHoa(request.getAnhMinhHoa());
+        }
+        
         khoaHocRepository.save(khoaHoc);
         return "Cập nhật khóa học thành công!";
     }
@@ -226,6 +236,9 @@ public class KhoaHocService {
         dto.setSoBuoiHoc(khoaHoc.getSoBuoiHoc());
         dto.setTrangThai(khoaHoc.getTinhTrang());
         
+        // THÊM: Map trường ảnh ra DTO
+        dto.setAnhMinhHoa(khoaHoc.getAnhMinhHoa());
+        
         if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
         if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
         if (khoaHoc.getGiaSu() != null) {
@@ -237,6 +250,7 @@ public class KhoaHocService {
         }
         return dto;
     }
+
     // ==========================================
     // 1. HÀM CẬP NHẬT KHÓA HỌC
     // ==========================================
@@ -258,6 +272,11 @@ public class KhoaHocService {
         khoaHoc.setNoiDungKhoaHoc(request.getNoiDungKhoaHoc());
         khoaHoc.setSoTienHoc(request.getSoTienHoc());
         khoaHoc.setSoBuoiHoc(request.getSoBuoiHoc());
+        
+        // THÊM: Gán link ảnh lúc cập nhật
+        if(request.getAnhMinhHoa() != null) {
+            khoaHoc.setAnhMinhHoa(request.getAnhMinhHoa());
+        }
 
         // Đưa về trạng thái Chờ duyệt (0)
         khoaHoc.setTinhTrang(0); 
