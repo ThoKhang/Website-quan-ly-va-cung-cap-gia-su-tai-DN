@@ -181,6 +181,7 @@ public class KhoaHocService {
         List<KhoaHoc> danhSachKhoaHoc = khoaHocRepository.findByGiaSu_IdGiaSu(idGiaSu);
         
         return danhSachKhoaHoc.stream()
+                .filter(khoaHoc -> khoaHoc.getTinhTrang() == null || khoaHoc.getTinhTrang() != -1)
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -209,6 +210,11 @@ public class KhoaHocService {
             khoaHoc.setAnhMinhHoa(request.getAnhMinhHoa());
         }
         
+        // ----------------------------------------------------
+        // THÊM ĐÚNG 1 DÒNG NÀY VÀO ĐÂY:
+        khoaHoc.setTinhTrang(0); // Ép về trạng thái Chờ duyệt
+        // ----------------------------------------------------
+
         khoaHocRepository.save(khoaHoc);
         return "Cập nhật khóa học thành công!";
     }
@@ -218,11 +224,17 @@ public class KhoaHocService {
         KhoaHoc khoaHoc = khoaHocRepository.findById(idKhoaHoc)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học!"));
         
-        List<LichDay> lichDayList = lichDayRepository.findByGiaSu_IdGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
-        lichDayRepository.deleteAll(lichDayList);
+        // Chốt chặn an toàn: Nếu đang có người học thì không cho xóa
+        boolean isLocked = dangKyHocRepository.existsHocVienDangHoc(idKhoaHoc);
+        if (isLocked) {
+            throw new RuntimeException("LỖI: Khóa học này đang có học viên theo học, không thể xóa!");
+        }
+
+        // XÓA MỀM: Chuyển trạng thái thành -1 (Đã ẩn/Đã xóa)
+        khoaHoc.setTinhTrang(-1);
         
-        khoaHocRepository.delete(khoaHoc);
-        return "Xóa khóa học thành công!";
+        khoaHocRepository.save(khoaHoc);
+        return "Xóa (ẩn) khóa học thành công!";
     }
 
     public KhoaHocResponseDTO mapToResponseDTO(KhoaHoc khoaHoc) {
@@ -239,8 +251,14 @@ public class KhoaHocService {
         // THÊM: Map trường ảnh ra DTO
         dto.setAnhMinhHoa(khoaHoc.getAnhMinhHoa());
         
-        if (khoaHoc.getMonHoc() != null) dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
-        if (khoaHoc.getDanhMucLop() != null) dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
+        if (khoaHoc.getMonHoc() != null){
+            dto.setTenMonHoc(khoaHoc.getMonHoc().getTenMonHoc());
+            dto.setIdMonHoc(khoaHoc.getMonHoc().getIdMonHoc());
+        }
+        if (khoaHoc.getDanhMucLop() != null){
+            dto.setTenLop(khoaHoc.getDanhMucLop().getTenLop());
+            dto.setIdDanhMucLop(khoaHoc.getDanhMucLop().getIdDanhMucLop());
+        }
         if (khoaHoc.getGiaSu() != null) {
             dto.setIdGiaSu(khoaHoc.getGiaSu().getIdGiaSu());
             dto.setTenGiaSu(khoaHoc.getGiaSu().getTenGiaSu());

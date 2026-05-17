@@ -58,10 +58,11 @@ export const uploadCourseImage = async (file: File): Promise<{ fileUrl: string }
   formData.append('file', file);
   
   // Gọi API upload đã viết ở Spring Boot
-  const response = await axiosClient.post('/public/upload', formData, {
+  const response: any = await axiosClient.post('/public/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  // nếu chưa thì mới chọc vào response.data
+  return response.fileUrl ? response : response.data;
 };

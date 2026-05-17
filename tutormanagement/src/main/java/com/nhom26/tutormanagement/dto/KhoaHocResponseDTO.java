@@ -24,4 +24,6 @@ public class KhoaHocResponseDTO {
     private String tenGiaSu;
     private Double saoTrungBinh; // Lấy từ đánh giá của Gia sư
     private Integer trangThai; // 0: Chờ duyệt, 1: Đã duyệt, 2: Từ chối
+    private String idMonHoc;
+    private String idDanhMucLop;
 }

@@ -41,5 +41,7 @@ export interface KhoaHocResponseDTO {
   idGiaSu: string;
   saoTrungBinh?: number;
   anhMinhHoa?: string;
-  
+  idMonHoc?: string;
+  idDanhMucLop?: string;
+
 }
