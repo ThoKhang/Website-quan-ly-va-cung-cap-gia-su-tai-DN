@@ -231,6 +231,8 @@ public class GiaSuService {
 
         // 4. Đổ dữ liệu vào DTO
         GiaSuDetailResponseDTO dto = new GiaSuDetailResponseDTO();
+        dto.setHeSoLuong(giaSu.getHeSoLuong());
+        dto.setLuongHienCon(giaSu.getLuongHienCon());
         dto.setIdGiaSu(giaSu.getIdGiaSu());
         dto.setTenGiaSu(giaSu.getTenGiaSu());
         dto.setSdt(giaSu.getSdt());
@@ -325,5 +327,23 @@ public class GiaSuService {
         // QUAN TRỌNG: Gọi lại hàm layChiTietGiaSu để trả về DTO thay vì trả về Entity thô
         // Điều này đảm bảo Frontend luôn nhận được cấu trúc JSON { ..., bangCapList: [...] }
         return layChiTietGiaSu(giaSu.getIdGiaSu());
+    }
+    // ==========================================
+    // XÓA BẰNG CẤP (BẢO MẬT)
+    // ==========================================
+    @Transactional
+    public void xoaBangCap(String idBangCap) {
+        // Lấy thông tin người đang đăng nhập
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        BangCap bangCap = bangCapRepository.findById(idBangCap)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bằng cấp này!"));
+
+        // Chốt chặn bảo mật: Đảm bảo gia sư chỉ được xóa bằng cấp của chính mình
+        if (!bangCap.getGiaSu().getTaiKhoan().getTenDangNhap().equals(currentUsername)) {
+            throw new RuntimeException("LỖI 403: Bạn không có quyền xóa bằng cấp của người khác!");
+        }
+
+        bangCapRepository.delete(bangCap);
     }
 }
