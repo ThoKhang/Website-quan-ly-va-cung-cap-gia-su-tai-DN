@@ -52,3 +52,16 @@ export async function deleteCourse(idKhoaHoc: string): Promise<string> {
 export async function getCourseDetail(idKhoaHoc: string): Promise<KhoaHoc> {
   return axiosClient.get("/khoa-hoc/" + idKhoaHoc) as Promise<KhoaHoc>;
 }
+
+export const uploadCourseImage = async (file: File): Promise<{ fileUrl: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  // Gọi API upload đã viết ở Spring Boot
+  const response = await axiosClient.post('/public/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
