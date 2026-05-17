@@ -568,3 +568,7 @@ select * from PhanQuyenNguoiDung
 select * from LichDay
 select * from DanhMucLop
 select * from DanhGia
+select * from BangCap
+UPDATE KhoaHoc
+SET tinhTrang = 1
+WHERE idKhoaHoc='KH027';

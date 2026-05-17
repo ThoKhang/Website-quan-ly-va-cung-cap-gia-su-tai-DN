@@ -1,32 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Card, Section, Text } from "@/component/ui";
-import { getCourseDetail } from "@/services/khoa-hoc.service";
+import { useRouter, useParams } from 'next/navigation';
+import { Section } from "@/component/ui";
+import { getCourseDetail, deleteCourse } from "@/services/khoa-hoc.service";
 import type { KhoaHoc } from "@/types/khoa-hoc.type";
 
-export default function CourseDetailPage() {
-  const params = useParams();
+export default function ChiTietKhoaHocGiaSuPage() {
   const router = useRouter();
-  const courseId = params.id as string;
+  const params = useParams();
+  const id = params.id as string;
 
   const [course, setCourse] = useState<KhoaHoc | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCourseDetail();
-  }, [courseId]);
+    if (id) fetchDetail();
+  }, [id]);
 
-  const loadCourseDetail = async () => {
+  const fetchDetail = async () => {
     try {
       setLoading(true);
-      const response = await getCourseDetail(courseId);
-      setCourse(response);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Lỗi khi tải chi tiết khóa học');
+      const res = await getCourseDetail(id);
+      setCourse(res as any);
+    } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -35,193 +33,201 @@ export default function CourseDetailPage() {
 
   const getStatusBadge = (status?: number) => {
     switch (status) {
-      case 1:
-        return <span className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">Đã duyệt</span>;
-      case 2:
-        return <span className="px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">Từ chối</span>;
-      default:
-        return <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Chờ duyệt</span>;
+      case 1: return <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Đang hoạt động</span>;
+      case 2: return <span className="text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /> Bị từ chối</span>;
+      case -1: return <span className="text-xs px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-slate-500 inline-block" /> Đã lưu trữ</span>;
+      default: return <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" /> Đang chờ duyệt</span>;
     }
   };
 
-  if (loading) {
-    return (
-      <main className="page-shell">
-        <Section>
-          <div className="max-w-4xl mx-auto text-center py-12">
-            <Text size="body" tone="muted">Đang tải...</Text>
-          </div>
-        </Section>
-      </main>
-    );
-  }
-
-  if (error || !course) {
-    return (
-      <main className="page-shell">
-        <Section>
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
-              <Link href="/gia-su/khoa-hoc">
-                <Button className="bg-gray-200 hover:bg-gray-300 text-gray-800">
-                  ← Quay Lại
-                </Button>
-              </Link>
-            </div>
-            <Card className="bg-red-50 border border-red-200 p-8 text-center">
-              <Text size="body" className="text-red-800">{error || 'Không tìm thấy khóa học'}</Text>
-            </Card>
-          </div>
-        </Section>
-      </main>
-    );
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div></div>;
+  if (!course) return <div className="min-h-screen flex items-center justify-center text-slate-500">Không tìm thấy dữ liệu khóa học.</div>;
 
   return (
-    <main className="page-shell">
+    <main className="min-h-screen bg-slate-50 pb-16 pt-8">
       <Section>
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col gap-5">
+          
+          {/* THANH ĐIỀU HƯỚNG */}
+          <div className="flex items-center gap-2 mb-2">
             <Link href="/gia-su/khoa-hoc">
-              <Button className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800">
-                ← Quay Lại
-              </Button>
+              <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                ← Quay lại danh sách
+              </button>
             </Link>
-            <div className="flex justify-between items-start">
-              <div>
-                <Text as="h1" size="hero" className="mb-2">{course.tenKhoaHoc}</Text>
-                <div className="flex gap-4 items-center">
-                  <Text size="lead" tone="muted">{course.tenGiaSu}</Text>
-                  {getStatusBadge(course.trangThai)}
+          </div>
+
+          {/* HERO CARD - Bố cục y hệt Hồ Sơ Cá Nhân */}
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {/* Header nền xanh */}
+            <div className="bg-blue-900 px-8 py-8 pb-14 relative overflow-hidden">
+              <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/5" />
+              <div className="absolute left-1/4 -bottom-12 w-36 h-36 rounded-full bg-white/5" />
+              <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
+                
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-white/15 text-blue-200 border border-white/20 uppercase tracking-wider font-bold">
+                      Khóa học trực tuyến
+                    </span>
+                    {getStatusBadge(course.trangThai)}
+                  </div>
+                  <h1 className="text-3xl font-bold text-white leading-tight max-w-2xl">
+                    {course.tenKhoaHoc}
+                  </h1>
+                  <p className="text-blue-200 text-sm max-w-2xl line-clamp-2">
+                    {course.moTa || "Chưa có mô tả chi tiết cho khóa học này."}
+                  </p>
                 </div>
+
+                {/* Các nút Hành động đặt góc phải */}
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => router.push(`/gia-su/khoa-hoc/chinh-sua/${id}`)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white/15 hover:bg-white/25 text-blue-100 border border-white/25 rounded-lg transition-colors"
+                  >
+                    ✏️ Chỉnh sửa
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if(confirm("Bạn có chắc muốn xóa khóa học này?")) {
+                         await deleteCourse(id);
+                         router.push('/gia-su/khoa-hoc');
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-red-500/80 hover:bg-red-500 text-white border border-red-500/50 rounded-lg transition-colors"
+                  >
+                    🗑
+                  </button>
+                </div>
+
               </div>
+            </div>
+
+            {/* Stat chips nổi lên header (Chứa thông số quan trọng) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-8 -mt-6 pb-6 relative z-10">
+              {[
+                {
+                  icon: <span className="text-lg">💰</span>,
+                  iconBg: 'bg-blue-50',
+                  label: 'Giá học phí',
+                  value: `${course.soTienHoc.toLocaleString('vi-VN')} đ`,
+                  valueClass: 'text-blue-600 font-bold'
+                },
+                {
+                  icon: <span className="text-lg">⏱</span>,
+                  iconBg: 'bg-indigo-50',
+                  label: 'Thời lượng',
+                  value: `${course.soBuoiHoc} buổi học`,
+                  valueClass: 'text-indigo-700 font-bold'
+                },
+                {
+                  icon: <span className="text-lg">📚</span>,
+                  iconBg: 'bg-amber-50',
+                  label: 'Môn học',
+                  value: course.tenMonHoc,
+                  valueClass: 'text-amber-800'
+                },
+                {
+                  icon: <span className="text-lg">🎓</span>,
+                  iconBg: 'bg-emerald-50',
+                  label: 'Cấp lớp',
+                  value: course.tenLop,
+                  valueClass: 'text-emerald-800'
+                },
+              ].map((chip, i) => (
+                <div key={i} className="bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-3 flex items-center gap-3">
+                  <div className={`w-10 h-10 ${chip.iconBg} rounded-lg flex items-center justify-center shrink-0`}>
+                    {chip.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-slate-400 mb-0.5 uppercase tracking-wider">{chip.label}</p>
+                    <p className={`truncate text-sm ${chip.valueClass}`}>
+                      {chip.value}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            {/* Left Column - Course Info */}
-            <div className="col-span-2 space-y-6">
-              {/* Thông tin cơ bản */}
-              <Card className="bg-white p-6">
-                <Text as="h2" size="display" className="mb-4">Thông Tin Cơ Bản</Text>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Text size="caption" tone="muted" className="font-medium">Môn Học</Text>
-                      <Text size="body" className="mt-1">{course.tenMonHoc}</Text>
-                    </div>
-                    <div>
-                      <Text size="caption" tone="muted" className="font-medium">Cấp Lớp</Text>
-                      <Text size="body" className="mt-1">{course.tenLop}</Text>
-                    </div>
-                    <div>
-                      <Text size="caption" tone="muted" className="font-medium">Số Buổi Học</Text>
-                      <Text size="body" className="mt-1">{course.soBuoiHoc} buổi</Text>
-                    </div>
-                    <div>
-                      <Text size="caption" tone="muted" className="font-medium">Giá Tiền</Text>
-                      <Text size="body" className="mt-1 text-blue-600 font-semibold">
-                        {course.soTienHoc.toLocaleString('vi-VN')} VNĐ
-                      </Text>
-                    </div>
+          {/* BOTTOM GRID (Chia 2 cột) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+
+            {/* CỘT TRÁI: Ảnh Bìa & Đánh giá (Chiếm 1/3) */}
+            <div className="flex flex-col gap-5 md:col-span-1">
+              
+              {/* Box Ảnh Bìa */}
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-slate-700">Ảnh đại diện khóa học</span>
+                </div>
+                <div className="p-4">
+                  <div className="w-full aspect-video rounded-xl bg-slate-100 overflow-hidden border border-slate-200">
+                    {course.anhMinhHoa ? (
+                      <img src={course.anhMinhHoa} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center opacity-40">
+                        <span className="text-3xl mb-1">🖼️</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Trống</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </Card>
-
-              {/* Mô tả */}
-              <Card className="bg-white p-6">
-                <Text as="h2" size="display" className="mb-4">Mô Tả Khóa Học</Text>
-                <Text size="body" className="text-gray-700 whitespace-pre-wrap">
-                  {course.moTa}
-                </Text>
-              </Card>
-
-              {/* Yêu cầu */}
-              {course.yeuCau && (
-                <Card className="bg-white p-6">
-                  <Text as="h2" size="display" className="mb-4">Yêu Cầu Đối Với Học Viên</Text>
-                  <Text size="body" className="text-gray-700 whitespace-pre-wrap">
-                    {course.yeuCau}
-                  </Text>
-                </Card>
-              )}
-
-              {/* Nội dung */}
-              {course.noiDungKhoaHoc && (
-                <Card className="bg-white p-6">
-                  <Text as="h2" size="display" className="mb-4">Nội Dung Khóa Học</Text>
-                  <Text size="body" className="text-gray-700 whitespace-pre-wrap">
-                    {course.noiDungKhoaHoc}
-                  </Text>
-                </Card>
-              )}
-            </div>
-
-            {/* Right Column - Sidebar */}
-            <div className="space-y-6">
-              {/* Thông tin gia sư */}
-              <Card className="bg-white p-6">
-                <Text as="h3" size="bodyStrong" className="mb-4">Gia Sư</Text>
-                <div className="space-y-3">
-                  <Text size="body">{course.tenGiaSu}</Text>
-                  {course.saoTrungBinh && (
-                    <div>
-                      <Text size="caption" tone="muted">Đánh Giá</Text>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-yellow-400">★</span>
-                        <Text size="body" className="font-semibold">
-                          {course.saoTrungBinh.toFixed(1)}/5
-                        </Text>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-
-              {/* Trạng thái */}
-              <Card className="bg-white p-6">
-                <Text as="h3" size="bodyStrong" className="mb-4">Trạng Thái</Text>
-                <div className="mb-4">
-                  {getStatusBadge(course.trangThai)}
-                </div>
-                {course.trangThai === 0 && (
-                  <Text size="caption" tone="muted" className="text-yellow-700">
-                    Khóa học đang chờ duyệt từ admin
-                  </Text>
-                )}
-                {course.trangThai === 2 && (
-                  <Text size="caption" tone="muted" className="text-red-700">
-                    Khóa học đã bị từ chối
-                  </Text>
-                )}
-              </Card>
-
-              {/* Ngày tạo */}
-              {course.ngayTao && (
-                <Card className="bg-white p-6">
-                  <Text as="h3" size="bodyStrong" className="mb-2">Ngày Tạo</Text>
-                  <Text size="body">
-                    {new Date(course.ngayTao).toLocaleDateString('vi-VN')}
-                  </Text>
-                </Card>
-              )}
-
-              {/* Actions */}
-              <div className="space-y-2">
-                <Link href={`/gia-su/khoa-hoc/${course.idKhoaHoc}/edit`} className="block">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Chỉnh Sửa
-                  </Button>
-                </Link>
-                <Link href="/gia-su/khoa-hoc" className="block">
-                  <Button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800">
-                    Quay Lại Danh Sách
-                  </Button>
-                </Link>
               </div>
+
+              {/* Box Đánh giá & ID */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mã hồ sơ</span>
+                  <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{course.idKhoaHoc}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Đánh giá chung</span>
+                  <span className="text-sm font-bold text-amber-500 flex items-center gap-1">
+                    ⭐ {course.saoTrungBinh || '0.0'}
+                  </span>
+                </div>
+              </div>
+
             </div>
+
+            {/* CỘT PHẢI: Chi tiết Lộ trình & Yêu cầu (Chiếm 2/3) */}
+            <div className="md:col-span-2 flex flex-col gap-5">
+              
+              {/* Box Lộ trình */}
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-sm">🎯</div>
+                  <span className="text-sm font-medium text-slate-700">Nội dung & Lộ trình giảng dạy</span>
+                </div>
+                <div className="p-6 bg-slate-50/50">
+                  <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                    {course.noiDungKhoaHoc || "Chưa có thông tin lộ trình giảng dạy cho khóa học này."}
+                  </div>
+                </div>
+              </div>
+
+              {/* Box Yêu cầu */}
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center text-red-600 text-sm">⚠️</div>
+                  <span className="text-sm font-medium text-slate-700">Yêu cầu đối với học viên</span>
+                </div>
+                <div className="p-6">
+                  <div className="text-sm text-slate-600 italic border-l-4 border-red-100 pl-4 py-1">
+                    {course.yeuCau ? `"${course.yeuCau}"` : "Không có yêu cầu đầu vào đặc biệt nào."}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </Section>
