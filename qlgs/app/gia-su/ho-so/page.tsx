@@ -79,7 +79,8 @@ export default function GiaSuHoSoView() {
             <div className="bg-blue-900 px-8 py-8 pb-14 relative overflow-hidden">
               <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/5" />
               <div className="absolute left-1/2 -bottom-12 w-36 h-36 rounded-full bg-white/5" />
-              <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
+              {/* MOBILE: flex-col để nút không bị đẩy ra ngoài */}
+              <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex items-center gap-5">
                   {/* Avatar */}
                   <div className="w-20 h-20 rounded-full bg-blue-700 border-[3px] border-white/30 flex items-center justify-center text-2xl font-semibold text-blue-100 shrink-0">
@@ -105,7 +106,7 @@ export default function GiaSuHoSoView() {
                     </div>
                   </div>
                 </div>
-                <Link href="/gia-su/ho-so/chinh-sua">
+                <Link href="/gia-su/ho-so/chinh-sua" className="self-start sm:self-auto">
                   <button className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white/15 hover:bg-white/25 text-blue-100 border border-white/25 rounded-lg transition-colors">
                     ✏️ Chỉnh sửa hồ sơ
                   </button>
@@ -113,8 +114,8 @@ export default function GiaSuHoSoView() {
               </div>
             </div>
 
-            {/* Stat chips nổi lên header */}
-            <div className="grid grid-cols-3 gap-3 px-8 -mt-6 pb-6 relative z-10">
+            {/* Stat chips — MOBILE: 1 cột, sm+: 3 cột như desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-8 -mt-6 pb-6 relative z-10">
               {[
                 {
                   icon: (
@@ -224,9 +225,10 @@ export default function GiaSuHoSoView() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 mb-1">
+                          {/* MOBILE: tên + badge xuống dòng; sm+: ngang như cũ */}
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3 mb-1">
                             <p className="text-sm font-semibold text-slate-800 leading-snug">{bc.tenBangCap}</p>
-                            <span className={`shrink-0 text-[10px] px-2.5 py-0.5 rounded-full border font-medium flex items-center gap-1 ${
+                            <span className={`self-start shrink-0 text-[10px] px-2.5 py-0.5 rounded-full border font-medium flex items-center gap-1 ${
                               bc.trangThai
                                 ? 'bg-green-50 text-green-700 border-green-200'
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
