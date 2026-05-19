@@ -1,5 +1,6 @@
 package com.nhom26.tutormanagement.service;
 
+import com.nhom26.tutormanagement.dto.BangCapDTO;
 import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
@@ -203,30 +204,44 @@ public class GiaSuService {
 
         return bangCapRepository.save(bangCapMoi);
     }
+    // ==========================================
+    // LẤY CHI TIẾT GIA SƯ (CÓ BAO GỒM BẰNG CẤP)
+    // ==========================================
     public GiaSuDetailResponseDTO layChiTietGiaSu(String idGiaSu) {
         // 1. Tìm thông tin gia sư
         GiaSu giaSu = giaSuRepository.findById(idGiaSu)
                 .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy gia sư!"));
 
-        // 2. Tính số sao trung bình (Hàm bạn vừa viết trong Repo)
+        // 2. Tính số sao trung bình
         Double avgRating = danhGiaRepository.calculateAverageRatingForGiaSu(idGiaSu);
-        
-        // Làm tròn đến 1 chữ số thập phân (VD: 4.567 -> 4.6)
         double roundedRating = (avgRating != null) ? Math.round(avgRating * 10.0) / 10.0 : 0.0;
 
-        // 3. Lấy danh sách tên bằng cấp (Tùy chọn)
-        List<String> bangCaps = bangCapRepository.findByGiaSu_IdGiaSu(idGiaSu).stream()
-                .map(bc -> bc.getTenBangCap())
-                .toList();
+        // 3. Lấy và Map danh sách Bằng Cấp sang DTO
+        List<BangCapDTO> bangCapDTOs = bangCapRepository.findByGiaSu_IdGiaSu(idGiaSu).stream()
+                .map(bc -> {
+                    BangCapDTO bcDTO = new BangCapDTO();
+                    bcDTO.setIdBangCap(bc.getIdBangCap());
+                    bcDTO.setTenBangCap(bc.getTenBangCap());
+                    bcDTO.setThongTinBangCap(bc.getThongTinBangCap());
+                    bcDTO.setNgayCap(bc.getNgayCap()); // Có thể cần ép kiểu nếu lệch Date/LocalDateTime
+                    bcDTO.setAnhMinhChung(bc.getAnhMinhChung());
+                    bcDTO.setTrangThai(bc.getTrangThai());
+                    return bcDTO;
+                }).toList();
 
         // 4. Đổ dữ liệu vào DTO
         GiaSuDetailResponseDTO dto = new GiaSuDetailResponseDTO();
+        dto.setHeSoLuong(giaSu.getHeSoLuong());
+        dto.setLuongHienCon(giaSu.getLuongHienCon());
         dto.setIdGiaSu(giaSu.getIdGiaSu());
         dto.setTenGiaSu(giaSu.getTenGiaSu());
         dto.setSdt(giaSu.getSdt());
+        dto.setCccd(giaSu.getCccd()); // Map CCCD
         dto.setEmail(giaSu.getTaiKhoan().getEmail());
         dto.setSaoTrungBinh(roundedRating);
-        dto.setDanhSachBangCap(bangCaps);
+        
+        // Gán mảng object Bằng Cấp vào DTO
+        dto.setBangCapList(bangCapDTOs);
 
         return dto;
     }
@@ -288,22 +303,47 @@ public class GiaSuService {
             return String.format("GS%03d", nextNumber);
         }
 
-        // 2. Hàm lấy thông tin hiện tại (để tự động cấp Profile trống khi Gia sư mới đăng nhập)
-        @Transactional
-        public GiaSu layThongTinHienTai() {
-            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-            Optional<GiaSu> giaSuOpt = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername);
+    // ==========================================
+    // LẤY THÔNG TIN HIỆN TẠI
+    // ==========================================
+    @Transactional
+    public GiaSuDetailResponseDTO layThongTinHienTai() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<GiaSu> giaSuOpt = giaSuRepository.findByTaiKhoan_TenDangNhap(currentUsername);
 
-            if (giaSuOpt.isEmpty()) {
-                TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
-                        .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy tài khoản người dùng!"));
+        GiaSu giaSu;
+        if (giaSuOpt.isEmpty()) {
+            TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                    .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy tài khoản người dùng!"));
 
-                GiaSu giaSuMoi = new GiaSu();
-                giaSuMoi.setIdGiaSu(generateNextIdGiaSu()); 
-                giaSuMoi.setTaiKhoan(taiKhoan);
-                return giaSuRepository.save(giaSuMoi);
-            }
-
-            return giaSuOpt.get();
+            GiaSu giaSuMoi = new GiaSu();
+            giaSuMoi.setIdGiaSu(generateNextIdGiaSu()); 
+            giaSuMoi.setTaiKhoan(taiKhoan);
+            giaSu = giaSuRepository.save(giaSuMoi);
+        } else {
+            giaSu = giaSuOpt.get();
         }
+
+        // QUAN TRỌNG: Gọi lại hàm layChiTietGiaSu để trả về DTO thay vì trả về Entity thô
+        // Điều này đảm bảo Frontend luôn nhận được cấu trúc JSON { ..., bangCapList: [...] }
+        return layChiTietGiaSu(giaSu.getIdGiaSu());
+    }
+    // ==========================================
+    // XÓA BẰNG CẤP (BẢO MẬT)
+    // ==========================================
+    @Transactional
+    public void xoaBangCap(String idBangCap) {
+        // Lấy thông tin người đang đăng nhập
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        BangCap bangCap = bangCapRepository.findById(idBangCap)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bằng cấp này!"));
+
+        // Chốt chặn bảo mật: Đảm bảo gia sư chỉ được xóa bằng cấp của chính mình
+        if (!bangCap.getGiaSu().getTaiKhoan().getTenDangNhap().equals(currentUsername)) {
+            throw new RuntimeException("LỖI 403: Bạn không có quyền xóa bằng cấp của người khác!");
+        }
+
+        bangCapRepository.delete(bangCap);
+    }
 }

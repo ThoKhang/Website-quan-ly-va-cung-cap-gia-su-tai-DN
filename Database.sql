@@ -158,6 +158,7 @@ CREATE TABLE KhoaHoc (
     idGiaSu CHAR(20),
     idMonHoc CHAR(20),
     idDanhMucLop CHAR(20),
+    anhMinhHoa NVARCHAR(255),
     FOREIGN KEY (idGiaSu) REFERENCES GiaSu(idGiaSu),
     FOREIGN KEY (idMonHoc) REFERENCES MonHoc(idMonHoc),
     FOREIGN KEY (idDanhMucLop) REFERENCES DanhMucLop(idDanhMucLop)
@@ -567,3 +568,7 @@ select * from PhanQuyenNguoiDung
 select * from LichDay
 select * from DanhMucLop
 select * from DanhGia
+select * from BangCap
+UPDATE KhoaHoc
+SET tinhTrang = 1
+WHERE idKhoaHoc='KH027';
