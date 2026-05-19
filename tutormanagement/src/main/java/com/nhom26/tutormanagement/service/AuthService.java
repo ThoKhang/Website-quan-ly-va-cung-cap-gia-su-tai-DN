@@ -49,13 +49,18 @@ public class AuthService {
         
         taiKhoanMoi.setNgayTao(LocalDateTime.now());
         
-        // Ưu tiên lấy loaiNguoiDungID từ request, nếu trống thì mới mặc định là "1"
+        // Ưu tiên lấy loaiNguoiDungID từ request, chỉ cho phép Phụ huynh (1) hoặc Gia sư (2)
         String roleId = (request.getLoaiNguoiDungID() != null && !request.getLoaiNguoiDungID().trim().isEmpty()) 
                         ? request.getLoaiNguoiDungID().trim() 
                         : "1";
+        
+        // Kiểm tra role hợp lệ (chỉ cho phép 1 và 2)
+        if (!roleId.equals("1") && !roleId.equals("2")) {
+            throw new RuntimeException("Loại tài khoản không hợp lệ. Chỉ cho phép Phụ huynh hoặc Gia sư.");
+        }
+        
         taiKhoanMoi.setLoaiNguoiDungID(roleId);
         System.out.println("📝 Đăng ký tài khoản: " + inputTenDangNhap + " với loaiNguoiDungID: " + roleId);
-        // -----------------------
 
         taiKhoanRepository.save(taiKhoanMoi);
 
