@@ -82,8 +82,8 @@ export default function RegisterPage() {
       return;
     }
 
-    // Kiểm tra loại tài khoản hợp lệ
-    const validRoles = ['1', '2', '3', '4'];
+    // Kiểm tra loại tài khoản hợp lệ (chỉ cho phép Phụ huynh và Gia sư)
+    const validRoles = ['1', '2'];
     if (!validRoles.includes(formData.loaiNguoiDungID || '')) {
       setMessage('Loại tài khoản không hợp lệ. Vui lòng chọn lại.');
       return;
@@ -197,8 +197,6 @@ export default function RegisterPage() {
               >
                 <option value="1">👨‍👩‍👧 Phụ huynh (Học viên)</option>
                 <option value="2">👨‍🏫 Gia sư</option>
-                <option value="3">👔 Nhân viên</option>
-                <option value="4">🔐 Quản trị viên</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 Chọn loại tài khoản phù hợp với vai trò của bạn

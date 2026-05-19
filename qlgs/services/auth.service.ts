@@ -25,8 +25,13 @@ export const authService = {
     return axiosClient.post('/tai-khoan/doi-mat-khau', data);
   },
 
-  // Hàm gửi OTP quên mật khẩu
-  forgotPassword: (data: ForgotPasswordRequest): Promise<string> => {
-    return axiosClient.post('/auth/forgot-password', data);
-  }
+  forgotPassword: (data: { identifier: string }): Promise<string> => {
+      return axiosClient.post('/auth/forgot-password', data);
+    },
+  verifyOtp: (data: { identifier: string; otp: string }): Promise<any> => {
+      return axiosClient.post('/auth/verify-otp', data);
+    },
+  resetPassword: (data: { identifier: string; otp: string; matKhauMoi: string }): Promise<any> => {
+      return axiosClient.post('/auth/reset-password', data);
+    }
 };

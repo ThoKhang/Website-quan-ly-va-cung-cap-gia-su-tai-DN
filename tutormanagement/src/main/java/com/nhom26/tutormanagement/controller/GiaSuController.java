@@ -113,4 +113,13 @@ public class GiaSuController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @DeleteMapping("/bang-cap/{id}")
+    public ResponseEntity<?> xoaBangCap(@PathVariable String id) {
+        try {
+            giaSuService.xoaBangCap(id);
+            return ResponseEntity.ok(Map.of("message", "Xóa bằng cấp thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

@@ -12,6 +12,7 @@ export interface KhoaHoc {
   idGiaSu?: string;
   saoTrungBinh?: number;
   trangThai?: number; // 0: Chờ duyệt, 1: Đã duyệt, 2: Từ chối
+  anhMinhHoa?: string;
   ngayTao?: string;
 }
 
@@ -26,6 +27,7 @@ export interface KhoaHocRequestDTO {
   idMonHoc: string;
   idDanhMucLop: string;
   danhSachIdTietHocRanh: string[];
+  anhMinhHoa?: string;
 }
 
 export interface KhoaHocResponseDTO {
@@ -38,4 +40,8 @@ export interface KhoaHocResponseDTO {
   tenGiaSu: string;
   idGiaSu: string;
   saoTrungBinh?: number;
+  anhMinhHoa?: string;
+  idMonHoc?: string;
+  idDanhMucLop?: string;
+
 }

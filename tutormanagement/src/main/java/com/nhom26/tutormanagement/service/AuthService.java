@@ -49,13 +49,18 @@ public class AuthService {
         
         taiKhoanMoi.setNgayTao(LocalDateTime.now());
         
-        // Ưu tiên lấy loaiNguoiDungID từ request, nếu trống thì mới mặc định là "1"
+        // Ưu tiên lấy loaiNguoiDungID từ request, chỉ cho phép Phụ huynh (1) hoặc Gia sư (2)
         String roleId = (request.getLoaiNguoiDungID() != null && !request.getLoaiNguoiDungID().trim().isEmpty()) 
                         ? request.getLoaiNguoiDungID().trim() 
                         : "1";
+        
+        // Kiểm tra role hợp lệ (chỉ cho phép 1 và 2)
+        if (!roleId.equals("1") && !roleId.equals("2")) {
+            throw new RuntimeException("Loại tài khoản không hợp lệ. Chỉ cho phép Phụ huynh hoặc Gia sư.");
+        }
+        
         taiKhoanMoi.setLoaiNguoiDungID(roleId);
         System.out.println("📝 Đăng ký tài khoản: " + inputTenDangNhap + " với loaiNguoiDungID: " + roleId);
-        // -----------------------
 
         taiKhoanRepository.save(taiKhoanMoi);
 
@@ -114,20 +119,53 @@ public class AuthService {
             idNguoiDung
         );
     }
-
     public String forgotPassword(ForgotPasswordRequest request) {
-        String inputEmail = request.getEmail() != null ? request.getEmail().trim() : "";
-        if (inputEmail.isEmpty()) {
-            throw new RuntimeException("Vui lòng nhập email.");
+        String identifier = request.getIdentifier() != null ? request.getIdentifier().trim() : "";
+        if (identifier.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập Email hoặc Tên đăng nhập.");
         }
 
-        TaiKhoan taiKhoan = taiKhoanRepository.findByEmail(inputEmail)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email: " + inputEmail));
+        // Truyền identifier vào cả 2 vế, DB khớp cái nào lấy cái đó!
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(identifier, identifier)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản hợp lệ!"));
 
         emailOtpService.sendForgotPasswordOtp(taiKhoan.getEmail(), taiKhoan.getTenDangNhap());
-        return "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
+        return maskEmail(taiKhoan.getEmail());
     }
 
+    public void verifyOtp(String identifier, String otp) {
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(identifier.trim(), identifier.trim())
+                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống: Không tìm thấy tài khoản!"));
+                
+        if (!emailOtpService.isOtpValid(taiKhoan.getEmail(), otp)) {
+            throw new RuntimeException("Mã OTP không chính xác hoặc đã hết hạn!");
+        }
+    }
+
+    public void resetPassword(String identifier, String otp, String newPassword) {
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhapOrEmail(identifier.trim(), identifier.trim())
+                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống: Không tìm thấy tài khoản!"));
+
+        if (!emailOtpService.isOtpValid(taiKhoan.getEmail(), otp)) {
+            throw new RuntimeException("Mã OTP không hợp lệ hoặc đã hết hạn!");
+        }
+
+        taiKhoan.setMatKhau(passwordEncoder.encode(newPassword));
+        taiKhoanRepository.save(taiKhoan);
+        emailOtpService.clearOtp(taiKhoan.getEmail());
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return email;
+        int atIndex = email.indexOf("@");
+        String name = email.substring(0, atIndex);
+        String domain = email.substring(atIndex);
+        
+        if (name.length() <= 3) {
+            return name.charAt(0) + "***" + domain;
+        }
+        return name.substring(0, 3) + "***" + domain;
+    }
     private String generateNextId() {
         String maxId = taiKhoanRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) {

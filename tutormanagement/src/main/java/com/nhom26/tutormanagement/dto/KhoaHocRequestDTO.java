@@ -13,7 +13,7 @@ public class KhoaHocRequestDTO {
     private BigDecimal soTienHoc;
     
     private Integer soBuoiHoc; 
-    
+    private String anhMinhHoa;
     // Chỉ cần nhận ID khóa ngoại thay vì cả object
     private String idGiaSu;
     private String idMonHoc;

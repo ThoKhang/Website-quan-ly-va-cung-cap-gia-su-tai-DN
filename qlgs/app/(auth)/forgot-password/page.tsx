@@ -1,4 +1,3 @@
-// Đường dẫn: app/(auth)/forgot-password/page.tsx
 "use client";
 
 import React, { useState } from 'react';
@@ -19,20 +18,18 @@ function getErrorMessage(error: unknown) {
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>('');
+  // Đổi từ email sang identifier (Dùng chung cho cả Tên đăng nhập hoặc Email)
+  const [identifier, setIdentifier] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState<boolean>(false);
-  const [submitted, setSubmitted] = useState<boolean>(false);
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = 'Vui lòng nhập email';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Email không hợp lệ';
+    if (!identifier.trim()) {
+      newErrors.identifier = 'Vui lòng nhập Email hoặc Tên đăng nhập';
     }
 
     setErrors(newErrors);
@@ -40,8 +37,8 @@ export default function ForgotPasswordPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (errors.email) {
+    setIdentifier(e.target.value);
+    if (errors.identifier) {
       setErrors({});
     }
   };
@@ -57,23 +54,33 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await authService.forgotPassword({ email: email.trim() });
-      setMessage(response);
-      setMessageType('success');
-      setSubmitted(true);
-      setEmail('');
+      // Gửi identifier (email hoặc tên đăng nhập) xuống Backend
+      const response = await authService.forgotPassword({ identifier: identifier.trim() });
       
-      // Chuyển hướng sau 5 giây
+      // Backend trả về email đã bị che (VD: kha***@gmail.com)
+      const maskedEmail = response || 'email của bạn';
+      
+      setMessage(`Mã OTP đang được gửi đến: ${maskedEmail}`);
+      setMessageType('success');
+      
+      // LƯU TẠM DỮ LIỆU ĐỂ CHUYỂN SANG TRANG NHẬP OTP
+      localStorage.setItem('resetIdentifier', identifier.trim());
+      localStorage.setItem('maskedEmail', maskedEmail);
+      
+      // Chuyển thẳng sang trang verify-otp sau 2s (để người dùng kịp đọc email đã che)
       setTimeout(() => {
-        router.push('/login');
-      }, 5000);
+        router.push('/verify-otp');
+      }, 2000); 
+      
     } catch (err: unknown) {
       setMessageType('error');
       setMessage(getErrorMessage(err));
-    } finally {
-      setLoading(false);
+      setLoading(false); // Chỉ tắt loading khi bị lỗi để user thử lại
     }
   };
+
+  // Xác định trạng thái đang đợi chuyển trang (để khóa form lại)
+  const isRedirecting = loading && messageType === 'success';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
@@ -86,7 +93,7 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Quên Mật Khẩu</h1>
-          <p className="text-gray-600">Nhập email của bạn để nhận mã OTP khôi phục mật khẩu</p>
+          <p className="text-gray-600">Nhập email hoặc tên đăng nhập để nhận mã OTP</p>
         </div>
 
         {/* Card */}
@@ -104,79 +111,63 @@ export default function ForgotPasswordPage() {
                 </svg>
               ) : (
                 <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               )}
-              <p className={messageType === 'success' ? 'text-green-800' : 'text-red-800'}>
+              <p className={messageType === 'success' ? 'text-green-800 font-medium' : 'text-red-800'}>
                 {message}
               </p>
             </div>
           )}
 
-          {!submitted ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition ${
-                    errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                  placeholder="Nhập email của bạn"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                  loading
-                    ? 'bg-orange-400 cursor-not-allowed'
-                    : 'bg-orange-600 hover:bg-orange-700 active:scale-95'
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Đang xử lý...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Gửi Hướng Dẫn
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Email đã được gửi!</h3>
-              <p className="text-gray-600 mb-6">
-                Vui lòng kiểm tra email của bạn để nhận mã OTP. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.
-              </p>
-              <a href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-                Quay lại trang đăng nhập
-              </a>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Identifier Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email hoặc Tên đăng nhập
+              </label>
+              <input
+                type="text" // Chuyển từ type="email" sang "text" để nhập được username
+                value={identifier}
+                onChange={handleChange}
+                disabled={isRedirecting}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition ${
+                  errors.identifier ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                } ${isRedirecting ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                placeholder="Nhập email hoặc tên đăng nhập"
+              />
+              {errors.identifier && (
+                <p className="mt-1 text-sm text-red-600">{errors.identifier}</p>
+              )}
             </div>
-          )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || isRedirecting}
+              className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                loading || isRedirecting
+                  ? 'bg-orange-400 cursor-not-allowed'
+                  : 'bg-orange-600 hover:bg-orange-700 active:scale-95'
+              }`}
+            >
+              {loading || isRedirecting ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Gửi Mã OTP
+                </>
+              )}
+            </button>
+          </form>
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">

@@ -43,7 +43,7 @@ CREATE TABLE TietHoc (
 
 CREATE TABLE TaiKhoan (
     idTaiKhoan CHAR(20) PRIMARY KEY,
-    email CHAR(50),
+    email CHAR(50) unique,
     tenDangNhap NVARCHAR(50) unique,
     anhDaiDien NVARCHAR(50),
     matKhau VARCHAR(100),
@@ -158,6 +158,7 @@ CREATE TABLE KhoaHoc (
     idGiaSu CHAR(20),
     idMonHoc CHAR(20),
     idDanhMucLop CHAR(20),
+    anhMinhHoa NVARCHAR(255),
     FOREIGN KEY (idGiaSu) REFERENCES GiaSu(idGiaSu),
     FOREIGN KEY (idMonHoc) REFERENCES MonHoc(idMonHoc),
     FOREIGN KEY (idDanhMucLop) REFERENCES DanhMucLop(idDanhMucLop)
@@ -567,3 +568,7 @@ select * from PhanQuyenNguoiDung
 select * from LichDay
 select * from DanhMucLop
 select * from DanhGia
+select * from BangCap
+UPDATE KhoaHoc
+SET tinhTrang = 1
+WHERE idKhoaHoc='KH027';

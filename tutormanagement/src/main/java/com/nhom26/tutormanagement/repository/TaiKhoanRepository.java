@@ -19,4 +19,5 @@ public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
     String findMaxId();
     //jwt
     Optional<TaiKhoan> findByTenDangNhap(String tenDangNhap);
+    Optional<TaiKhoan> findByTenDangNhapAndEmail(String tenDangNhap, String email);
 }
