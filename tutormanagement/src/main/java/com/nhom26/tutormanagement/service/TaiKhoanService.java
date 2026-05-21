@@ -16,7 +16,6 @@ public class TaiKhoanService {
     private final TaiKhoanRepository taiKhoanRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailOtpService emailOtpService;
-
     public String sendChangePasswordOtp() {
         // 1. Lấy username của người đang đăng nhập từ JWT Token
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -95,4 +94,74 @@ public class TaiKhoanService {
         }
         return name.substring(0, 3) + "***" + domain;
     }
+
+    public TaiKhoan layThongTinTaiKhoanHienTai(String tenDangNhap) {
+        return taiKhoanRepository.findByTenDangNhap(tenDangNhap)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+    }
+
+    // ========================================================
+    // CÁC HÀM MỚI BỔ SUNG
+    // ========================================================
+
+    public void yeuCauDoiEmail(String newEmail) {
+        // 1. Kiểm tra xem email mới đã bị đăng ký chưa
+        if (taiKhoanRepository.existsByEmail(newEmail)) {
+            throw new RuntimeException("Email này đã được sử dụng bởi tài khoản khác!");
+        }
+
+        // 2. Lấy username của người dùng hiện tại
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 3. Tận dụng hàm gửi OTP cũ, nhưng lần này gửi vào newEmail
+        // Nếu muốn nội dung email khác đi, bạn có thể copy hàm sendChangePasswordOtp 
+        // trong EmailOtpService thành sendChangeEmailOtp nhé!
+        emailOtpService.sendChangePasswordOtp(newEmail, currentUsername);
+    }
+
+    @Transactional
+    public void xacNhanDoiEmail(String newEmail, String otp) {
+        // 1. Kiểm tra OTP có hợp lệ với newEmail không
+        if (!emailOtpService.isOtpValid(newEmail, otp)) {
+            throw new RuntimeException("Mã OTP không chính xác hoặc đã hết hạn!");
+        }
+
+        // 2. Lấy tài khoản người dùng hiện tại
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+
+        // 3. Cập nhật Email và lưu DB
+        taiKhoan.setEmail(newEmail);
+        taiKhoanRepository.save(taiKhoan);
+
+        // 4. Xóa OTP sau khi hoàn tất
+        emailOtpService.clearOtp(newEmail);
+    }
+
+    @Transactional
+    public void capNhatNganHang(String nganHang, String stk) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+
+        taiKhoan.setNganHang(nganHang);
+        
+        taiKhoan.setStk(stk); 
+        
+        taiKhoanRepository.save(taiKhoan);
+    }
+   @Transactional
+    public String capNhatAvatar(String imageUrl) {   // Nhận string thay vì MultipartFile
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+
+        taiKhoan.setAnhDaiDien(imageUrl);
+        taiKhoanRepository.save(taiKhoan);
+
+        return imageUrl;
+    }
+
 }
