@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Text } from "@/component/ui";
 import { hocVienService, type PhuHuynhProfile, type HocVienListItem, type QuanHuyenDTO, type PhuongXaDTO } from "@/services/hoc-vien.service";
 import { useAuthStore } from "@/store/auth.store";
+import ChangePasswordModal from "@/component/change-password-modal";
 
 interface PhuHuynhFormData {
   tenPhuHuynh: string;
@@ -31,6 +32,7 @@ export default function HocVienProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState<"phu-huynh" | "hoc-vien">("phu-huynh");
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   // Danh sách Quận/Huyện và Phường/Xã
   const [quanHuyenList, setQuanHuyenList] = useState<QuanHuyenDTO[]>([]);
@@ -214,13 +216,21 @@ export default function HocVienProfilePage() {
     <main className="page-shell">
       <div className="content-lock px-6 py-10 md:px-10">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <Text as="h1" size="display">
-              Hồ Sơ Phụ Huynh & Học Viên
-            </Text>
-            <Text size="lead" tone="muted" className="mt-2">
-              Quản lý thông tin phụ huynh và danh sách học viên
-            </Text>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <Text as="h1" size="display">
+                Hồ Sơ Phụ Huynh & Học Viên
+              </Text>
+              <Text size="lead" tone="muted" className="mt-2">
+                Quản lý thông tin phụ huynh và danh sách học viên
+              </Text>
+            </div>
+            <button
+              onClick={() => setIsChangePasswordOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+            >
+              🔐 Đổi mật khẩu
+            </button>
           </div>
 
           {error && (
@@ -531,6 +541,16 @@ export default function HocVienProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        onSuccess={() => {
+          setSuccess('Đổi mật khẩu thành công!');
+          setTimeout(() => setSuccess(''), 3000);
+        }}
+      />
     </main>
   );
 }

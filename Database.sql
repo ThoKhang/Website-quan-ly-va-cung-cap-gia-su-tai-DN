@@ -45,7 +45,7 @@ CREATE TABLE TaiKhoan (
     idTaiKhoan CHAR(20) PRIMARY KEY,
     email CHAR(50) unique,
     tenDangNhap NVARCHAR(50) unique,
-    anhDaiDien NVARCHAR(50),
+    anhDaiDien NVARCHAR(255),
     matKhau VARCHAR(100),
     ngayTao DATETIME,
     ngayXoa DATETIME,

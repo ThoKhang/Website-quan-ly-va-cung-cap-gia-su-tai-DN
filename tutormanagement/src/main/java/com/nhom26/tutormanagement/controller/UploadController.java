@@ -14,7 +14,6 @@ public class UploadController {
 
     // Thư mục lưu trữ ảnh ngay tại thư mục gốc của dự án Backend
     private final String UPLOAD_DIR = "uploads/";
-
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

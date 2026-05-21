@@ -28,6 +28,7 @@ export interface ChangePasswordRequest {
   matKhauCu: string;
   matKhauMoi: string;
   xacNhanMatKhau: string;
+  otp?: string; // OTP để xác nhận đổi mật khẩu
 }
 
 export interface ForgotPasswordRequest {

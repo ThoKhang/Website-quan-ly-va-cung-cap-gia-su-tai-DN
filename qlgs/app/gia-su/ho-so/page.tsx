@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Section } from "@/component/ui";
 import { BangCap } from "@/types/auth.type";
 import axiosClient from '@/services/axiosClient';
+import ChangePasswordModal from '@/component/change-password-modal';
 
 export default function GiaSuHoSoView() {
   const [isMounted, setIsMounted] = useState(false);
@@ -12,6 +13,8 @@ export default function GiaSuHoSoView() {
   const [bangCapList, setBangCapList] = useState<BangCap[]>([]);
   const [idGiaSu, setIdGiaSu] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const hasApprovedDegree = bangCapList.some(bc => bc.trangThai === true);
   const countApproved = bangCapList.filter(bc => bc.trangThai === true).length;
@@ -51,6 +54,16 @@ export default function GiaSuHoSoView() {
     <main className="min-h-screen bg-slate-50 pb-16 pt-8">
       <Section>
         <div className="max-w-5xl mx-auto px-4 flex flex-col gap-5">
+
+          {/* THÀNH CÔNG */}
+          {successMessage && (
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              {successMessage}
+            </div>
+          )}
 
           {/* LỖI */}
           {message && (
@@ -106,11 +119,19 @@ export default function GiaSuHoSoView() {
                     </div>
                   </div>
                 </div>
-                <Link href="/gia-su/ho-so/chinh-sua" className="self-start sm:self-auto">
-                  <button className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white/15 hover:bg-white/25 text-blue-100 border border-white/25 rounded-lg transition-colors">
-                    ✏️ Chỉnh sửa hồ sơ
+                <div className="flex gap-2">
+                  <Link href="/gia-su/ho-so/chinh-sua">
+                    <button className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white/15 hover:bg-white/25 text-blue-100 border border-white/25 rounded-lg transition-colors">
+                      ✏️ Chỉnh sửa hồ sơ
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => setIsChangePasswordOpen(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white/15 hover:bg-white/25 text-blue-100 border border-white/25 rounded-lg transition-colors"
+                  >
+                    🔐 Đổi mật khẩu
                   </button>
-                </Link>
+                </div>
               </div>
             </div>
 
@@ -269,6 +290,16 @@ export default function GiaSuHoSoView() {
           </div>
         </div>
       </Section>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        onSuccess={() => {
+          setSuccessMessage('Đổi mật khẩu thành công!');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }}
+      />
     </main>
   );
 }
