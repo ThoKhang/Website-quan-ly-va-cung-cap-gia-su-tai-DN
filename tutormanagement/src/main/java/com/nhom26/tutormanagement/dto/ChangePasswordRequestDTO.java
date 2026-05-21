@@ -7,4 +7,5 @@ public class ChangePasswordRequestDTO {
     private String matKhauCu;
     private String matKhauMoi;
     private String xacNhanMatKhau;
+    private String otp;
 }

@@ -20,6 +20,16 @@ export const authService = {
     return axiosClient.post('/auth/register', data);
   },
 
+  // Hàm gửi OTP cho đổi mật khẩu
+  sendChangePasswordOtp: (): Promise<string> => {
+    return axiosClient.post('/tai-khoan/send-change-password-otp', {});
+  },
+
+  // Hàm xác nhận OTP cho đổi mật khẩu
+  verifyChangePasswordOtp: (data: { otp: string }): Promise<string> => {
+    return axiosClient.post('/tai-khoan/verify-change-password-otp', data);
+  },
+
   // Hàm đổi mật khẩu
   changePassword: (data: ChangePasswordRequest): Promise<string> => {
     return axiosClient.post('/tai-khoan/doi-mat-khau', data);
@@ -35,3 +45,4 @@ export const authService = {
       return axiosClient.post('/auth/reset-password', data);
     }
 };
+

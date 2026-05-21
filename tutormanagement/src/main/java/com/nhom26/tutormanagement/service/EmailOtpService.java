@@ -105,6 +105,48 @@ public class EmailOtpService {
                 "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.");
     }
 
+    public void sendChangePasswordOtp(String email, String tenDangNhap) {
+        validateMailConfiguration();
+
+        String normalizedEmail = normalizeEmail(email);
+        String otpCode = generateOtp();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(otpExpireMinutes);
+
+        otpStorage.put(normalizedEmail, new OtpPayload(otpCode, expiresAt));
+
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            helper.setFrom(new InternetAddress(fromEmail));
+            helper.setTo(normalizedEmail);
+            helper.setSubject("Mã OTP xác nhận đổi mật khẩu");
+            helper.setText(buildChangePasswordContent(tenDangNhap, otpCode, expiresAt), false);
+            javaMailSender.send(mimeMessage);
+            
+            System.out.println("✅ Gửi OTP đổi mật khẩu thành công đến: " + normalizedEmail);
+            
+        } catch (MailException | MessagingException exception) {
+            System.err.println("=== CHI TIẾT LỖI GỬI MAIL ===");
+            exception.printStackTrace(); 
+            System.err.println("=============================");
+            
+            otpStorage.remove(normalizedEmail);
+            throw new RuntimeException("Không thể gửi OTP đến email này. Lỗi: " + exception.getMessage());
+        }
+    }
+
+    private String buildChangePasswordContent(String tenDangNhap, String otpCode, LocalDateTime expiresAt) {
+        long minutesRemaining = Math.max(1, Duration.between(LocalDateTime.now(), expiresAt).toMinutes());
+        return String.join("\n",
+                "Xin chào " + tenDangNhap + ",",
+                "",
+                "Hệ thống Quản Lý và Cung ấp Gia Sư tại Đà Nẵng vừa nhận được yêu cầu đổi mật khẩu.",
+                "Mã OTP xác nhận của bạn là: " + otpCode,
+                "Mã này có hiệu lực trong " + minutesRemaining + " phút.",
+                "",
+                "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.");
+    }
+
     private record OtpPayload(String code, LocalDateTime expiresAt) {
     }
 }
