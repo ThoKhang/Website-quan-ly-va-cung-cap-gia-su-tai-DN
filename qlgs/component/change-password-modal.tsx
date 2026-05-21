@@ -166,29 +166,41 @@ export default function ChangePasswordModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Đổi Mật Khẩu</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        {/* Header with Gradient */}
+        <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-6 text-white">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full -ml-12 -mb-12"></div>
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold">Đổi Mật Khẩu</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white/60 hover:text-white transition-colors p-1"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Body */}
         <div className="px-6 py-4">
           {message && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border-2 border-red-200 flex items-start gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
               <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <p className="text-sm text-red-800">{message}</p>
+              <p className="text-sm text-red-800 font-medium">{message}</p>
             </div>
           )}
 
@@ -207,7 +219,7 @@ export default function ChangePasswordModal({
                       name="matKhauCu"
                       value={formData.matKhauCu}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                      className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
                         errors.matKhauCu ? 'border-red-500 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="Nhập mật khẩu cũ"
@@ -245,7 +257,7 @@ export default function ChangePasswordModal({
                       name="matKhauMoi"
                       value={formData.matKhauMoi}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                      className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
                         errors.matKhauMoi ? 'border-red-500 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="Nhập mật khẩu mới"
@@ -270,6 +282,28 @@ export default function ChangePasswordModal({
                   {errors.matKhauMoi && (
                     <p className="mt-1 text-xs text-red-600">{errors.matKhauMoi}</p>
                   )}
+                  
+                  {/* Password Strength Indicator */}
+                  {formData.matKhauMoi && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-600">Độ mạnh:</span>
+                        <span className={`text-xs font-semibold ${
+                          passwordStrength.color === 'bg-red-500' ? 'text-red-600' :
+                          passwordStrength.color === 'bg-yellow-500' ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {passwordStrength.strength}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                          style={{ width: passwordStrength.width }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Xác nhận mật khẩu */}
@@ -283,7 +317,7 @@ export default function ChangePasswordModal({
                       name="xacNhanMatKhau"
                       value={formData.xacNhanMatKhau}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                      className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
                         errors.xacNhanMatKhau ? 'border-red-500 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="Nhập lại mật khẩu mới"
@@ -333,7 +367,7 @@ export default function ChangePasswordModal({
                       const value = e.target.value.replace(/[^0-9]/g, '');
                       handleChange({ ...e, target: { ...e.target, name: 'otp', value } } as any);
                     }}
-                    className={`w-full px-3 py-2 border rounded-lg text-center text-2xl tracking-[0.3em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
+                    className={`w-full px-3 py-2 border-2 rounded-lg text-center text-2xl tracking-[0.3em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
                       errors.otp ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                     placeholder="------"
@@ -360,17 +394,17 @@ export default function ChangePasswordModal({
               }
             }}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50 hover:shadow-md"
           >
             {step === 'otp' ? 'Quay lại' : 'Hủy'}
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || (step === 'otp' && formData.otp.length !== 6)}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition flex items-center gap-2 ${
+            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition flex items-center gap-2 shadow-md hover:shadow-lg ${
               loading || (step === 'otp' && formData.otp.length !== 6)
-                ? 'bg-blue-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
+                ? 'bg-gradient-to-r from-blue-400 to-blue-500 cursor-not-allowed opacity-70'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
             }`}
           >
             {loading ? (

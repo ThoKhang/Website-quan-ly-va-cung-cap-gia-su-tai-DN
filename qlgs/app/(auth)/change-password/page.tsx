@@ -184,17 +184,17 @@ export default function ChangePasswordPage() {
   const passwordStrength = getPasswordStrength(formData.matKhauMoi);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-6 shadow-lg">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Đổi Mật Khẩu</h1>
-          <p className="text-gray-600">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Đổi Mật Khẩu</h1>
+          <p className="text-gray-600 text-lg">
             {step === 'password' && 'Nhập mật khẩu cũ và mật khẩu mới'}
             {step === 'otp' && 'Xác nhận bằng mã OTP'}
             {step === 'confirm' && 'Hoàn tất đổi mật khẩu'}
@@ -203,16 +203,16 @@ export default function ChangePasswordPage() {
 
         {/* Progress Bar */}
         <div className="mb-8 flex gap-2">
-          <div className={`flex-1 h-2 rounded-full transition-all ${step === 'password' || step === 'otp' || step === 'confirm' ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`flex-1 h-2 rounded-full transition-all ${step === 'otp' || step === 'confirm' ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`flex-1 h-2 rounded-full transition-all ${step === 'confirm' ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+          <div className={`flex-1 h-2.5 rounded-full transition-all duration-300 ${step === 'password' || step === 'otp' || step === 'confirm' ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gray-200'}`}></div>
+          <div className={`flex-1 h-2.5 rounded-full transition-all duration-300 ${step === 'otp' || step === 'confirm' ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gray-200'}`}></div>
+          <div className={`flex-1 h-2.5 rounded-full transition-all duration-300 ${step === 'confirm' ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gray-200'}`}></div>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 backdrop-blur-sm">
           {/* Message */}
           {message && (
-            <div className={`mb-6 p-4 rounded-lg border flex items-start gap-3 ${
+            <div className={`mb-6 p-4 rounded-xl border flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
               message.includes('thành công') || message.includes('hợp lệ')
                 ? 'bg-green-50 border-green-200'
                 : 'bg-red-50 border-red-200'
@@ -226,7 +226,7 @@ export default function ChangePasswordPage() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               )}
-              <p className={message.includes('thành công') || message.includes('hợp lệ') ? 'text-green-800' : 'text-red-800'}>
+              <p className={`text-sm font-medium ${message.includes('thành công') || message.includes('hợp lệ') ? 'text-green-800' : 'text-red-800'}`}>
                 {message}
               </p>
             </div>
@@ -246,8 +246,8 @@ export default function ChangePasswordPage() {
                     name="matKhauCu"
                     value={formData.matKhauCu}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
-                      errors.matKhauCu ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border-2 rounded-lg transition-all duration-200 focus:outline-none ${
+                      errors.matKhauCu ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                     }`}
                     placeholder="Nhập mật khẩu cũ"
                   />
@@ -284,8 +284,8 @@ export default function ChangePasswordPage() {
                     name="matKhauMoi"
                     value={formData.matKhauMoi}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
-                      errors.matKhauMoi ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border-2 rounded-lg transition-all duration-200 focus:outline-none ${
+                      errors.matKhauMoi ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                     }`}
                     placeholder="Nhập mật khẩu mới"
                   />
@@ -339,8 +339,8 @@ export default function ChangePasswordPage() {
                     name="xacNhanMatKhau"
                     value={formData.xacNhanMatKhau}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
-                      errors.xacNhanMatKhau ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border-2 rounded-lg transition-all duration-200 focus:outline-none ${
+                      errors.xacNhanMatKhau ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                     }`}
                     placeholder="Nhập lại mật khẩu mới"
                   />
@@ -373,7 +373,7 @@ export default function ChangePasswordPage() {
                 className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                   loading
                     ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 shadow-lg hover:shadow-xl'
                 }`}
               >
                 {loading ? (
@@ -428,7 +428,7 @@ export default function ChangePasswordPage() {
                 className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                   loading || formData.otp.length !== 6
                     ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 shadow-lg hover:shadow-xl'
                 }`}
               >
                 {loading ? (
@@ -478,7 +478,7 @@ export default function ChangePasswordPage() {
                 className={`w-full py-3 px-4 rounded-lg text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                   loading
                     ? 'bg-green-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                    : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 active:scale-95 shadow-lg hover:shadow-xl'
                 }`}
               >
                 {loading ? (
