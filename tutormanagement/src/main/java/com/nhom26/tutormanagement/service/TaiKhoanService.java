@@ -16,7 +16,6 @@ public class TaiKhoanService {
     private final TaiKhoanRepository taiKhoanRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailOtpService emailOtpService;
-
     public String sendChangePasswordOtp() {
         // 1. Lấy username của người đang đăng nhập từ JWT Token
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -152,37 +151,17 @@ public class TaiKhoanService {
         
         taiKhoanRepository.save(taiKhoan);
     }
-    @Transactional
-    public String capNhatAvatar(org.springframework.web.multipart.MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new RuntimeException("Lỗi: File ảnh trống!");
-        }
-
+   @Transactional
+    public String capNhatAvatar(String imageUrl) {   // Nhận string thay vì MultipartFile
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
         TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(currentUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
 
-        try {
-            // Lấy thư mục gốc của dự án
-            String uploadDir = System.getProperty("user.dir") + java.io.File.separator + "uploads" + java.io.File.separator;
-            java.io.File dir = new java.io.File(uploadDir);
-            if (!dir.exists()) dir.mkdirs(); // Tự tạo thư mục nếu chưa có
+        taiKhoan.setAnhDaiDien(imageUrl);
+        taiKhoanRepository.save(taiKhoan);
 
-            String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String uniqueFileName = "avatar_" + currentUsername + "_" + System.currentTimeMillis() + extension;
-
-            java.nio.file.Path filePath = java.nio.file.Paths.get(uploadDir + uniqueFileName);
-            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-            // Trả về đường dẫn ảo để Frontend sử dụng
-            String imageUrl = "/uploads/" + uniqueFileName; 
-            taiKhoan.setAnhDaiDien(imageUrl);
-            taiKhoanRepository.save(taiKhoan);
-
-            return imageUrl;
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Lỗi khi lưu trữ file ảnh!");
-        }
+        return imageUrl;
     }
+
 }

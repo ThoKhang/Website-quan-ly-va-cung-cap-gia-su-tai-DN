@@ -66,42 +66,57 @@ export default function TaiKhoanPage() {
       setLoading(false);
     }
   };
-
-const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Ảnh không được lớn hơn 5MB!');
+        return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      // BƯỚC 1: Upload file lên server (Dùng đúng API FileUploadController của bạn)
-      const uploadRes = await axiosClient.post('/api/admin/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      // Đường dẫn server trả về (ví dụ: "/uploads/xyz.jpg")
-      const imagePath = uploadRes.data; 
-      const fullImageUrl = "http://localhost:8080" + imagePath;
+        console.log("🚀 Đang upload avatar...");
 
-      // BƯỚC 2: Cập nhật đường dẫn vào Database thông qua API tài khoản
-      await axiosClient.put('/tai-khoan/cap-nhat-avatar', { 
-        anhDaiDien: fullImageUrl 
-      });
+        // Dùng any tạm thời để bỏ qua lỗi TypeScript
+        const response: any = await axiosClient.post('/tai-khoan/cap-nhat-avatar', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-      // BƯỚC 3: Cập nhật giao diện (Thêm timestamp để tránh cache)
-      setAccount(prev => prev ? { 
-        ...prev, 
-        anhDaiDien: fullImageUrl + "?t=" + Date.now() 
-      } : null);
-      
-      alert('Cập nhật ảnh đại diện thành công!');
-    } catch (err) {
-      console.error(err);
-      alert('Lỗi khi tải ảnh lên Server!');
+        console.log("✅ Response data:", response);
+
+        // Xử lý linh hoạt
+        let imageUrl: string | null = null;
+
+        if (response?.anhDaiDien) {
+            imageUrl = response.anhDaiDien;
+        } else if (response?.data?.anhDaiDien) {
+            imageUrl = response.data.anhDaiDien;
+        } else if (response?.message && typeof response.message === 'object') {
+            imageUrl = response.message.anhDaiDien;
+        }
+
+        if (imageUrl) {
+            setAccount(prev => prev ? { 
+                ...prev, 
+                anhDaiDien: imageUrl + "?t=" + Date.now() 
+            } : null);
+
+            alert('✅ Cập nhật avatar thành công!');
+        } else {
+            console.warn("⚠️ Không lấy được anhDaiDien, đang load lại thông tin...");
+            await fetchAccountInfo();
+            alert('Cập nhật thành công! Ảnh sẽ hiển thị sau khi tải lại trang.');
+        }
+
+    } catch (err: any) {
+        console.error("❌ Lỗi upload avatar:", err);
+        alert(err?.message || 'Lỗi khi cập nhật avatar. Vui lòng thử lại.');
     }
-  };
-
+};
   // --- LOGIC: ĐỔI MẬT KHẨU ---
   const handleRequestPassOtp = async () => {
     if (!passData.matKhauCu || !passData.matKhauMoi || passData.matKhauMoi !== passData.xacNhanMatKhau) {

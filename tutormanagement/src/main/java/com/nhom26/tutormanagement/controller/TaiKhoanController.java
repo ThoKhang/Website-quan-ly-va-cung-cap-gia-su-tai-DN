@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/tai-khoan")
@@ -16,7 +17,7 @@ import java.util.Map;
 public class TaiKhoanController {
 
     private final TaiKhoanService taiKhoanService;
-
+    private final UploadController uploadController;
     @PostMapping("/send-change-password-otp")
     public ResponseEntity<?> sendChangePasswordOtp() {
         try {
@@ -93,5 +94,44 @@ public class TaiKhoanController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-    
+    @PostMapping("/cap-nhat-avatar")
+    public ResponseEntity<?> capNhatAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            System.out.println("📸 Nhận request upload avatar");
+
+            ResponseEntity<?> uploadResponse = uploadController.uploadFile(file);
+
+            System.out.println("Upload Response Status: " + uploadResponse.getStatusCode());
+            System.out.println("Upload Response Body: " + uploadResponse.getBody());
+
+            if (uploadResponse.getStatusCode().isError() || uploadResponse.getBody() == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Upload file thất bại"));
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = (Map<String, Object>) uploadResponse.getBody();
+            String fileUrl = (String) body.get("fileUrl");
+
+            if (fileUrl == null || fileUrl.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Không lấy được fileUrl"));
+            }
+
+            String imageUrl = taiKhoanService.capNhatAvatar(fileUrl);
+
+            System.out.println("✅ Avatar cập nhật thành công: " + imageUrl);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Cập nhật avatar thành công!",
+                "anhDaiDien", imageUrl
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
 }
