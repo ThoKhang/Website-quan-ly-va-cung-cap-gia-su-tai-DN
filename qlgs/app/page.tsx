@@ -1,14 +1,33 @@
-'use client';
-import React, { useState } from 'react';
+"use client";
 
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button, Card, Input, Section, Text } from "@/component/ui";
-import Link from 'next/link';
-import ProcessModal from '../component/ProcessModal';
-import { useRouter } from 'next/navigation';
+import ProcessModal from "../component/ProcessModal";
+
 const servicePoints = [
   "Tìm gia sư theo môn học, cấp lớp và ngân sách chỉ trong một lượt tìm.",
   "Quản lý lịch dạy, khóa học, học viên và tiến trình học tập trên cùng một hệ thống.",
   "Giảm thao tác thủ công cho trung tâm, phụ huynh và gia sư.",
+];
+
+const giaSuFeatures = [
+  {
+    title: "Hồ Sơ Cá Nhân",
+    description: "Cập nhật thông tin cá nhân, số điện thoại, CCCD và bằng cấp",
+    href: "/gia-su/ho-so",
+  },
+  {
+    title: "Lịch Rảnh",
+    description: "Đăng ký các khung giờ rảnh để học viên có thể đặt lớp",
+    href: "/gia-su/lich-ranh",
+  },
+  {
+    title: "Khóa Học",
+    description: "Tạo và quản lý các khóa học của bạn",
+    href: "/gia-su/khoa-hoc",
+  },
 ];
 
 const trustMetrics = [
@@ -32,9 +51,36 @@ const footerColumns = [
   },
 ];
 
+const hocVienFeatures = [
+  {
+    title: "Hồ Sơ Học Viên",
+    description: "Thêm thông tin con em để đăng ký khóa học",
+    href: "/hoc-vien/ho-so",
+  },
+  {
+    title: "Lịch Sử Khóa Học",
+    description: "Xem tất cả các khóa học đã đăng ký",
+    href: "/hoc-vien/lich-su",
+  },
+  {
+    title: "Tìm Khóa Học",
+    description: "Tìm kiếm khóa học phù hợp với nhu cầu",
+    href: "/search",
+  },
+  {
+    title: "Đánh Giá & Xin Nghỉ",
+    description: "Đánh giá gia sư và xin nghỉ học khi cần",
+    href: "#",
+  },
+];
+
 export default function Home() {
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
   const router = useRouter();
+
+  const handleSearchClick = () => {
+    router.push("/search");
+  };
 
   return (
     <main className="page-shell">
@@ -52,7 +98,9 @@ export default function Home() {
               thống được thiết kế để trung tâm và phụ huynh ra quyết định nhanh hơn.
             </Text>
             <div className="flex flex-wrap gap-3">
-              <Button size="lg">Tìm gia sư</Button>
+              <Link href="/search">
+                <Button size="lg">Tìm gia sư</Button>
+              </Link>
               <Button size="lg" variant="secondary">
                 Xem giải pháp
               </Button>
@@ -76,7 +124,7 @@ export default function Home() {
                   <Input label="Môn học" placeholder="Toán học" />
                   <Input label="Ngân sách" placeholder="Đến 500.000" />
                 </div>
-                <Button fullWidth>Tìm kết quả phù hợp</Button>
+                <Button fullWidth onClick={handleSearchClick}>Tìm kết quả phù hợp</Button>
               </div>
             </div>
 
@@ -94,19 +142,52 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section tone="dark" id="dich-vu">
+      {/* ===== CHỨC NĂNG HỌC VIÊN ===== */}
+      <Section id="hoc-vien-features" tone="dark">
+        <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="flex flex-col gap-4">
+            <Text as="h2" size="display" tone="onDark">
+              Chức năng quản lý cho học viên.
+            </Text>
+            <Text tone="onDark" className="max-w-xl opacity-90">
+              Tìm kiếm, đặt lớp, quản lý lịch học và đánh giá gia sư một cách dễ dàng trên một nền tảng.
+            </Text>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/search">
+                <Button>Tìm khóa học</Button>
+              </Link>
+              <Link href="/hoc-vien/lich-su">
+                <Button variant="secondary">Lịch sử khóa học</Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {hocVienFeatures.map((feature) => (
+              <Link key={feature.href} href={feature.href}>
+                <Card className="space-y-3 hover:shadow-lg transition cursor-pointer bg-white">
+                  <Text size="title">{feature.title}</Text>
+                  <Text tone="muted">{feature.description}</Text>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section tone="parchment" id="dich-vu">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 text-center">
-          <Text as="h2" size="display" tone="onDark">
+          <Text as="h2" size="display">
             Quảng bá dịch vụ nhẹ nhàng, để sản phẩm lên tiếng.
           </Text>
-          <Text size="lead" tone="onDark" className="max-w-3xl opacity-90">
+          <Text size="lead" tone="muted" className="max-w-3xl opacity-90">
             MADZ Sch. tập trung vào hai việc: giúp người dùng tìm được gia sư phù hợp và
             giúp đơn vị vận hành ít rối hơn sau khi đã kết nối.
           </Text>
         </div>
       </Section>
 
-      <Section tone="parchment">
+      <Section tone="dark">
         <div className="grid gap-6 lg:grid-cols-3">
           {servicePoints.map((point, index) => (
             <Card key={point} className="flex min-h-64 flex-col justify-between bg-white">
@@ -129,57 +210,44 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section id="quan-ly">
+      <Section id="gia-su-features" tone="parchment">
         <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col gap-4">
             <Text as="h2" size="display">
-              Một bộ máy quản lý gói gọn cho trung tâm gia sư.
+              Chức năng quản lý cho gia sư.
             </Text>
-            <Text tone="muted" className="max-w-xl">
-              Theo dõi khóa học đang mở, học viên đã đăng ký, lịch dạy của gia sư và
-              doanh thu phát sinh mà không cần tách nhỏ quy trình ra nhiều công cụ.
+            <Text className="max-w-xl opacity-90">
+              Tất cả những gì bạn cần để quản lý dạy học một cách chuyên nghiệp, hiệu quả và minh bạch.
             </Text>
             
             <div className="flex flex-wrap gap-3">
-              {/* Đã gỡ bỏ thẻ Link và dùng router.push */}
+              {/* Nút từ nhánh baocao_thongke */}
               <Button onClick={() => router.push('/dashboard')}>
                 Xem dashboard
               </Button>
-              
               <Button variant="secondary" onClick={() => setIsProcessModalOpen(true)}>
                 Xem quy trình
               </Button>
-            </div>
 
+              {/* Nút từ nhánh develop */}
+              <Link href="/gia-su/ho-so">
+                <Button variant="outline">Cập nhật hồ sơ</Button>
+              </Link>
+              <Link href="/gia-su/khoa-hoc">
+                <Button variant="outline">Tạo khóa học</Button>
+              </Link>
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Card className="space-y-3">
-              <Text size="title">Khóa học và booking</Text>
-              <Text tone="muted">
-                Tạo khóa học, nhận booking và đổi trạng thái xử lý trong cùng một luồng
-                công việc.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Lịch dạy và học viên</Text>
-              <Text tone="muted">
-                Gom lịch dạy, tiết học và thông tin học viên để đội ngũ dễ phối hợp.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Search giữ filter</Text>
-              <Text tone="muted">
-                Người dùng có thể tìm lại nhanh mà vẫn giữ bộ lọc cũ, đúng nghiệp vụ
-                backend hiện tại.
-              </Text>
-            </Card>
-            <Card className="space-y-3">
-              <Text size="title">Báo cáo thực dụng</Text>
-              <Text tone="muted">
-                Dễ mở rộng sau này với thống kê doanh thu, gia sư và hiệu suất vận hành.
-              </Text>
-            </Card>
+            {giaSuFeatures.map((feature) => (
+              <Link key={feature.href} href={feature.href}>
+                <Card className="space-y-3 hover:shadow-lg transition cursor-pointer bg-white">
+                  <Text size="title">{feature.title}</Text>
+                  <Text tone="muted">{feature.description}</Text>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </Section>
@@ -210,6 +278,7 @@ export default function Home() {
         </div>
       </Section>
 
+      {/* ===== FOOTER ===== */}
       <footer
         id="lien-he"
         className="border-t border-black/6 bg-[var(--color-canvas-parchment)] py-16 text-[var(--color-ink)]"
