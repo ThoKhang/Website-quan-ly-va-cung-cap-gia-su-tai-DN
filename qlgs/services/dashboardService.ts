@@ -1,12 +1,11 @@
-// services/dashboardService.ts
-import axiosClient from './axiosClient'; 
+import axiosClient from './axiosClient';
 import { RevenueData, ClassStatsData } from '../types/dashboard';
 
 export const dashboardService = {
   getRevenueStats: async (): Promise<RevenueData[]> => {
     try {
-      const response = await axiosClient.get(`/thong-ke/doanh-thu-bieu-do`);
-      return response as unknown as RevenueData[]; // interceptor đã unwrap rồi
+      // ✅ Bỏ .data vì axiosClient interceptor đã unwrap rồi
+      return await axiosClient.get(`/thong-ke/doanh-thu-bieu-do`) as unknown as RevenueData[];
     } catch (error) {
       return [];
     }
@@ -14,8 +13,7 @@ export const dashboardService = {
 
   getClassStats: async (): Promise<ClassStatsData[]> => {
     try {
-      const response = await axiosClient.get(`/dashboard/class-stats`);
-      return response as unknown as ClassStatsData[]; // bỏ .data
+      return await axiosClient.get(`/dashboard/class-stats`) as unknown as ClassStatsData[];
     } catch (error) {
       return [];
     }

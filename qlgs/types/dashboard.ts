@@ -3,7 +3,7 @@
 export interface RevenueData {
   name: string;
   doanhThu: number;
-  soLop?: number;
+  soLop: number;
 }
 
 // types/dashboard.ts

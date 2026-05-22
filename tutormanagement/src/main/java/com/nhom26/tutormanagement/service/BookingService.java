@@ -54,7 +54,7 @@ public class BookingService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public String datLop(BookingRequestDTO request) {
+    public DangKyHoc datLop(BookingRequestDTO request) {
         // --- BẢO MẬT JWT: Lấy thông tin chính chủ từ Token ---
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         PhuHuynh phuHuynhThucTe = phuHuynhRepository.findByTaiKhoan_TenDangNhap(currentUsername)
@@ -168,6 +168,6 @@ public class BookingService {
             ngayChay = ngayChay.plusDays(1);
         }
 
-        return "Đặt lớp thành công! Đã tự động tạo lịch cho " + soBuoiToiDa + " buổi học. Mã đơn: " + idDangKyMoi;
+        return dangKy;
     }
 }

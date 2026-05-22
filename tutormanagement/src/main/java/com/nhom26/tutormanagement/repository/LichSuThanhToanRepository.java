@@ -28,4 +28,7 @@ public interface LichSuThanhToanRepository extends JpaRepository<LichSuThanhToan
             "GROUP BY MONTH(ngayThanhToan) " +
             "ORDER BY MONTH(ngayThanhToan)", nativeQuery = true)
     List<Object[]> thongKeDoanhThuTheoThang(@Param("year") int year);
+    
+    @Query("SELECT MAX(l.idThanhToan) FROM LichSuThanhToan l")
+    String findMaxId();
 }
