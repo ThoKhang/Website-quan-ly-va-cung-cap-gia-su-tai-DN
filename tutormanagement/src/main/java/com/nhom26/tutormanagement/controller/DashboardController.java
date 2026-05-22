@@ -1,0 +1,23 @@
+package com.nhom26.tutormanagement.controller;
+
+import com.nhom26.tutormanagement.service.DashboardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+@RestController
+@RequestMapping("/api/dashboard")
+@CrossOrigin("*")
+@RequiredArgsConstructor
+public class DashboardController {
+
+    private final DashboardService dashboardService;
+
+    @GetMapping("/class-stats")
+    public ResponseEntity<?> getClassStats() {
+        return ResponseEntity.ok(dashboardService.getThongKeTheoThang());
+    }
+}

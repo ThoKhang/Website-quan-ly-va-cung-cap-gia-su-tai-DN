@@ -1,8 +1,10 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Input, Section, Text } from "@/component/ui";
+import ProcessModal from "../component/ProcessModal";
 
 const servicePoints = [
   "Tìm gia sư theo môn học, cấp lớp và ngân sách chỉ trong một lượt tìm.",
@@ -73,6 +75,7 @@ const hocVienFeatures = [
 ];
 
 export default function Home() {
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
   const router = useRouter();
 
   const handleSearchClick = () => {
@@ -216,9 +219,19 @@ export default function Home() {
             <Text className="max-w-xl opacity-90">
               Tất cả những gì bạn cần để quản lý dạy học một cách chuyên nghiệp, hiệu quả và minh bạch.
             </Text>
+            
             <div className="flex flex-wrap gap-3">
+              {/* Nút từ nhánh baocao_thongke */}
+              <Button onClick={() => router.push('/dashboard')}>
+                Xem dashboard
+              </Button>
+              <Button variant="secondary" onClick={() => setIsProcessModalOpen(true)}>
+                Xem quy trình
+              </Button>
+
+              {/* Nút từ nhánh develop */}
               <Link href="/gia-su/ho-so">
-                <Button>Cập nhật hồ sơ</Button>
+                <Button variant="secondary">Cập nhật hồ sơ</Button>
               </Link>
               <Link href="/gia-su/khoa-hoc">
                 <Button variant="secondary">Tạo khóa học</Button>
@@ -265,8 +278,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ===== CHỨC NĂNG GIA SƯ ===== */}
-      
+      {/* ===== FOOTER ===== */}
       <footer
         id="lien-he"
         className="border-t border-black/6 bg-[var(--color-canvas-parchment)] py-16 text-[var(--color-ink)]"
@@ -311,6 +323,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Component Modal được gọi ở đây để nó có thể hiển thị lên màn hình */}
+      <ProcessModal 
+        isOpen={isProcessModalOpen} 
+        onClose={() => setIsProcessModalOpen(false)} 
+      />
     </main>
   );
 }

@@ -343,7 +343,7 @@ INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES
 -- 1. INSERT DỮ LIỆU VÀO BẢNG TaiKhoan
 -- Tài khoản Gia sư (Format: TK_GS00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
-('TK_GS001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(), '2'),
+('TK_GS001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(), '3'),
 ('TK_GS002', 'giasu.anh@gmail.com', 'giasu_anh', 'avatar2.jpg', '123456', GETDATE(), '2'),
 ('TK_GS003', 'giasu.ly@gmail.com', 'giasu_ly', 'avatar3.jpg', '123456', GETDATE(), '2'),
 ('TK_GS004', 'giasu.hoa@gmail.com', 'giasu_hoa', 'avatar4.jpg', '123456', GETDATE(), '2'),
@@ -569,6 +569,14 @@ select * from LichDay
 select * from DanhMucLop
 select * from DanhGia
 select * from BangCap
+select * from LichSuThanhToan
+/*
 UPDATE KhoaHoc
 SET tinhTrang = 1
 WHERE idKhoaHoc='KH027';
+INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
+('TK006               ', 'giasu.toan124@gmail.com', 'admin124', 'avatar1.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(), '4')
+UPDATE DangKyHoc 
+SET ngayDangKy = DATEADD(YEAR, 2, ngayDangKy) 
+WHERE YEAR(ngayDangKy) = 2024;
+*/

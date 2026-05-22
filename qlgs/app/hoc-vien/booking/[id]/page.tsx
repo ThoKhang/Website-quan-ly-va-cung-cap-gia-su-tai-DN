@@ -246,29 +246,37 @@ export default function BookingPage() {
   };
 
   const handleConfirmPayment = async () => {
-    try {
-      setSubmitting(true);
-      setError("");
-      
-      // Gọi API để lưu khóa học
-      await hocVienService.bookCourse(pendingBookingData);
+      try {
+        setSubmitting(true);
+        setError("");
 
-      // Hiển thị thông báo thành công
-      setSuccess("✅ Đặt lớp thành công! Khóa học đã được lưu vào lịch sử của bạn. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.");
-      
-      // Đóng modal thanh toán
-      setShowPaymentModal(false);
-      
-      // Chuyển hướng đến trang lịch sử sau 2 giây
-      setTimeout(() => {
-        router.push("/hoc-vien/lich-su");
-      }, 2000);
-    } catch (err: any) {
-      console.error("Booking error:", err);
-      setError(err.response?.data?.message || "Có lỗi xảy ra khi đặt lớp. Vui lòng thử lại.");
-      setSubmitting(false);
-    }
-  };
+        // Bước 1: Lưu đăng ký học
+        const bookingResult: any = await hocVienService.bookCourse(pendingBookingData);
+        
+        console.log("👉 Dữ liệu Backend trả về:", bookingResult);
+
+        // Do axiosClient đã bóc data, nên idDangKy nằm ngay lớp ngoài cùng
+        const finalIdDangKy = bookingResult.idDangKy;
+
+        if (!finalIdDangKy) {
+          throw new Error("Lỗi: Backend chưa trả về idDangKy. Vui lòng kiểm tra lại API /booking/dat-lop ở Spring Boot!");
+        }
+
+        // Bước 2: Lưu lịch sử thanh toán
+        await hocVienService.xacNhanThanhToan(
+          finalIdDangKy,
+          Number(course?.soTienHoc)
+        );
+
+        setSuccess("✅ Đặt lớp và thanh toán thành công!");
+        setShowPaymentModal(false);
+
+        setTimeout(() => router.push("/hoc-vien/lich-su"), 2000);
+      } catch (err: any) {
+        setError(err?.message || err.response?.data?.message || "Có lỗi xảy ra khi xác nhận thanh toán.");
+        setSubmitting(false);
+      }
+    };
 
   const getSelectedHocVien = () => {
     return hocVienList.find((hv) => hv.idHocVien === hocVienId);

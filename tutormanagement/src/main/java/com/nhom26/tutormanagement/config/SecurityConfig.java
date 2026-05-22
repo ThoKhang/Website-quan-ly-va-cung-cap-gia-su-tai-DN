@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/verify-otp").permitAll() 
                 .requestMatchers("/api/auth/reset-password").permitAll()
                 .requestMatchers("/api/public/**", "/uploads/**").permitAll()
+                .requestMatchers("/api/dashboard/**", "/api/thongke/**").permitAll()
                 // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                 .anyRequest().authenticated() 
             );
