@@ -137,7 +137,7 @@ function LoginContent() {
             break;
           case '4':
             // Admin: chuyển đến trang admin
-            router.push('/admin');
+            router.push('/admin/dashboard');
             break;
           default:
             // Mặc định: chuyển đến trang chủ

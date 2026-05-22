@@ -153,8 +153,8 @@ export const hocVienService = {
   },
 
   // 7. Đặt lớp (Booking)
-  bookCourse: (data: BookingRequest): Promise<string> => {
-    return axiosClient.post("/booking/dat-lop", data);
+ bookCourse: async (data: any): Promise<any> => {
+    return axiosClient.post("/booking/dat-lop", data); 
   },
 
   // 8. Lấy lịch sử khóa học của học viên
@@ -191,4 +191,13 @@ export const hocVienService = {
   getScheduleDetail: (idDangKy: string): Promise<ChiTietLichHocResponse[]> => {
     return axiosClient.get(`/chi-tiet-lich-hoc/dang-ky/${idDangKy}`);
   },
+
+  xacNhanThanhToan: async (idDangKy: string, soTien: number): Promise<void> => {
+      await axiosClient.post('/thanh-toan/xac-nhan', {
+        idDangKy: idDangKy,
+        soTien: soTien.toString(),
+        phuongThuc: 'Chuyển khoản',
+        maGiaoDich: "", // Vẫn giữ chuỗi rỗng nhé
+      });
+    },
 };
