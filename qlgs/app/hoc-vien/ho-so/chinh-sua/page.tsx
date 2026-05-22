@@ -52,6 +52,7 @@ export default function EditHocVienHoSo() {
   
   const [hocVienList, setHocVienList] = useState<HocVienListItem[]>([]);
   const [showHocVienForm, setShowHocVienForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'phu-huynh' | 'hoc-vien'>('phu-huynh');
   
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -230,18 +231,47 @@ export default function EditHocVienHoSo() {
             </div>
           )}
 
-          {/* FORM THÔNG TIN PHỤ HUYNH */}
-          <Card className="bg-white p-8 shadow-md rounded-2xl border border-slate-200 animate-in slide-in-from-top duration-300">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-              <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+          {/* TABS */}
+          <div className="flex gap-4 mb-6 border-b border-gray-200 animate-in slide-in-from-top duration-300">
+            <button
+              onClick={() => setActiveTab('phu-huynh')}
+              className={`px-4 py-3 font-medium border-b-2 transition ${
+                activeTab === 'phu-huynh'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Thông Tin Phụ Huynh
+            </button>
+            <button
+              onClick={() => setActiveTab('hoc-vien')}
+              className={`px-4 py-3 font-medium border-b-2 transition ${
+                activeTab === 'hoc-vien'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Quản Lý Học Viên
+            </button>
+          </div>
+
+          {/* TAB: PHỤ HUYNH */}
+          {activeTab === 'phu-huynh' && (
+          <Card className="bg-white shadow-lg rounded-2xl border border-slate-200 animate-in slide-in-from-top duration-300 overflow-hidden">
+            {/* Header gradient */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white">Thông Tin Cá Nhân</h2>
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Thông Tin Cá Nhân</h2>
+              <p className="text-blue-100 text-sm mt-2">Cập nhật thông tin phụ huynh</p>
             </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-5">
+
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">Họ và tên phụ huynh <span className="text-red-500">*</span></label>
                 <input 
@@ -250,19 +280,19 @@ export default function EditHocVienHoSo() {
                   value={formData.tenPhuHuynh} 
                   onChange={handleChange} 
                   placeholder="Nhập tên phụ huynh"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" 
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400" 
                   required 
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">Giới tính</label>
                   <select
                     name="gioiTinh"
                     value={formData.gioiTinh ? "true" : "false"}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
                   >
                     <option value="true">Nam</option>
                     <option value="false">Nữ</option>
@@ -276,99 +306,124 @@ export default function EditHocVienHoSo() {
                     name="ngaySinh"
                     value={formData.ngaySinh}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Số điện thoại <span className="text-red-500">*</span></label>
-                  <input
-                    type="tel"
-                    name="sdt"
-                    value={formData.sdt}
-                    onChange={handleChange}
-                    placeholder="Nhập số điện thoại"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                    required
-                  />
+              <div className="border-t border-slate-200 pt-6">
+                <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-1 bg-blue-600 rounded-full"></span>
+                  Thông Tin Liên Hệ
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Số điện thoại <span className="text-red-500">*</span></label>
+                    <input
+                      type="tel"
+                      name="sdt"
+                      value={formData.sdt}
+                      onChange={handleChange}
+                      placeholder="Nhập số điện thoại"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">CCCD <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      name="cccd"
+                      value={formData.cccd}
+                      onChange={handleChange}
+                      placeholder="Nhập số CCCD"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-6">
+                <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-1 bg-blue-600 rounded-full"></span>
+                  Địa Chỉ
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Quận/Huyện <span className="text-red-500">*</span></label>
+                    <select
+                      name="idQuanHuyen"
+                      value={selectedQuanHuyen}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
+                    >
+                      <option value="">-- Chọn Quận/Huyện --</option>
+                      {quanHuyenList.map((qh) => (
+                        <option key={qh.idQuanHuyen} value={qh.idQuanHuyen}>
+                          {qh.tenQuanHuyen}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Phường/Xã <span className="text-red-500">*</span></label>
+                    <select
+                      name="maPhuongXa"
+                      value={formData.maPhuongXa || ""}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
+                      disabled={phuongXaList.length === 0}
+                    >
+                      <option value="">-- Chọn Phường/Xã --</option>
+                      {phuongXaList.map((px) => (
+                        <option key={px.maPhuongXa} value={px.maPhuongXa}>
+                          {px.tenPhuongXa}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">CCCD <span className="text-red-500">*</span></label>
+                <div className="mt-6">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Số nhà, tên đường</label>
                   <input
                     type="text"
-                    name="cccd"
-                    value={formData.cccd}
+                    name="soNhaTenDuong"
+                    value={formData.soNhaTenDuong}
                     onChange={handleChange}
-                    placeholder="Nhập số CCCD"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                    required
+                    placeholder="Nhập số nhà, tên đường"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all hover:border-slate-400"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Quận/Huyện <span className="text-red-500">*</span></label>
-                  <select
-                    name="idQuanHuyen"
-                    value={selectedQuanHuyen}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              <div className="flex gap-3 pt-6 border-t border-slate-200">
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all hover:shadow-lg"
+                >
+                  {loading ? '⏳ Đang lưu...' : '💾 Lưu Hồ Sơ'}
+                </Button>
+                <Link href="/hoc-vien/ho-so" className="flex-1">
+                  <Button 
+                    type="button"
+                    variant="secondary"
+                    className="w-full py-3 rounded-xl"
                   >
-                    <option value="">-- Chọn Quận/Huyện --</option>
-                    {quanHuyenList.map((qh) => (
-                      <option key={qh.idQuanHuyen} value={qh.idQuanHuyen}>
-                        {qh.tenQuanHuyen}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Phường/Xã <span className="text-red-500">*</span></label>
-                  <select
-                    name="maPhuongXa"
-                    value={formData.maPhuongXa || ""}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                    disabled={phuongXaList.length === 0}
-                  >
-                    <option value="">-- Chọn Phường/Xã --</option>
-                    {phuongXaList.map((px) => (
-                      <option key={px.maPhuongXa} value={px.maPhuongXa}>
-                        {px.tenPhuongXa}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    ✕ Hủy
+                  </Button>
+                </Link>
               </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Số nhà, tên đường</label>
-                <input
-                  type="text"
-                  name="soNhaTenDuong"
-                  value={formData.soNhaTenDuong}
-                  onChange={handleChange}
-                  placeholder="Nhập số nhà, tên đường"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                disabled={loading} 
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold mt-6 w-full py-3 rounded-xl transition-all hover:shadow-lg"
-              >
-                {loading ? '⏳ Đang lưu...' : '💾 Lưu Hồ Sơ'}
-              </Button>
             </form>
           </Card>
+          )}
 
-          {/* FORM QUẢN LÝ HỌC VIÊN */}
+          {/* TAB: HỌC VIÊN */}
+          {activeTab === 'hoc-vien' && (
           <Card className="bg-white p-8 shadow-md rounded-2xl border border-slate-200 animate-in slide-in-from-top duration-300 delay-100">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -487,6 +542,7 @@ export default function EditHocVienHoSo() {
               </div>
             )}
           </Card>
+          )}
         </div>
       </Section>
     </main>
