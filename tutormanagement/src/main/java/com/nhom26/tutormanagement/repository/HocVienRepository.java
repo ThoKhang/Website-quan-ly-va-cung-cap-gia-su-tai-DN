@@ -9,4 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface HocVienRepository extends JpaRepository<HocVien, String> {
     @Query("SELECT MAX(h.idHocVien) FROM HocVien h")
     String findMaxId();
+
+    // Lấy danh sách học viên của một phụ huynh
+    java.util.List<HocVien> findByPhuHuynh_IdPhuHuynh(String idPhuHuynh);
 }

@@ -4,8 +4,10 @@ export type CourseSearchResult = {
   tenMonHoc?: string;
   tenLop?: string;
   soTienHoc?: number;
+  soBuoiHoc?: number;
   tenGiaSu?: string;
   saoTrungBinh?: number;
+  moTa?: string;
 };
 
 export type SubjectOption = {

@@ -44,4 +44,7 @@ public class KhoaHoc {
     
     @Column(name = "soBuoiHoc")
     private Integer soBuoiHoc; // Ví dụ: 10 buổi, 20 buổi
+    
+    @Column(name = "anhMinhHoa", length = 255)
+    private String anhMinhHoa;
 }

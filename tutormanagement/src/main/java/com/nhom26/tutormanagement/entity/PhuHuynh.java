@@ -2,6 +2,7 @@ package com.nhom26.tutormanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate; // Chuyển sang LocalDate để fix lỗi parse ngày sinh
 
 @Entity
@@ -30,6 +31,7 @@ public class PhuHuynh {
 
     @OneToOne // Quan hệ 1-1
     @JoinColumn(name = "idTaiKhoan", unique = true) // THÊM unique = true để bảo mật tầng DB
+    @JsonIgnore
     private TaiKhoan taiKhoan;
 
     @ManyToOne

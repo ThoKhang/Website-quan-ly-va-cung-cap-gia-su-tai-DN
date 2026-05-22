@@ -16,7 +16,7 @@ public class NoiDungNghiController {
     private final NoiDungNghiService noiDungNghiService;
 
     @PostMapping("/xin-nghi")
-    @PreAuthorize("hasAuthority('1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC XIN NGHỈ
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC XIN NGHỈ
     public ResponseEntity<?> xinNghiHoc(@RequestBody Map<String, String> request) {
         try {
             String idLichHoc = request.get("idLichHoc");

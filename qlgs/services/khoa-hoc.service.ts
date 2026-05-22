@@ -5,14 +5,15 @@ import type {
   SearchFilters,
   SubjectOption,
 } from "@/types/search.type";
+import type { KhoaHoc, KhoaHocRequestDTO } from "@/types/khoa-hoc.type";
 
 function normalizeNumber(value: string) {
   const trimmed = value.trim();
   return trimmed === "" ? undefined : trimmed;
 }
 
-export async function searchCourses(filters: SearchFilters) {
-  return axiosClient.get<CourseSearchResult[]>("/api/khoa-hoc/tim-kiem", {
+export async function searchCourses(filters: SearchFilters): Promise<CourseSearchResult[]> {
+  return axiosClient.get("/khoa-hoc/tim-kiem", {
     params: {
       keyword: filters.keyword.trim() || undefined,
       idMonHoc: filters.idMonHoc || undefined,
@@ -20,13 +21,48 @@ export async function searchCourses(filters: SearchFilters) {
       minPrice: normalizeNumber(filters.minPrice),
       maxPrice: normalizeNumber(filters.maxPrice),
     },
+  }) as Promise<CourseSearchResult[]>;
+}
+
+export async function getSubjects(): Promise<SubjectOption[]> {
+  return axiosClient.get("/mon-hoc") as Promise<SubjectOption[]>;
+}
+
+export async function getClassLevels(): Promise<ClassLevelOption[]> {
+  return axiosClient.get("/danh-muc-lop") as Promise<ClassLevelOption[]>;
+}
+
+// Quản lý khóa học của gia sư
+export async function createCourse(data: KhoaHocRequestDTO): Promise<string> {
+  return axiosClient.post("/khoa-hoc/tao-moi", data) as Promise<string>;
+}
+
+export async function getCoursesByTutor(idGiaSu: string): Promise<KhoaHoc[]> {
+  return axiosClient.get("/khoa-hoc/gia-su/" + idGiaSu) as Promise<KhoaHoc[]>;
+}
+
+export async function updateCourse(idKhoaHoc: string, data: Partial<KhoaHocRequestDTO>): Promise<string> {
+  return axiosClient.put("/khoa-hoc/" + idKhoaHoc, data) as Promise<string>;
+}
+
+export async function deleteCourse(idKhoaHoc: string): Promise<string> {
+  return axiosClient.delete("/khoa-hoc/" + idKhoaHoc) as Promise<string>;
+}
+
+export async function getCourseDetail(idKhoaHoc: string): Promise<KhoaHoc> {
+  return axiosClient.get("/khoa-hoc/" + idKhoaHoc) as Promise<KhoaHoc>;
+}
+
+export const uploadCourseImage = async (file: File): Promise<{ fileUrl: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  // Gọi API upload đã viết ở Spring Boot
+  const response: any = await axiosClient.post('/public/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
   });
-}
-
-export async function getSubjects() {
-  return axiosClient.get<SubjectOption[]>("/api/mon-hoc");
-}
-
-export async function getClassLevels() {
-  return axiosClient.get<ClassLevelOption[]>("/api/danh-muc-lop");
-}
+  // nếu chưa thì mới chọc vào response.data
+  return response.fileUrl ? response : response.data;
+};

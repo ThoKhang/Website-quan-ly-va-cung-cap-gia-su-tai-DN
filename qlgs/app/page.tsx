@@ -231,10 +231,10 @@ export default function Home() {
 
               {/* Nút từ nhánh develop */}
               <Link href="/gia-su/ho-so">
-                <Button variant="outline">Cập nhật hồ sơ</Button>
+                <Button variant="secondary">Cập nhật hồ sơ</Button>
               </Link>
               <Link href="/gia-su/khoa-hoc">
-                <Button variant="outline">Tạo khóa học</Button>
+                <Button variant="secondary">Tạo khóa học</Button>
               </Link>
             </div>
           </div>

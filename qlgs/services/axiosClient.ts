@@ -23,8 +23,29 @@ axiosClient.interceptors.request.use(
     
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
+      console.log(`📝 Token từ localStorage:`, token ? `${token.substring(0, 20)}...` : "KHÔNG CÓ TOKEN");
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+
+        const publicApis = [
+            '/auth/login',
+            '/auth/register',
+            '/auth/forgot-password'
+        ];
+
+        const isPublicApi = publicApis.some(api =>
+            config.url?.includes(api)
+        );
+
+        // Chỉ gắn token nếu KHÔNG phải API public
+        if (!isPublicApi) {
+            config.headers.Authorization = `Bearer ${token}`;
+            console.log(`✅ Đã gắn Authorization header`);
+        } else {
+            console.log(`🔓 Public API -> Không gắn token`);
+        }
+    }
+       else {
+        console.warn(`⚠️ CẢNH BÁO: Không tìm thấy token trong localStorage`);
       }
     }
     return config;
