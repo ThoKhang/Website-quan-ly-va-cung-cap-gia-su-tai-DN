@@ -1,24 +1,21 @@
 // services/dashboardService.ts
-import axios from 'axios';
+import axiosClient from './axiosClient'; 
 import { RevenueData, ClassStatsData } from '../types/dashboard';
-
-// Đã đổi thành cổng mặc định của Spring Boot (8080)
-const API_BASE_URL = 'http://localhost:8080/api'; 
 
 export const dashboardService = {
   getRevenueStats: async (): Promise<RevenueData[]> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/thongke/doanhthu`);
-      return response.data;
+      const response = await axiosClient.get(`/thong-ke/doanh-thu-bieu-do`);
+      return response as unknown as RevenueData[]; // interceptor đã unwrap rồi
     } catch (error) {
-      return []; 
+      return [];
     }
   },
 
   getClassStats: async (): Promise<ClassStatsData[]> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/thongke/luotnhanlop`);
-      return response.data;
+      const response = await axiosClient.get(`/dashboard/class-stats`);
+      return response as unknown as ClassStatsData[]; // bỏ .data
     } catch (error) {
       return [];
     }

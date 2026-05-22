@@ -2,8 +2,8 @@
 'use client'; 
 
 import React, { useState } from 'react';
-import RevenueTab from '../../component/RevenueTab';
-import ClassesTab from '../../component/ClassesTab';
+import RevenueTab from '../../../component/RevenueTab';
+import ClassesTab from '../../../component/ClassesTab';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'revenue' | 'classes'>('revenue');

@@ -3,13 +3,16 @@
 export interface RevenueData {
   name: string;
   doanhThu: number;
+  soLop?: number;
 }
 
+// types/dashboard.ts
 export interface ClassStatsData {
   name: string;
-  daNhan: number;
-  dangXuLy: number;
-  daHuy: number;
+  tongYeuCau: number;
+  daNhanLop: number;  // Thay cho daNhan
+  dangHoc: number;    // Thay cho dangXuLy
+  daHoanThanh: number; // Thêm mới
 }
 
 export interface PieChartData {
