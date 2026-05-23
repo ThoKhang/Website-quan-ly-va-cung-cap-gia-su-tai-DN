@@ -25,8 +25,8 @@ public class NoiDungNghiService {
 
     private String generateNextIdNoiDung() {
         String maxId = noiDungNghiRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "NDN001";
-        return String.format("NDN%03d", Integer.parseInt(maxId.trim().substring(3)) + 1);
+        if (maxId == null || maxId.trim().isEmpty()) return "NDN00001";
+        return String.format("NDN%05d", Integer.parseInt(maxId.trim().substring(3)) + 1);
     }
 
     @Transactional(rollbackFor = Exception.class)

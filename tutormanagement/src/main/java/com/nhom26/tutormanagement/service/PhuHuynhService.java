@@ -24,11 +24,11 @@ public class PhuHuynhService {
     private String generateNextId() {
         String maxId = phuHuynhRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) {
-            return "PH001";
+            return "PH00001";
         }
         // Cắt bỏ chữ "PH" (2 ký tự đầu), lấy phần số cộng thêm 1
         int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
-        return String.format("PH%03d", nextNumber);
+        return String.format("PH%05d", nextNumber);
     }
 
     @Transactional

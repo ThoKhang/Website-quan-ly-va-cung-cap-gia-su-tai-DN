@@ -31,15 +31,15 @@ public class KhoaHocService {
         try {
             List<String> allIds = khoaHocRepository.findAllIdsSorted();
             if (allIds == null || allIds.isEmpty()) {
-                return "KH001";
+                return "KH00001";
             }
             
             int maxNumber = 0;
             for (String id : allIds) {
                 try {
                     String trimmedId = id.trim();
-                    if (trimmedId.startsWith("KH") && trimmedId.length() >= 5) {
-                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                    if (trimmedId.startsWith("KH") && trimmedId.length() >= 2) {
+                        int number = Integer.parseInt(trimmedId.substring(2));
                         if (number > maxNumber) {
                             maxNumber = number;
                         }
@@ -49,9 +49,9 @@ public class KhoaHocService {
                 }
             }
             
-            return String.format("KH%03d", maxNumber + 1);
+            return String.format("KH%05d", maxNumber + 1);
         } catch (Exception e) {
-            return "KH001";
+            return "KH00001";
         }
     }
 

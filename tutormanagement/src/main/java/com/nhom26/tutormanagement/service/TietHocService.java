@@ -146,7 +146,7 @@ public class TietHocService {
         try {
             List<String> allIds = tietHocRepository.findAllIdsSorted();
             if (allIds == null || allIds.isEmpty()) {
-                return "TH001";
+                return "TH00001";
             }
             
             // Tìm ID lớn nhất bằng cách parse từng ID
@@ -154,8 +154,8 @@ public class TietHocService {
             for (String id : allIds) {
                 try {
                     String trimmedId = id.trim();
-                    if (trimmedId.startsWith("TH") && trimmedId.length() >= 5) {
-                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                    if (trimmedId.startsWith("TH") && trimmedId.length() >= 2) {
+                        int number = Integer.parseInt(trimmedId.substring(2));
                         if (number > maxNumber) {
                             maxNumber = number;
                         }
@@ -165,10 +165,10 @@ public class TietHocService {
                 }
             }
             
-            return String.format("TH%03d", maxNumber + 1);
+            return String.format("TH%05d", maxNumber + 1);
         } catch (Exception e) {
             System.out.println("❌ DEBUG: Error in generateNextIdTietHoc: " + e.getMessage());
-            return "TH001";
+            return "TH00001";
         }
     }
     public List<TietHoc> getAllTietHoc() {
