@@ -10,7 +10,7 @@ interface BangCapAdminDTO {
   thongTinBangCap: string;
   ngayCap: string;
   anhMinhChung: string;
-  trangThai: boolean | null;
+  trangThai: number; // ĐÃ ĐỔI THÀNH number (0, 1, 2)
   idGiaSu: string;
   tenGiaSu: string;
 }
@@ -19,6 +19,8 @@ export default function AdminDuyetBangCapPage() {
   const [danhSach, setDanhSach] = useState<BangCapAdminDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Thêm tab 'tu_choi'
   const [activeTab, setActiveTab] = useState<'cho' | 'da_duyet' | 'tu_choi'>('cho');
   const [anhXem, setAnhXem] = useState<string | null>(null);
 
@@ -36,22 +38,26 @@ export default function AdminDuyetBangCapPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleDuyet = async (idBangCap: string, trangThai: boolean) => {
-    const msg = trangThai ? "Duyệt bằng cấp này?" : "Từ chối bằng cấp này?";
+  // Đổi trangThai thành number
+  const handleDuyet = async (idBangCap: string, trangThai: number) => {
+    const msg = trangThai === 1 ? "Bạn có chắc chắn muốn duyệt bằng cấp này?" : "Bạn có chắc chắn muốn từ chối bằng cấp này?";
     if (!confirm(msg)) return;
     try {
+
       await axiosClient.put(`/gia-su/admin/bang-cap/${idBangCap}/duyet?trangThai=${trangThai}`);
-      alert(trangThai ? "Đã duyệt thành công!" : "Đã từ chối!");
+      alert(trangThai === 1 ? "Đã duyệt thành công!" : "Đã từ chối bằng cấp!");
       fetchData();
     } catch (error: any) {
       alert(error || "Không thể thực hiện thao tác");
     }
   };
 
-    const filtered = danhSach.filter(bc => {
+  // Cập nhật logic lọc theo số (0, 1, 2)
+  const filtered = danhSach.filter(bc => {
     const matchTab =
-        activeTab === 'cho'      ? bc.trangThai === false :
-        activeTab === 'da_duyet' ? bc.trangThai === true  : false;
+        activeTab === 'cho'      ? bc.trangThai === 0 :
+        activeTab === 'da_duyet' ? bc.trangThai === 1 :
+        activeTab === 'tu_choi'  ? bc.trangThai === 2 : false;
 
     const matchSearch =
         bc.tenGiaSu?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,15 +65,18 @@ export default function AdminDuyetBangCapPage() {
         bc.idBangCap?.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchTab && matchSearch;
-    });
+  });
 
-  // Phân loại đúng: false = chờ duyệt, true = đã duyệt
-  const soCho    = danhSach.filter(bc => bc.trangThai === false).length;
-  const soDaDuyet = danhSach.filter(bc => bc.trangThai === true).length;
+  // Cập nhật bộ đếm
+  const soCho     = danhSach.filter(bc => bc.trangThai === 0).length;
+  const soDaDuyet = danhSach.filter(bc => bc.trangThai === 1).length;
+  const soTuChoi  = danhSach.filter(bc => bc.trangThai === 2).length;
 
+  // Thêm tab Từ chối vào giao diện
   const tabs = [
     { key: 'cho' as const,      label: 'Chờ duyệt',   count: soCho,     color: 'amber' },
     { key: 'da_duyet' as const, label: 'Đã duyệt',    count: soDaDuyet, color: 'green' },
+    { key: 'tu_choi' as const,  label: 'Từ chối',     count: soTuChoi,  color: 'red' },
   ];
 
   return (
@@ -95,12 +104,14 @@ export default function AdminDuyetBangCapPage() {
         </div>
 
         {/* Stat tabs */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {tabs.map(tab => {
             const isActive = activeTab === tab.key;
+            // Cập nhật bảng màu để hỗ trợ màu đỏ (red)
             const colorMap: Record<string, string> = {
               amber: isActive ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-200 hover:border-amber-400',
               green: isActive ? 'bg-[#4A7766] text-white border-[#4A7766]'  : 'bg-white text-[#4A7766] border-[#4A7766]/30 hover:border-[#4A7766]',
+              red:   isActive ? 'bg-red-500 text-white border-red-500'     : 'bg-white text-red-600 border-red-200 hover:border-red-400',
             };
             return (
               <button
@@ -141,29 +152,24 @@ export default function AdminDuyetBangCapPage() {
                   {filtered.map((bc) => (
                     <tr key={bc.idBangCap} className="hover:bg-gray-50/60 transition-colors">
 
-                      {/* Bằng cấp */}
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-gray-800">{bc.tenBangCap}</div>
                         <div className="text-xs text-gray-400 font-mono mt-0.5">{bc.idBangCap}</div>
                       </td>
 
-                      {/* Gia sư */}
                       <td className="py-3.5 px-4">
                         <div className="font-medium text-gray-700">{bc.tenGiaSu}</div>
                         <div className="text-xs text-gray-400">{bc.idGiaSu}</div>
                       </td>
 
-                      {/* Thông tin */}
                       <td className="py-3.5 px-4 text-gray-500 max-w-[200px]">
                         <p className="line-clamp-2 text-xs">{bc.thongTinBangCap}</p>
                       </td>
 
-                      {/* Ngày cấp */}
                       <td className="py-3.5 px-4 text-center text-gray-500 text-xs">
                         {bc.ngayCap ? new Date(bc.ngayCap).toLocaleDateString('vi-VN') : '—'}
                       </td>
 
-                      {/* Ảnh minh chứng */}
                       <td className="py-3.5 px-4 text-center">
                         {bc.anhMinhChung ? (
                           <button
@@ -177,18 +183,18 @@ export default function AdminDuyetBangCapPage() {
                         )}
                       </td>
 
-                      {/* Thao tác — chỉ hiện ở tab Chờ duyệt */}
+                      {/* Thao tác — Dùng số 1 (Duyệt) và 2 (Từ chối) */}
                       {activeTab === 'cho' && (
                         <td className="py-3.5 px-4">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleDuyet(bc.idBangCap, true)}
+                              onClick={() => handleDuyet(bc.idBangCap, 1)}
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-medium transition-colors"
                             >
                               <Check size={13} /> Duyệt
                             </button>
                             <button
-                              onClick={() => handleDuyet(bc.idBangCap, false)}
+                              onClick={() => handleDuyet(bc.idBangCap, 2)}
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium transition-colors"
                             >
                               <X size={13} /> Từ chối

@@ -23,7 +23,7 @@ public class BangCap {
     private LocalDate ngayCap;
 
     // true = Đã xác thực, false = Chờ xác thực
-    private Boolean trangThai; 
+    private Integer trangThai;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String anhMinhChung; // Có thể lưu URL ảnh (từ Cloudinary/Firebase) hoặc chuỗi Base64

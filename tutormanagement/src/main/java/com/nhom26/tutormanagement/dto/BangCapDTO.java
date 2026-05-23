@@ -20,7 +20,7 @@ public class BangCapDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate ngayCap;
     
-    private Boolean trangThai;
+    private Integer trangThai;
     private String anhMinhChung;
     private String idGiaSu;
     private String tenGiaSu;

@@ -199,8 +199,8 @@ public class GiaSuService {
         bangCapMoi.setNgayCap(request.getNgayCap());
         bangCapMoi.setAnhMinhChung(request.getAnhMinhChung());
         
-        // Bằng mới nộp mặc định ở trạng thái false (Chờ Admin duyệt)
-        bangCapMoi.setTrangThai(false); 
+        // ĐÃ SỬA: Bằng mới nộp mặc định ở trạng thái 0 (Chờ Admin duyệt)
+        bangCapMoi.setTrangThai(0); 
 
         return bangCapRepository.save(bangCapMoi);
     }
@@ -365,12 +365,15 @@ public class GiaSuService {
     }
 
     // Duyệt hoặc từ chối bằng cấp
-    @Transactional
-    public String duyetBangCap(String idBangCap, boolean trangThai) {
-        BangCap bangCap = bangCapRepository.findById(idBangCap)
+    public String duyetBangCap(String idBangCap, Integer trangThai) { // Đã đổi thành Integer
+    BangCap bangCap = bangCapRepository.findById(idBangCap)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy bằng cấp!"));
-        bangCap.setTrangThai(trangThai);
-        bangCapRepository.save(bangCap);
-        return trangThai ? "Đã duyệt bằng cấp thành công!" : "Đã từ chối bằng cấp!";
-    }
+    
+    bangCap.setTrangThai(trangThai);
+    bangCapRepository.save(bangCap);
+    
+    if (trangThai == 1) return "Đã duyệt bằng cấp thành công!";
+    if (trangThai == 2) return "Đã từ chối bằng cấp!";
+    return "Đã cập nhật trạng thái!";
+}
 }

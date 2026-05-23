@@ -123,7 +123,7 @@ CREATE TABLE BangCap (
     tenBangCap NVARCHAR(50),
     thongTinBangCap NVARCHAR(150),
     ngayCap DATETIME,
-    trangThai BIT,
+    trangThai INT,
     anhMinhChung NVARCHAR(MAX),
     FOREIGN KEY (idGiaSu) REFERENCES GiaSu(idGiaSu)
 );

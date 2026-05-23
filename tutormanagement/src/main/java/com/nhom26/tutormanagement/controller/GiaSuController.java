@@ -134,7 +134,7 @@ public class GiaSuController {
     @PreAuthorize("hasAuthority('ROLE_4')")
     public ResponseEntity<?> duyetBangCap(
             @PathVariable String idBangCap,
-            @RequestParam boolean trangThai) {
+            @RequestParam Integer trangThai) { // Đã đổi thành Integer
         try {
             return ResponseEntity.ok(giaSuService.duyetBangCap(idBangCap, trangThai));
         } catch (RuntimeException e) {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Section } from "@/component/ui";
-import { BangCap } from "@/types/auth.type";
+import { BangCap } from "@/types/auth.type"; // Hãy đảm bảo trong file này, trangThai của BangCap đã được đổi thành number
 import axiosClient from '@/services/axiosClient';
 
 export default function GiaSuHoSoView() {
@@ -13,9 +13,11 @@ export default function GiaSuHoSoView() {
   const [idGiaSu, setIdGiaSu] = useState<string | null>(null);
   const [message, setMessage] = useState('');
 
-  const hasApprovedDegree = bangCapList.some(bc => bc.trangThai === true);
-  const countApproved = bangCapList.filter(bc => bc.trangThai === true).length;
-  const countPending = bangCapList.filter(bc => bc.trangThai !== true).length;
+  // SỬA: Chuyển toàn bộ điều kiện sang so sánh số (1: Duyệt, 0: Chờ, 2: Từ chối)
+  const hasApprovedDegree = bangCapList.some(bc => bc.trangThai === 1);
+  const countApproved = bangCapList.filter(bc => bc.trangThai === 1).length;
+  const countPending = bangCapList.filter(bc => bc.trangThai === 0).length;
+  const countRejected = bangCapList.filter(bc => bc.trangThai === 2).length;
 
   const getInitials = (name: string) =>
     name.trim().split(' ').slice(-2).map(w => w[0]).join('').toUpperCase() || 'G';
@@ -79,7 +81,6 @@ export default function GiaSuHoSoView() {
             <div className="bg-blue-900 px-8 py-8 pb-14 relative overflow-hidden">
               <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/5" />
               <div className="absolute left-1/2 -bottom-12 w-36 h-36 rounded-full bg-white/5" />
-              {/* MOBILE: flex-col để nút không bị đẩy ra ngoài */}
               <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex items-center gap-5">
                   {/* Avatar */}
@@ -116,7 +117,7 @@ export default function GiaSuHoSoView() {
               </div>
             </div>
 
-            {/* Stat chips — MOBILE: 1 cột, sm+: 3 cột như desktop */}
+            {/* Stat chips */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-8 -mt-6 pb-6 relative z-10">
               {[
                 {
@@ -190,6 +191,13 @@ export default function GiaSuHoSoView() {
                   <span className="text-sm text-green-700">Đã duyệt</span>
                   <span className="text-2xl font-semibold text-green-700">{countApproved}</span>
                 </div>
+                {/* Thêm phần hiển thị số lượng từ chối */}
+                {countRejected > 0 && (
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between">
+                    <span className="text-sm text-red-700">Bị từ chối</span>
+                    <span className="text-2xl font-semibold text-red-700">{countRejected}</span>
+                  </div>
+                )}
                 <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-between">
                   <span className="text-sm text-amber-700">Chờ duyệt</span>
                   <span className="text-2xl font-semibold text-amber-700">{countPending}</span>
@@ -221,21 +229,28 @@ export default function GiaSuHoSoView() {
                       <div key={i} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl hover:border-slate-200 transition-colors">
                         {/* Trục dot */}
                         <div className="flex flex-col items-center gap-1 pt-1">
-                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${bc.trangThai ? 'bg-green-500' : 'bg-amber-400'}`} />
+                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                            bc.trangThai === 1 ? 'bg-green-500' : bc.trangThai === 2 ? 'bg-red-500' : 'bg-amber-400'
+                          }`} />
                           {i < bangCapList.length - 1 && (
-                            <span className={`w-px flex-1 min-h-[20px] ${bc.trangThai ? 'bg-green-200' : 'bg-amber-200'}`} />
+                            <span className={`w-px flex-1 min-h-[20px] ${
+                              bc.trangThai === 1 ? 'bg-green-200' : bc.trangThai === 2 ? 'bg-red-200' : 'bg-amber-200'
+                            }`} />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          {/* MOBILE: tên + badge xuống dòng; sm+: ngang như cũ */}
                           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3 mb-1">
                             <p className="text-sm font-semibold text-slate-800 leading-snug">{bc.tenBangCap}</p>
+                            
+                            {/* BADGE TRẠNG THÁI */}
                             <span className={`self-start shrink-0 text-[10px] px-2.5 py-0.5 rounded-full border font-medium flex items-center gap-1 ${
-                              bc.trangThai
+                              bc.trangThai === 1
                                 ? 'bg-green-50 text-green-700 border-green-200'
+                                : bc.trangThai === 2
+                                ? 'bg-red-50 text-red-700 border-red-200'
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}>
-                              {bc.trangThai ? '✓ Đã duyệt' : '⏳ Chờ duyệt'}
+                              {bc.trangThai === 1 ? '✓ Đã duyệt' : bc.trangThai === 2 ? '✕ Bị từ chối' : '⏳ Chờ duyệt'}
                             </span>
                           </div>
                           {bc.thongTinBangCap && (
