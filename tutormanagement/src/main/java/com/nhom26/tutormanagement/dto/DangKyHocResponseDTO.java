@@ -18,6 +18,8 @@ public class DangKyHocResponseDTO {
     private KhoaHocResponseDTO khoaHoc;
     private LocalDateTime ngayDangKy;
     private LocalDate ngayBatDauHoc;
+    private LocalDate ngayKetThucDuKien;
+    private LocalDate ngayGiaHan;
     private Boolean trangThaiThanhToan;
     private Boolean trangThaiHoanThanh;
     private List<ChiTietLichHocResponseDTO> chiTietLichHoc;

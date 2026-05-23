@@ -183,6 +183,8 @@ CREATE TABLE DangKyHoc (
     trangThaiThanhToan BIT,
     trangThaiHoanThanh BIT,
     ngayBatDauHoc DATETIME,
+    ngayKetThucDuKien DATETIME,
+    ngayGiaHan DATETIME,
     FOREIGN KEY (idPhuHuynh) REFERENCES PhuHuynh(idPhuHuynh),
     FOREIGN KEY (idHocVien) REFERENCES HocVien(idHocVien),
     FOREIGN KEY (idKhoaHoc) REFERENCES KhoaHoc(idKhoaHoc)

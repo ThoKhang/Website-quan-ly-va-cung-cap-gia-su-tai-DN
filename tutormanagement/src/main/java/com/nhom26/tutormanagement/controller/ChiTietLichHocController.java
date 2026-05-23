@@ -25,4 +25,14 @@ public class ChiTietLichHocController {
         List<ChiTietLichHocDTO> result = chiTietLichHocService.getScheduleDetailByDangKy(idDangKy);
         return ResponseEntity.ok(result);
     }
+
+    /**
+     * Lấy số buổi đã nghỉ trong khóa học
+     * GET /api/chi-tiet-lich-hoc/dang-ky/{idDangKy}/so-buoi-nghi
+     */
+    @GetMapping("/dang-ky/{idDangKy}/so-buoi-nghi")
+    public ResponseEntity<Long> getAbsenceCount(@PathVariable String idDangKy) {
+        Long count = chiTietLichHocService.getAbsenceCount(idDangKy);
+        return ResponseEntity.ok(count);
+    }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button, Section } from "@/component/ui";
-import { hocVienService, type DangKyHocResponse, type DanhGiaResponse } from "@/services/hoc-vien.service";
+import { hocVienService, type DangKyHocResponse } from "@/services/hoc-vien.service";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function RateCoursePage() {
@@ -21,6 +21,7 @@ export default function RateCoursePage() {
   const [canEdit, setCanEdit] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState(0);
   const [existingRating, setExistingRating] = useState<any>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const idDangKy = params.id as string;
 
@@ -76,13 +77,26 @@ export default function RateCoursePage() {
       } catch (err: any) {
         // Nếu không có đánh giá hoặc endpoint chưa tồn tại, bỏ qua
         console.log("ℹ️ No existing rating found or endpoint not available");
-        setExistingRating(null);
+        if (err.status === 400 || err.response?.status === 400) {
+          // Lỗi 400 có nghĩa là không có đánh giá, đây là bình thường
+          setExistingRating(null);
+        } else {
+          // Các lỗi khác có thể bỏ qua
+          setExistingRating(null);
+        }
       }
 
-      // Tính ngày kết thúc từ buổi học cuối cùng
-      if (course.chiTietLichHoc && course.chiTietLichHoc.length > 0) {
+      // Tính ngày kết thúc từ ngayKetThucDuKien hoặc buổi học cuối cùng
+      let endDate: Date | null = null;
+      
+      if (course.ngayKetThucDuKien) {
+        endDate = new Date(course.ngayKetThucDuKien);
+      } else if (course.chiTietLichHoc && course.chiTietLichHoc.length > 0) {
         const lastSession = course.chiTietLichHoc[course.chiTietLichHoc.length - 1];
-        const endDate = new Date(lastSession.ngayHoc);
+        endDate = new Date(lastSession.ngayHoc);
+      }
+
+      if (endDate) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         endDate.setHours(0, 0, 0, 0);
@@ -123,13 +137,23 @@ export default function RateCoursePage() {
         return;
       }
 
-      await hocVienService.rateCourse({
-        idDangKy,
-        soSao,
-        noiDung,
-      });
+      // Nếu đang chỉnh sửa, gọi updateRating, nếu không gọi rateCourse
+      if (isEditMode && existingRating) {
+        await hocVienService.updateRating(idDangKy, {
+          idDangKy,
+          soSao,
+          noiDung,
+        });
+        setSuccess("Cảm ơn bạn đã cập nhật đánh giá!");
+      } else {
+        await hocVienService.rateCourse({
+          idDangKy,
+          soSao,
+          noiDung,
+        });
+        setSuccess("Cảm ơn bạn đã gửi đánh giá!");
+      }
 
-      setSuccess("Cảm ơn bạn đã gửi đánh giá!");
       setTimeout(() => router.push("/hoc-vien/lich-su"), 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || "Có lỗi xảy ra");
@@ -260,8 +284,8 @@ export default function RateCoursePage() {
 
           {/* RATING FORM */}
           <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-            {/* EXISTING RATING DISPLAY */}
-            {existingRating && (
+            {/* EXISTING RATING DISPLAY - KHI HẾT HẠN CHỈNH SỬA */}
+            {existingRating && !canEdit && (
               <div className="mb-8 pb-8 border-b border-slate-200">
                 <h3 className="text-lg font-bold text-slate-900 mb-4">📋 Đánh Giá Của Bạn</h3>
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
@@ -291,77 +315,133 @@ export default function RateCoursePage() {
               </div>
             )}
 
-            {/* FORM CHỈ HIỂN THỊ KHI CHƯA CÓ ĐÁNH GIÁ HOẶC CÒN TRONG 7 NGÀY */}
-            {!existingRating && (
+            {/* EXISTING RATING DISPLAY - KHI CÒN TRONG 7 NGÀY */}
+            {existingRating && canEdit && !isEditMode && (
+              <div className="mb-8 pb-8 border-b border-slate-200">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">📋 Đánh Giá Của Bạn (Có thể chỉnh sửa)</h3>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">
+                        {Array(existingRating.soSao).fill("⭐").join("")}
+                      </span>
+                      <span className="text-lg font-bold text-green-600">{existingRating.soSao}/5 sao</span>
+                    </div>
+                    <span className="text-sm text-slate-600">
+                      📅 {new Date(existingRating.ngayDanhGia).toLocaleDateString("vi-VN", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  {existingRating.noiDung && (
+                    <div className="bg-white rounded-lg p-4 mt-4">
+                      <p className="text-slate-700">{existingRating.noiDung}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(true)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition"
+                  >
+                    ✏️ Chỉnh sửa đánh giá
+                  </button>
+                  <Link href="/hoc-vien/lich-su" className="flex-1">
+                    <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg">
+                      Quay lại
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* FORM HIỂN THỊ KHI CHƯA CÓ ĐÁNH GIÁ HOẶC CÒN TRONG 7 NGÀY */}
+            {(!existingRating || (canEdit && isEditMode)) && (
               <form onSubmit={handleSubmit} className="space-y-8">
-              {error && (
-                <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
-                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  <span className="font-medium">{error}</span>
+                {error && (
+                  <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span className="font-medium">{error}</span>
+                  </div>
+                )}
+
+                {success && (
+                  <div className="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
+                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <span className="font-medium">{success}</span>
+                  </div>
+                )}
+
+                {/* STAR RATING */}
+                <div>
+                  <label className="block text-lg font-bold text-slate-900 mb-4">
+                    Đánh giá của bạn <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mb-3">
+                    {renderStars(canEdit)}
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Bạn đã chọn: <span className="font-bold text-yellow-500">{soSao} sao</span>
+                  </p>
                 </div>
-              )}
 
-              {success && (
-                <div className="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
-                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  <span className="font-medium">{success}</span>
+                {/* COMMENT */}
+                <div>
+                  <label className="block text-lg font-bold text-slate-900 mb-3">
+                    Nhận xét (tùy chọn)
+                  </label>
+                  <textarea
+                    value={noiDung}
+                    onChange={(e) => setNoiDung(e.target.value)}
+                    disabled={!canEdit}
+                    placeholder="Chia sẻ ý kiến của bạn về khóa học, gia sư, phương pháp dạy, ..."
+                    rows={6}
+                    className={`w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      !canEdit ? "bg-slate-100 cursor-not-allowed" : "bg-white"
+                    }`}
+                  />
+                  <p className="text-sm text-slate-500 mt-2">{noiDung.length}/300 ký tự</p>
                 </div>
-              )}
 
-              {/* STAR RATING */}
-              <div>
-                <label className="block text-lg font-bold text-slate-900 mb-4">
-                  Đánh giá của bạn <span className="text-red-500">*</span>
-                </label>
-                <div className="mb-3">
-                  {renderStars(canEdit)}
+                {/* BUTTONS */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={submitting || !canEdit}
+                    className={`flex-1 font-bold px-6 py-3 rounded-lg transition ${
+                      canEdit
+                        ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                        : "bg-slate-300 text-slate-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {submitting ? "Đang gửi..." : isEditMode ? "Cập nhật đánh giá" : "Gửi đánh giá"}
+                  </button>
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditMode(false)}
+                      className="flex-1 bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition"
+                    >
+                      Hủy
+                    </button>
+                  )}
+                  {!isEditMode && (
+                    <Link href="/hoc-vien/lich-su" className="flex-1">
+                      <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg">
+                        Quay lại
+                      </Button>
+                    </Link>
+                  )}
                 </div>
-                <p className="text-sm text-slate-600">
-                  Bạn đã chọn: <span className="font-bold text-yellow-500">{soSao} sao</span>
-                </p>
-              </div>
-
-              {/* COMMENT */}
-              <div>
-                <label className="block text-lg font-bold text-slate-900 mb-3">
-                  Nhận xét (tùy chọn)
-                </label>
-                <textarea
-                  value={noiDung}
-                  onChange={(e) => setNoiDung(e.target.value)}
-                  disabled={!canEdit}
-                  placeholder="Chia sẻ ý kiến của bạn về khóa học, gia sư, phương pháp dạy, ..."
-                  rows={6}
-                  className={`w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    !canEdit ? "bg-slate-100 cursor-not-allowed" : "bg-white"
-                  }`}
-                />
-                <p className="text-sm text-slate-500 mt-2">{noiDung.length}/300 ký tự</p>
-              </div>
-
-              {/* BUTTONS */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={submitting || !canEdit}
-                  className={`flex-1 font-bold px-6 py-3 rounded-lg transition ${
-                    canEdit
-                      ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                      : "bg-slate-300 text-slate-500 cursor-not-allowed"
-                  }`}
-                >
-                  {submitting ? "Đang gửi..." : "Gửi đánh giá"}
-                </button>
-                <Link href="/hoc-vien/lich-su" className="flex-1">
-                  <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg">
-                    Quay lại
-                  </Button>
-                </Link>
-              </div>
               </form>
             )}
           </div>

@@ -26,8 +26,15 @@ public class ChiTietLichHocService {
         List<ChiTietLichHoc> chiTietLichHocs = chiTietLichHocRepository.findByDangKyHoc_IdDangKy(idDangKy);
         
         return chiTietLichHocs.stream()
-                .map(this::convertToDTO)
+                .map(chiTiet -> convertToDTO(chiTiet))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy số buổi đã nghỉ trong khóa học
+     */
+    public Long getAbsenceCount(String idDangKy) {
+        return chiTietLichHocRepository.countByDangKyHoc_IdDangKyAndTinhTrang(idDangKy, "Đã nghỉ");
     }
 
     /**

@@ -13,10 +13,11 @@ import { useAuthStore } from "@/store/auth.store";
 export default function CourseDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, idNguoiDung } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [schedules, setSchedules] = useState<ChiTietLichHocResponse[]>([]);
+  const [bookingInfo, setBookingInfo] = useState<any>(null);
 
   const idDangKy = params.id as string;
 
@@ -27,13 +28,33 @@ export default function CourseDetailPage() {
     }
 
     fetchCourseDetail();
-  }, [isLoggedIn, router, idDangKy]);
+  }, [isLoggedIn, router, idDangKy, idNguoiDung]);
 
   const fetchCourseDetail = async () => {
     try {
       setLoading(true);
-      const data = await hocVienService.getScheduleDetail(idDangKy);
-      setSchedules(data);
+      if (!idNguoiDung) {
+        setError("Không tìm thấy thông tin người dùng");
+        return;
+      }
+
+      // Lấy chi tiết khóa học đã đăng ký (bao gồm cả khi chưa có lịch học)
+      const courseDetail = await hocVienService.getCourseDetailById(idDangKy);
+      
+      if (courseDetail) {
+        setBookingInfo(courseDetail);
+        // Lấy chi tiết lịch học (có thể rỗng nếu chưa bắt đầu)
+        try {
+          const scheduleData = await hocVienService.getScheduleDetail(idDangKy);
+          setSchedules(scheduleData);
+        } catch (scheduleErr) {
+          // Nếu không có lịch học, vẫn hiển thị thông tin khóa học
+          console.log("Không có lịch học chi tiết");
+          setSchedules([]);
+        }
+      } else {
+        setError("Không tìm thấy thông tin khóa học");
+      }
     } catch (err: any) {
       console.error("Error fetching course detail:", err);
       if (err.status === 403 || err.status === 401) {
@@ -87,7 +108,7 @@ export default function CourseDetailPage() {
     );
   }
 
-  if (schedules.length === 0) {
+  if (schedules.length === 0 && !bookingInfo) {
     return (
       <main className="min-h-screen bg-slate-50 pb-16 pt-8">
         <Section>
@@ -110,9 +131,8 @@ export default function CourseDetailPage() {
     );
   }
 
-  const firstSchedule = schedules[0];
-  const khoaHoc = (firstSchedule as any)?.khoaHoc;
-  const giaSu = firstSchedule.lichDay.giaSu;
+  const khoaHoc = bookingInfo?.khoaHoc;
+  const giaSu = schedules.length > 0 ? schedules[0].lichDay.giaSu : khoaHoc?.giaSu;
 
   return (
     <main className="min-h-screen bg-slate-50 pb-16 pt-8">
@@ -217,52 +237,58 @@ export default function CourseDetailPage() {
           {/* SCHEDULE TABLE */}
           <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">📅 Lịch Học Chi Tiết ({schedules.length} buổi)</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-slate-300 bg-slate-50">
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Buổi</th>
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Ngày học</th>
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Giờ học</th>
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Thứ</th>
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Trạng thái</th>
-                    <th className="text-left py-4 px-4 font-bold text-slate-700">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {schedules.map((schedule, index) => (
-                    <tr key={schedule.idLichHoc} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-4 font-semibold text-slate-900">Buổi {index + 1}</td>
-                      <td className="py-4 px-4 text-slate-700">
-                        {new Date(schedule.ngayHoc).toLocaleDateString("vi-VN", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })}
-                      </td>
-                      <td className="py-4 px-4 text-slate-700">
-                        {schedule.lichDay.tietHoc.gioBatDau.substring(0, 5)} - {schedule.lichDay.tietHoc.gioKetThuc.substring(0, 5)}
-                      </td>
-                      <td className="py-4 px-4 text-slate-700">{schedule.lichDay.tietHoc.thu}</td>
-                      <td className="py-4 px-4">{getStatusBadge(schedule.tinhTrang)}</td>
-                      <td className="py-4 px-4">
-                        {schedule.tinhTrang === "Chưa bắt đầu" && index > 0 && (
-                          <Link href={`/hoc-vien/xin-nghi/${schedule.idLichHoc}`}>
-                            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
-                              ⏸️ Xin nghỉ
-                            </Button>
-                          </Link>
-                        )}
-                        {index === 0 && (
-                          <span className="text-slate-400 text-sm"></span>
-                        )}
-                      </td>
+            {schedules.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-500 text-lg">⏳ Khóa học chưa bắt đầu, lịch học sẽ được cập nhật sau</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-slate-300 bg-slate-50">
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Buổi</th>
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Ngày học</th>
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Giờ học</th>
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Thứ</th>
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Trạng thái</th>
+                      <th className="text-left py-4 px-4 font-bold text-slate-700">Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {schedules.map((schedule, index) => (
+                      <tr key={schedule.idLichHoc} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td className="py-4 px-4 font-semibold text-slate-900">Buổi {index + 1}</td>
+                        <td className="py-4 px-4 text-slate-700">
+                          {new Date(schedule.ngayHoc).toLocaleDateString("vi-VN", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })}
+                        </td>
+                        <td className="py-4 px-4 text-slate-700">
+                          {schedule.lichDay.tietHoc.gioBatDau.substring(0, 5)} - {schedule.lichDay.tietHoc.gioKetThuc.substring(0, 5)}
+                        </td>
+                        <td className="py-4 px-4 text-slate-700">{schedule.lichDay.tietHoc.thu}</td>
+                        <td className="py-4 px-4">{getStatusBadge(schedule.tinhTrang)}</td>
+                        <td className="py-4 px-4">
+                          {schedule.tinhTrang === "Chưa bắt đầu" && index > 0 && (
+                            <Link href={`/hoc-vien/xin-nghi/${schedule.idLichHoc}`}>
+                              <Button className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                                ⏸️ Xin nghỉ
+                              </Button>
+                            </Link>
+                          )}
+                          {index === 0 && (
+                            <span className="text-slate-400 text-sm"></span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </Section>

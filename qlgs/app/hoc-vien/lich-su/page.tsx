@@ -51,6 +51,18 @@ const getStatusFromDates = (
   }
 };
 
+// Helper function to get display status based on booking data
+const getDisplayStatus = (booking: DangKyHocResponse): string => {
+  // Ưu tiên hiển thị trạng thái gia hạn ở BẤT KỲ tab nào (kể cả tab Tất cả)
+  if (booking.ngayGiaHan) {
+    // Tạm thời hiển thị "Đang chờ duyệt".
+    // Nếu BE có field duyệt, bạn có thể sửa: return booking.isApproved ? "Đã duyệt" : "Đang chờ duyệt";
+    return "Đang chờ duyệt";
+  }
+  // Các trường hợp khác tính theo ngày
+  return getStatusFromDates(booking);
+};
+
 export default function BookingHistoryPage() {
   const router = useRouter();
   const { isLoggedIn, idNguoiDung } = useAuthStore();
@@ -58,12 +70,16 @@ export default function BookingHistoryPage() {
   const [error, setError] = useState("");
   const [bookings, setBookings] = useState<DangKyHocResponse[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"warning" | "error" | "info">("info");
 
   const statusOptions = [
     { value: "all", label: "Tất cả", icon: "📚", color: "slate" },
     { value: "Chưa bắt đầu", label: "Chưa bắt đầu", icon: "⏳", color: "blue" },
     { value: "Đang học", label: "Đang học", icon: "📖", color: "green" },
     { value: "Đã hoàn thành", label: "Kết thúc", icon: "✅", color: "gray" },
+    { value: "Gia hạn", label: "Gia hạn", icon: "🔄", color: "purple" },
   ];
 
   useEffect(() => {
@@ -74,6 +90,18 @@ export default function BookingHistoryPage() {
 
     fetchBookingHistory();
   }, [isLoggedIn, router, idNguoiDung]);
+
+  // Refresh data when page regains focus (after returning from extension page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchBookingHistory();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [idNguoiDung]);
 
   const fetchBookingHistory = async () => {
     try {
@@ -97,6 +125,7 @@ export default function BookingHistoryPage() {
       "Đang học": { bg: "bg-blue-50", text: "text-blue-600", icon: "📖", dot: "bg-blue-500" },
       "Đã hoàn thành": { bg: "bg-green-50", text: "text-green-600", icon: "✅", dot: "bg-green-500" },
       "Đã nghỉ": { bg: "bg-amber-50", text: "text-amber-700", icon: "⏸️", dot: "bg-amber-500" },
+      "Đang chờ duyệt": { bg: "bg-yellow-50", text: "text-yellow-700", icon: "⏳", dot: "bg-yellow-500" },
     };
     const style = statusMap[status] || { bg: "bg-white", text: "text-black", icon: "•", dot: "bg-slate-400" };
     return (
@@ -125,13 +154,83 @@ export default function BookingHistoryPage() {
     }).format(value);
   };
 
-  const getFilteredBookings = () => {
-    if (selectedStatus === "all") {
-      return bookings;
+  const getDaysRemaining = (booking: DangKyHocResponse): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const endDate = booking.ngayKetThucDuKien 
+      ? new Date(booking.ngayKetThucDuKien)
+      : new Date(booking.ngayBatDauHoc);
+    endDate.setHours(0, 0, 0, 0);
+
+    const diffTime = endDate.getTime() - today.getTime();
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return daysLeft;
+  };
+
+  const handleExtendClick = (booking: DangKyHocResponse) => {
+    const daysRemaining = getDaysRemaining(booking);
+    
+    // Nếu đã gia hạn rồi, chỉ cho phép cập nhật ngày học
+    if (booking.ngayGiaHan) {
+      router.push(`/hoc-vien/gia-han/${booking.idDangKy}`);
+      return;
     }
-    return bookings.filter((booking) => {
-      const status = getStatusFromDates(booking);
-      return status === selectedStatus;
+    
+    if (daysRemaining > 15) {
+      setModalType("warning");
+      setModalMessage(`Chỉ có thể gia hạn trong 15 ngày trước khi kết thúc khóa học.\n\nHiện tại khóa học còn ${daysRemaining} ngày. Vui lòng quay lại sau.`);
+      setShowModal(true);
+      return;
+    }
+    
+    if (daysRemaining <= 0) {
+      setModalType("error");
+      setModalMessage("Khóa học đã kết thúc. Không thể gia hạn.");
+      setShowModal(true);
+      return;
+    }
+    
+    // Nếu hợp lệ, điều hướng đến trang gia hạn
+    router.push(`/hoc-vien/gia-han/${booking.idDangKy}`);
+  };
+
+  const getFilteredBookings = () => {
+    // BƯỚC 1: Xử lý triệt để việc trùng lặp (1 khóa học chỉ lấy 1 card)
+    const uniqueBookingsMap = new Map<string, DangKyHocResponse>();
+    bookings.forEach((booking) => {
+      // Dùng idKhoaHoc (hoặc tenKhoaHoc) làm "chìa khóa" để nhận diện
+      const courseKey = booking.khoaHoc.idKhoaHoc || booking.khoaHoc.tenKhoaHoc;
+      if (!uniqueBookingsMap.has(courseKey)) {
+        // Nếu chưa có, đưa vào danh sách
+        uniqueBookingsMap.set(courseKey, booking);
+      } else {
+        // Nếu đã có khóa học này rồi, ưu tiên giữ lại bản ghi CÓ ngayGiaHan
+        if (booking.ngayGiaHan) {
+          uniqueBookingsMap.set(courseKey, booking);
+        }
+      }
+    });
+
+    // Chuyển Map thành mảng sau khi đã khử trùng lặp xong
+    const uniqueBookings = Array.from(uniqueBookingsMap.values());
+
+    // BƯỚC 2: Bắt đầu chia về các Tab
+    if (selectedStatus === "all") {
+      return uniqueBookings;
+    }
+    if (selectedStatus === "Gia hạn") {
+      return uniqueBookings.filter(booking => booking.ngayGiaHan);
+    }
+    if (selectedStatus === "Chưa bắt đầu") {
+      return uniqueBookings.filter(booking => {
+        return getStatusFromDates(booking) === "Chưa bắt đầu" && !booking.ngayGiaHan;
+      });
+    }
+    // Các tab còn lại (Đang học, Đã hoàn thành) - hiển thị tất cả khóa học với trạng thái đó, kể cả đã gia hạn
+    return uniqueBookings.filter(booking => {
+      return getStatusFromDates(booking) === selectedStatus;
     });
   };
 
@@ -212,21 +311,36 @@ export default function BookingHistoryPage() {
 
           {/* FILTER BUTTONS */}
           {bookings.length > 0 && (
-            <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-200">
-              {statusOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedStatus(option.value)}
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                    selectedStatus === option.value
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:shadow-sm"
-                  }`}
-                >
-                  <span>{option.icon}</span>
-                  {option.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-200 justify-between items-center">
+              <div className="flex flex-wrap gap-2">
+                {statusOptions.slice(0, 4).map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedStatus(option.value)}
+                    className={`px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                      selectedStatus === option.value
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Tab Gia hạn - bên phải */}
+              <button
+                onClick={() => setSelectedStatus("Gia hạn")}
+                className={`px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                  selectedStatus === "Gia hạn"
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                }`}
+              >
+                <span>🔄</span>
+                Gia hạn
+              </button>
             </div>
           )}
 
@@ -256,7 +370,8 @@ export default function BookingHistoryPage() {
             <div className="space-y-4">
               {filteredBookings.map((booking, idx) => {
                 const status = getStatusFromDates(booking);
-                const progressPercent = Math.round((booking.chiTietLichHoc.filter(c => c.tinhTrang === "Đã hoàn thành").length / booking.khoaHoc.soBuoiHoc) * 100);
+                const displayStatus = getDisplayStatus(booking);
+                const progressPercent = Math.round((booking.chiTietLichHoc.filter((c: any) => c.tinhTrang === "Đã hoàn thành").length / booking.khoaHoc.soBuoiHoc) * 100);
                 
                 // Xác định màu background dựa trên trạng thái
                 let bgColor = "bg-white";
@@ -303,8 +418,15 @@ export default function BookingHistoryPage() {
                             <p className="text-2xl font-bold text-blue-600">{formatCurrency(Number(booking.khoaHoc.soTienHoc))}</p>
                             <p className="text-xs text-slate-400 mt-1">({booking.khoaHoc.soBuoiHoc} buổi)</p>
                           </div>
-                          <div className={`${statusBgColor} ${statusBorderColor} border rounded-full px-4 py-2`}>
-                            {getStatusBadge(status)}
+                          <div className="flex flex-col gap-2">
+                            <div className={`${statusBgColor} ${statusBorderColor} border rounded-full px-4 py-2`}>
+                              {getStatusBadge(status)}
+                            </div>
+                            {booking.ngayGiaHan && (
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-full px-4 py-2">
+                                {getStatusBadge("Đang chờ duyệt")}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -341,19 +463,33 @@ export default function BookingHistoryPage() {
                     </div>
 
                     {/* BOTTOM SECTION - Actions */}
-                    <div className="px-6 py-4 flex flex-wrap gap-3">
-                      <Link href={`/hoc-vien/chi-tiet/${booking.idDangKy}`}>
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all">
-                          👁️ Xem chi tiết
-                        </Button>
-                      </Link>
-                      {booking.trangThaiHoanThanh && !booking.chiTietLichHoc.some((c) => c.tinhTrang === "Đã đánh giá") && (
-                        <Link href={`/hoc-vien/danh-gia/${booking.idDangKy}`}>
-                          <Button className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all">
-                            ⭐ Đánh giá khóa học
+                    <div className="px-6 py-4 flex flex-wrap gap-3 justify-between items-center">
+                      {selectedStatus !== "Gia hạn" && (
+                        <Link href={`/hoc-vien/chi-tiet/${booking.idDangKy}`}>
+                          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all">
+                            👁️ Xem chi tiết
                           </Button>
                         </Link>
                       )}
+                      
+                      {/* Right side buttons */}
+                      <div className="flex flex-wrap gap-3">
+                        {status === "Đang học" && !booking.ngayGiaHan && (
+                          <button
+                            onClick={() => handleExtendClick(booking)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all"
+                          >
+                            📅 Gia hạn khóa học
+                          </button>
+                        )}
+                        {booking.trangThaiHoanThanh && !booking.chiTietLichHoc.some((c: any) => c.tinhTrang === "Đã đánh giá") && (
+                          <Link href={`/hoc-vien/danh-gia/${booking.idDangKy}`}>
+                            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all">
+                              ⭐ Đánh giá khóa học
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -362,6 +498,64 @@ export default function BookingHistoryPage() {
           )}
         </div>
       </Section>
+
+      {/* MODAL THÔNG BÁO */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className={`px-6 py-4 ${
+              modalType === "warning" ? "bg-amber-50 border-b border-amber-200" :
+              modalType === "error" ? "bg-red-50 border-b border-red-200" :
+              "bg-blue-50 border-b border-blue-200"
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
+                  modalType === "warning" ? "bg-amber-100" :
+                  modalType === "error" ? "bg-red-100" :
+                  "bg-blue-100"
+                }`}>
+                  {modalType === "warning" ? "⚠️" : modalType === "error" ? "❌" : "ℹ️"}
+                </div>
+                <h3 className={`text-lg font-bold ${
+                  modalType === "warning" ? "text-amber-900" :
+                  modalType === "error" ? "text-red-900" :
+                  "text-blue-900"
+                }`}>
+                  {modalType === "warning" ? "Chưa đến thời gian gia hạn" :
+                   modalType === "error" ? "Không thể gia hạn" :
+                   "Thông báo"}
+                </h3>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5">
+              <p className={`text-sm leading-relaxed whitespace-pre-line ${
+                modalType === "warning" ? "text-amber-800" :
+                modalType === "error" ? "text-red-800" :
+                "text-blue-800"
+              }`}>
+                {modalMessage}
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                onClick={() => setShowModal(false)}
+                className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
+                  modalType === "warning" ? "bg-amber-600 hover:bg-amber-700 text-white" :
+                  modalType === "error" ? "bg-red-600 hover:bg-red-700 text-white" :
+                  "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                Đã hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
