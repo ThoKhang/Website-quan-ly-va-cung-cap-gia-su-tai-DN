@@ -352,7 +352,7 @@ INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayT
 ('TK00007', 'giasu.su@gmail.com', 'giasu_su', 'avatar7.jpg', '123456', GETDATE(),'1', '2'),
 ('TK00008', 'giasu.dia@gmail.com', 'giasu_dia', 'avatar8.jpg', '123456', GETDATE(),'1', '2');
 -- Tài khoản Phụ huynh (Format: TK_PH00x)
-INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
+INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao,trangThai, LoaiNguoiDungID) VALUES
 ('TK00009', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '123456', GETDATE(),'1', '1'),
 ('TK00010', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '123456', GETDATE(),'1', '1'),
 ('TK00011', 'phuhuynh.hung@gmail.com', 'phuhuynh_hung', 'avatar_ph3.jpg', '123456', GETDATE(),'1', '1'),
