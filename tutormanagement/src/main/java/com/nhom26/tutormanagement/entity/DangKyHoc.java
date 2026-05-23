@@ -35,4 +35,10 @@ public class DangKyHoc {
     @Column(name = "ngayBatDauHoc")
     private LocalDate ngayBatDauHoc; // Thời điểm khai giảng/bắt đầu học (Khách chọn)
     
+    @Column(name = "ngayKetThucDuKien")
+    private LocalDate ngayKetThucDuKien; // Ngày kết thúc dự kiến (tính từ ngayBatDauHoc + số buổi học)
+    
+    @Column(name = "ngayGiaHan")
+    private LocalDate ngayGiaHan; // Ngày gia hạn (nếu có)
+    
 }

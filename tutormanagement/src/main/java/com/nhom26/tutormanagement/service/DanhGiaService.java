@@ -77,4 +77,44 @@ public class DanhGiaService {
 
         return "Cảm ơn bạn đã gửi đánh giá thành công!";
     }
+
+    public DanhGia getDanhGiaByDangKy(String idDangKy) {
+        return danhGiaRepository.findByDangKyHoc_IdDangKy(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy đánh giá cho đơn đăng ký này!"));
+    }
+
+    @Transactional
+    public String capNhatDanhGia(String idDangKy, DanhGiaRequestDTO request) {
+        // 1. Lấy thông tin Phụ huynh đang đăng nhập
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        PhuHuynh phuHuynh = phuHuynhRepository.findByTaiKhoan_TenDangNhap(currentUsername)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy hồ sơ Phụ huynh!"));
+
+        // 2. Tìm Đơn đăng ký học
+        DangKyHoc dangKyHoc = dangKyHocRepository.findById(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Đơn đăng ký học không tồn tại!"));
+
+        // 3. CHỐT CHẶN LOGIC 1: Đơn này có phải của Phụ huynh đang đăng nhập không?
+        if (!dangKyHoc.getPhuHuynh().getIdPhuHuynh().equals(phuHuynh.getIdPhuHuynh())) {
+            throw new RuntimeException("LỖI: Bạn không có quyền chỉnh sửa đánh giá của người khác!");
+        }
+
+        // 4. Tìm đánh giá hiện tại
+        DanhGia danhGia = danhGiaRepository.findByDangKyHoc_IdDangKy(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy đánh giá để chỉnh sửa!"));
+
+        // 5. Kiểm tra số sao hợp lệ
+        if (request.getSoSao() == null || request.getSoSao() < 1 || request.getSoSao() > 5) {
+            throw new RuntimeException("LỖI: Số sao đánh giá phải từ 1 đến 5!");
+        }
+
+        // 6. Cập nhật đánh giá
+        danhGia.setSoSao(request.getSoSao());
+        danhGia.setNoiDung(request.getNoiDung());
+        danhGia.setNgayDanhGia(LocalDateTime.now());
+
+        danhGiaRepository.save(danhGia);
+
+        return "Cảm ơn bạn đã cập nhật đánh giá thành công!";
+    }
 }
