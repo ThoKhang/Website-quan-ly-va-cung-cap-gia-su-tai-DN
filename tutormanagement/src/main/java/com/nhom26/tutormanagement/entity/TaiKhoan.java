@@ -39,4 +39,7 @@ public class TaiKhoan {
 
     @Column(name = "LoaiNguoiDungID", length = 20)
     private String loaiNguoiDungID;
+    // BỔ SUNG TRƯỜNG TRẠNG THÁI (1: Hoạt động, 0: Bị khóa)
+    @Column(name = "trangThai")
+    private Integer trangThai;
 }

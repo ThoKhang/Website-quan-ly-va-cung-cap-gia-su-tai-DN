@@ -51,6 +51,7 @@ CREATE TABLE TaiKhoan (
     ngayXoa DATETIME,
     nganHang NVARCHAR(30),
     STK CHAR(20),
+    trangThai INT,
     LoaiNguoiDungID CHAR(20),
     FOREIGN KEY (LoaiNguoiDungID) REFERENCES PhanQuyenNguoiDung(LoaiNguoiDungID)
 );
@@ -123,7 +124,7 @@ CREATE TABLE BangCap (
     tenBangCap NVARCHAR(50),
     thongTinBangCap NVARCHAR(150),
     ngayCap DATETIME,
-    trangThai BIT,
+    trangThai INT,
     anhMinhChung NVARCHAR(MAX),
     FOREIGN KEY (idGiaSu) REFERENCES GiaSu(idGiaSu)
 );
@@ -341,22 +342,22 @@ INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES
 
 -- 1. INSERT DỮ LIỆU VÀO BẢNG TaiKhoan
 -- Tài khoản Gia sư (Format: TK_GS00x)
-INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
-('TK00001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(), '3'),
-('TK00002', 'giasu.anh@gmail.com', 'giasu_anh', 'avatar2.jpg', '123456', GETDATE(), '2'),
-('TK00003', 'giasu.ly@gmail.com', 'giasu_ly', 'avatar3.jpg', '123456', GETDATE(), '2'),
-('TK00004', 'giasu.hoa@gmail.com', 'giasu_hoa', 'avatar4.jpg', '123456', GETDATE(), '2'),
-('TK00005', 'giasu.sinh@gmail.com', 'giasu_sinh', 'avatar5.jpg', '123456', GETDATE(), '2'),
-('TK00006', 'giasu.van@gmail.com', 'giasu_van', 'avatar6.jpg', '123456', GETDATE(), '2'),
-('TK00007', 'giasu.su@gmail.com', 'giasu_su', 'avatar7.jpg', '123456', GETDATE(), '2'),
-('TK00008', 'giasu.dia@gmail.com', 'giasu_dia', 'avatar8.jpg', '123456', GETDATE(), '2');
+INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, trangThai, LoaiNguoiDungID) VALUES
+('TK00001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(),'1', '3'),
+('TK00002', 'giasu.anh@gmail.com', 'giasu_anh', 'avatar2.jpg', '123456', GETDATE(),'1', '2'),
+('TK00003', 'giasu.ly@gmail.com', 'giasu_ly', 'avatar3.jpg', '123456', GETDATE(),'1', '2'),
+('TK00004', 'giasu.hoa@gmail.com', 'giasu_hoa', 'avatar4.jpg', '123456', GETDATE(),'1', '2'),
+('TK00005', 'giasu.sinh@gmail.com', 'giasu_sinh', 'avatar5.jpg', '123456', GETDATE(),'1', '2'),
+('TK00006', 'giasu.van@gmail.com', 'giasu_van', 'avatar6.jpg', '123456', GETDATE(),'1', '2'),
+('TK00007', 'giasu.su@gmail.com', 'giasu_su', 'avatar7.jpg', '123456', GETDATE(),'1', '2'),
+('TK00008', 'giasu.dia@gmail.com', 'giasu_dia', 'avatar8.jpg', '123456', GETDATE(),'1', '2');
 -- Tài khoản Phụ huynh (Format: TK_PH00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
-('TK00009', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '123456', GETDATE(), '1'),
-('TK00010', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '123456', GETDATE(), '1'),
-('TK00011', 'phuhuynh.hung@gmail.com', 'phuhuynh_hung', 'avatar_ph3.jpg', '123456', GETDATE(), '1'),
-('TK00012', 'phuhuynh.mai@gmail.com', 'phuhuynh_mai', 'avatar_ph4.jpg', '123456', GETDATE(), '1'),
-('TK00013', 'phuhuynh.duc@gmail.com', 'phuhuynh_duc', 'avatar_ph5.jpg', '123456', GETDATE(), '1');
+('TK00009', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '123456', GETDATE(),'1', '1'),
+('TK00010', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '123456', GETDATE(),'1', '1'),
+('TK00011', 'phuhuynh.hung@gmail.com', 'phuhuynh_hung', 'avatar_ph3.jpg', '123456', GETDATE(),'1', '1'),
+('TK00012', 'phuhuynh.mai@gmail.com', 'phuhuynh_mai', 'avatar_ph4.jpg', '123456', GETDATE(),'1', '1'),
+('TK00013', 'phuhuynh.duc@gmail.com', 'phuhuynh_duc', 'avatar_ph5.jpg', '123456', GETDATE(),'1', '1');
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK00014', 'giasu.toan124@gmail.com', 'admin124', 'avatar1.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(), '4');
 
