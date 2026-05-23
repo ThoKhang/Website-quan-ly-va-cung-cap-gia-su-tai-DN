@@ -11,10 +11,10 @@ export default function AdminSidebar() {
   // ĐÃ CẬP NHẬT: Thêm tiền tố /admin vào trước tất cả các path
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
-    { name: 'Tài khoản nhân viên', icon: Briefcase, path: '/admin/nhan-vien' },
-    { name: 'Tài khoản người dùng', icon: Users, path: '/admin/nguoi-dung' },
+    { name: 'Quản lý tài khoản', icon: Briefcase, path: '/admin/nhan-vien' },
+    { name: 'Quản lý bình luận', icon: Users, path: '/admin/nguoi-dung' },
     { name: 'Quản lý khóa học', icon: BookOpen, path: '/admin/khoa-hoc' },
-    { name: 'Duyệt hồ sơ gia sư', icon: UserCheck, path: '/admin/duyet-ho-so' },
+    { name: 'Quản lý lương', icon: UserCheck, path: '/admin/duyet-ho-so' },
     { name: 'Duyệt bằng cấp', icon: GraduationCap, path: '/admin/duyet-bang-cap' },
   ];
 

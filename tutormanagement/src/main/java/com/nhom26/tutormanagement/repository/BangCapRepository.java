@@ -14,6 +14,13 @@ public interface BangCapRepository extends JpaRepository<BangCap, String> {
     @Query("SELECT MAX(b.idBangCap) FROM BangCap b")
     String findMaxId();
 
-    // lấy toàn bộ bằng cấp của một gia sư cụ thể
+    // Lấy toàn bộ bằng cấp của một gia sư cụ thể
     List<BangCap> findByGiaSu_IdGiaSu(String idGiaSu);
+
+    @Query("SELECT b FROM BangCap b WHERE b.trangThai = 0")
+    List<BangCap> findAllChoDuyet();
+
+
+    @Query("SELECT b FROM BangCap b ORDER BY b.trangThai ASC")
+    List<BangCap> findAllForAdmin();
 }

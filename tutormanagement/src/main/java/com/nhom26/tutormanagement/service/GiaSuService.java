@@ -199,8 +199,8 @@ public class GiaSuService {
         bangCapMoi.setNgayCap(request.getNgayCap());
         bangCapMoi.setAnhMinhChung(request.getAnhMinhChung());
         
-        // Bằng mới nộp mặc định ở trạng thái false (Chờ Admin duyệt)
-        bangCapMoi.setTrangThai(false); 
+        // ĐÃ SỬA: Bằng mới nộp mặc định ở trạng thái 0 (Chờ Admin duyệt)
+        bangCapMoi.setTrangThai(0); 
 
         return bangCapRepository.save(bangCapMoi);
     }
@@ -346,4 +346,34 @@ public class GiaSuService {
 
         bangCapRepository.delete(bangCap);
     }
+    // Lấy tất cả bằng cấp cho admin
+    public List<BangCapDTO> layToanBoBangCapChoAdmin() {
+        return bangCapRepository.findAllForAdmin().stream()
+            .map(bc -> {
+                BangCapDTO dto = new BangCapDTO();
+                dto.setIdBangCap(bc.getIdBangCap());
+                dto.setTenBangCap(bc.getTenBangCap());
+                dto.setThongTinBangCap(bc.getThongTinBangCap());
+                dto.setNgayCap(bc.getNgayCap());
+                dto.setAnhMinhChung(bc.getAnhMinhChung());
+                dto.setTrangThai(bc.getTrangThai());
+                // Thêm thông tin gia sư
+                dto.setIdGiaSu(bc.getGiaSu().getIdGiaSu());
+                dto.setTenGiaSu(bc.getGiaSu().getTenGiaSu());
+                return dto;
+            }).toList();
+    }
+
+    // Duyệt hoặc từ chối bằng cấp
+    public String duyetBangCap(String idBangCap, Integer trangThai) { // Đã đổi thành Integer
+    BangCap bangCap = bangCapRepository.findById(idBangCap)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy bằng cấp!"));
+    
+    bangCap.setTrangThai(trangThai);
+    bangCapRepository.save(bangCap);
+    
+    if (trangThai == 1) return "Đã duyệt bằng cấp thành công!";
+    if (trangThai == 2) return "Đã từ chối bằng cấp!";
+    return "Đã cập nhật trạng thái!";
+}
 }

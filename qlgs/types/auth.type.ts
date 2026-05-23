@@ -42,7 +42,7 @@ export interface BangCap {
   thongTinBangCap: string;
   ngayCap: string;
   anhMinhChung: string;
-  trangThai?: boolean; 
+  trangThai?: number; 
 }
 
 export interface GiaSuProfile {
