@@ -65,6 +65,14 @@ export interface DanhGiaRequest {
   noiDung: string;
 }
 
+export interface DanhGiaResponse {
+  idDanhGia: string;
+  idDangKy: string;
+  soSao: number;
+  noiDung: string;
+  ngayDanhGia: string;
+}
+
 export interface XinNghiRequest {
   idLichHoc: string;
   lyDoNghi: string;
@@ -116,6 +124,8 @@ export interface DangKyHocResponse {
   khoaHoc: KhoaHocResponseDTO;
   ngayDangKy: string;
   ngayBatDauHoc: string;
+  ngayKetThucDuKien: string;
+  ngayGiaHan?: string;
   trangThaiThanhToan: boolean;
   trangThaiHoanThanh: boolean;
   chiTietLichHoc: ChiTietLichHocResponse[];
@@ -182,9 +192,24 @@ export const hocVienService = {
     return axiosClient.post("/danh-gia/tao-moi", data);
   },
 
+  // 12.5. Lấy đánh giá khóa học
+  getRating: (idDangKy: string): Promise<DanhGiaResponse> => {
+    return axiosClient.get(`/danh-gia/dang-ky/${idDangKy}`);
+  },
+
+  // 12.6. Cập nhật đánh giá khóa học
+  updateRating: (idDangKy: string, data: DanhGiaRequest): Promise<string> => {
+    return axiosClient.put(`/danh-gia/cap-nhat/${idDangKy}`, data);
+  },
+
   // 13. Xin nghỉ học
   requestAbsence: (data: XinNghiRequest): Promise<string> => {
     return axiosClient.post("/nghi-hoc/xin-nghi", data);
+  },
+
+  // 13.5. Lấy số buổi đã nghỉ trong khóa học
+  getAbsenceCount: (idDangKy: string): Promise<number> => {
+    return axiosClient.get(`/chi-tiet-lich-hoc/dang-ky/${idDangKy}/so-buoi-nghi`);
   },
 
   // 14. Lấy chi tiết lịch học
@@ -192,7 +217,13 @@ export const hocVienService = {
     return axiosClient.get(`/chi-tiet-lich-hoc/dang-ky/${idDangKy}`);
   },
 
-  xacNhanThanhToan: async (idDangKy: string, soTien: number): Promise<void> => {
+  // 14.5. Lấy chi tiết một khóa học đã đăng ký (bao gồm cả khi chưa có lịch học)
+  getCourseDetailById: (idDangKy: string): Promise<DangKyHocResponse> => {
+    return axiosClient.get(`/dang-ky-hoc/${idDangKy}`);
+  },
+
+  // 14.6. Xác nhận thanh toán (Tạo bản ghi lịch sử thanh toán)
+   xacNhanThanhToan: async (idDangKy: string, soTien: number): Promise<void> => {
       await axiosClient.post('/thanh-toan/xac-nhan', {
         idDangKy: idDangKy,
         soTien: soTien.toString(),
@@ -200,4 +231,11 @@ export const hocVienService = {
         maGiaoDich: "", // Vẫn giữ chuỗi rỗng nhé
       });
     },
+
+  // 15. Gia hạn khóa học
+  extendCourse: (idDangKy: string, ngayBatDauMoi: string): Promise<string> => {
+    return axiosClient.put(`/dang-ky-hoc/${idDangKy}/gia-han`, {
+      ngayBatDauMoi: ngayBatDauMoi,
+    });
+  },
 };

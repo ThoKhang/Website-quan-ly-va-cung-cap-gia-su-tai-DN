@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 @Repository
 public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
@@ -31,4 +32,7 @@ public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
     // 5. Tính điểm đánh giá trung bình của 1 Khóa học
     @Query("SELECT AVG(d.soSao) FROM DanhGia d WHERE d.dangKyHoc.khoaHoc.idKhoaHoc = :idKhoaHoc")
     Double calculateAverageRatingForKhoaHoc(@Param("idKhoaHoc") String idKhoaHoc);
+
+    // 6. Lấy đánh giá theo idDangKy
+    Optional<DanhGia> findByDangKyHoc_IdDangKy(String idDangKy);
 }

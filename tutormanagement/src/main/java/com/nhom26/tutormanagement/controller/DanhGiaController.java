@@ -23,4 +23,24 @@ public class DanhGiaController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/dang-ky/{idDangKy}")
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC XEM
+    public ResponseEntity<?> getDanhGiaByDangKy(@PathVariable String idDangKy) {
+        try {
+            return ResponseEntity.ok(danhGiaService.getDanhGiaByDangKy(idDangKy.trim()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/cap-nhat/{idDangKy}")
+    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC CHỈNH SỬA
+    public ResponseEntity<?> capNhatDanhGia(@PathVariable String idDangKy, @RequestBody DanhGiaRequestDTO request) {
+        try {
+            return ResponseEntity.ok(danhGiaService.capNhatDanhGia(idDangKy.trim(), request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

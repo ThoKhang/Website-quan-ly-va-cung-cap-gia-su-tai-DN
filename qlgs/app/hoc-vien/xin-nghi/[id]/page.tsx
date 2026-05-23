@@ -13,6 +13,7 @@ export default function RequestAbsencePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [warning, setWarning] = useState("");
   const [lyDoNghi, setLyDoNghi] = useState("");
 
   const idLichHoc = params.id as string;
@@ -28,6 +29,7 @@ export default function RequestAbsencePage() {
     setLoading(true);
     setError("");
     setSuccess("");
+    setWarning("");
 
     try {
       if (!lyDoNghi.trim()) {
@@ -36,12 +38,19 @@ export default function RequestAbsencePage() {
         return;
       }
 
-      await hocVienService.requestAbsence({
+      const response = await hocVienService.requestAbsence({
         idLichHoc,
         lyDoNghi,
       });
 
-      setSuccess("Yêu cầu xin nghỉ đã được gửi thành công!");
+      // Kiểm tra xem response có chứa cảnh báo không
+      if (response && response.includes("⚠️ CẢNH BÁO")) {
+        setWarning(response);
+        setSuccess("Yêu cầu xin nghỉ đã được gửi thành công!");
+      } else {
+        setSuccess(response || "Yêu cầu xin nghỉ đã được gửi thành công!");
+      }
+
       setLyDoNghi("");
       setTimeout(() => router.back(), 2000);
     } catch (err: any) {
@@ -67,7 +76,7 @@ export default function RequestAbsencePage() {
           <Card className="bg-white p-6 md:p-8">
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <Text size="body" className="text-blue-700">
-                ⚠️ Lưu ý: Bạn phải gửi yêu cầu xin nghỉ trước giờ học ít nhất 12 tiếng. Bạn chỉ được phép xin nghỉ tối đa 3 buổi trong một khóa học.
+                ℹ️ Lưu ý: Bạn phải gửi yêu cầu xin nghỉ trước giờ học ít nhất 12 tiếng. Bạn được phép xin nghỉ tối đa 3 buổi trong một khóa học. Nếu xin nghỉ lần thứ 4 trở đi, bạn có thể bị đình chỉ học hoặc mất quyền lợi khác.
               </Text>
             </div>
 
@@ -75,7 +84,15 @@ export default function RequestAbsencePage() {
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                   <Text size="body" className="text-red-700">
-                    {error}
+                    ❌ {error}
+                  </Text>
+                </div>
+              )}
+
+              {warning && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <Text size="body" className="text-yellow-700 whitespace-pre-wrap">
+                    {warning}
                   </Text>
                 </div>
               )}
@@ -83,7 +100,7 @@ export default function RequestAbsencePage() {
               {success && (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <Text size="body" className="text-green-700">
-                    {success}
+                    ✅ {success}
                   </Text>
                 </div>
               )}
