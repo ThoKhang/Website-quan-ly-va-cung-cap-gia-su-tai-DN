@@ -27,8 +27,8 @@ public class BookingService {
 
     private String generateNextIdDangKy() {
         String maxId = dangKyHocRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "DK001";
-        return String.format("DK%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
+        if (maxId == null || maxId.trim().isEmpty()) return "DK00001";
+        return String.format("DK%05d", Integer.parseInt(maxId.trim().substring(2)) + 1);
     }
 
     private int getCurrentMaxLichHocNumber() {
@@ -150,7 +150,7 @@ public class BookingService {
 
                 currentLHNumber++;
                 ChiTietLichHoc chiTiet = new ChiTietLichHoc();
-                chiTiet.setIdLichHoc(String.format("LH%03d", currentLHNumber));
+                chiTiet.setIdLichHoc(String.format("LH%05d", currentLHNumber));
                 chiTiet.setDangKyHoc(dangKy);
                 chiTiet.setLichDay(lichDayHomNay);
                 chiTiet.setTinhTrang("Chưa bắt đầu");
