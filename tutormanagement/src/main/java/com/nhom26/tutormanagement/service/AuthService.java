@@ -78,7 +78,9 @@ public class AuthService {
         if (!isMatch) {
             throw new RuntimeException("Mật khẩu không chính xác!");
         }
-
+        if (taiKhoan.getTrangThai() != null && taiKhoan.getTrangThai() == 0) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Quản trị viên.");
+        }
         String roleId = taiKhoan.getLoaiNguoiDungID();
         if (roleId == null || roleId.trim().isEmpty()) {
             System.out.println("⚠️ CẢNH BÁO: loaiNguoiDungID bị NULL cho tài khoản " + inputTaiKhoan + ". Mặc định thành '1'");
