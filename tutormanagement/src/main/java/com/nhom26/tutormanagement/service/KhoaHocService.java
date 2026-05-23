@@ -323,4 +323,13 @@ public class KhoaHocService {
         
         return "Đã xóa (ẩn) khóa học thành công!";
     }
+    public List<KhoaHocResponseDTO> layToanBoKhoaHocChoAdmin() {
+        // Lấy tất cả khóa học không phân biệt trạng thái
+        List<KhoaHoc> danhSach = khoaHocRepository.findAll(); 
+        
+        // Map sang DTO để trả về Frontend
+        return danhSach.stream()
+                .map(this::mapToResponseDTO) 
+                .collect(Collectors.toList());
+    }
 }
