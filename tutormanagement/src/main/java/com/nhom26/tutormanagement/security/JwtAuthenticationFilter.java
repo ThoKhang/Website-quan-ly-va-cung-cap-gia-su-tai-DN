@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("   loaiNguoiDungID: " + taiKhoan.getLoaiNguoiDungID());
                     
                     // 2. BIẾN loaiNguoiDungID THÀNH AUTHORITY
-                    String roleId = taiKhoan.getLoaiNguoiDungID();
+                    String roleId = taiKhoan.getLoaiNguoiDungID() != null ? taiKhoan.getLoaiNguoiDungID().trim() : null;
                     if (roleId == null || roleId.trim().isEmpty()) {
                         System.out.println("⚠️ CẢNH BÁO: loaiNguoiDungID bị NULL hoặc rỗng! Mặc định thành '1'");
                         roleId = "1"; // Mặc định là phụ huynh

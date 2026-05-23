@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/mon-hoc/**").permitAll()
                 .requestMatchers("/api/danh-muc-lop/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/khoa-hoc/**").authenticated()
                 .requestMatchers("/api/tiet-hoc", "/api/tiet-hoc/**").permitAll()
                 .requestMatchers("/api/auth/verify-otp").permitAll() 
                 .requestMatchers("/api/auth/reset-password").permitAll()
@@ -59,11 +60,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cho phép frontend ở mọi tên miền gọi tới
-        configuration.setAllowedOrigins(Arrays.asList("*")); 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // ✅ Dùng allowedOriginPatterns thay vì allowedOrigins
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true); // ← bắt buộc khi dùng Authorization header
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
