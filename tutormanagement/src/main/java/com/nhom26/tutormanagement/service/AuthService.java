@@ -169,14 +169,14 @@ public class AuthService {
     private String generateNextId() {
         String maxId = taiKhoanRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) {
-            return "TK001";
+            return "TK00001";
         }
         String cleanId = maxId.trim(); 
         try {
             int nextNumber = Integer.parseInt(cleanId.substring(2)) + 1;
-            return String.format("TK%03d", nextNumber);
+            return String.format("TK%05d", nextNumber);
         } catch (Exception e) {
-            return "TK001"; 
+            return "TK00001"; 
         }
     }
 }

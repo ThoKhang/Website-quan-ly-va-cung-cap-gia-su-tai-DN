@@ -24,12 +24,12 @@ public class DanhGiaService {
 
     private String generateNextIdDanhGia() {
         String maxId = danhGiaRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "DG001";
+        if (maxId == null || maxId.trim().isEmpty()) return "DG00001";
         try {
             int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
-            return String.format("DG%03d", nextNumber);
+            return String.format("DG%05d", nextNumber);
         } catch (Exception e) {
-            return "DG001";
+            return "DG00001";
         }
     }
 

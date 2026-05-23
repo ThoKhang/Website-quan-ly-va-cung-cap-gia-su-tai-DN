@@ -22,15 +22,15 @@ public class LichDayService {
         try {
             List<String> allIds = lichDayRepository.findAllIdsSorted();
             if (allIds == null || allIds.isEmpty()) {
-                return "LD001";
+                return "LD00001";
             }
             
             int maxNumber = 0;
             for (String id : allIds) {
                 try {
                     String trimmedId = id.trim();
-                    if (trimmedId.startsWith("LD") && trimmedId.length() >= 5) {
-                        int number = Integer.parseInt(trimmedId.substring(2, 5));
+                    if (trimmedId.startsWith("LD") && trimmedId.length() >= 2) {
+                        int number = Integer.parseInt(trimmedId.substring(2));
                         if (number > maxNumber) {
                             maxNumber = number;
                         }
@@ -40,9 +40,9 @@ public class LichDayService {
                 }
             }
             
-            return String.format("LD%03d", maxNumber + 1);
+            return String.format("LD%05d", maxNumber + 1);
         } catch (Exception e) {
-            return "LD001";
+            return "LD00001";
         }
     }
 
