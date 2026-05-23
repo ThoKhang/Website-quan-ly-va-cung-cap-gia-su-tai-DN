@@ -65,6 +65,14 @@ export interface DanhGiaRequest {
   noiDung: string;
 }
 
+export interface DanhGiaResponse {
+  idDanhGia: string;
+  idDangKy: string;
+  soSao: number;
+  noiDung: string;
+  ngayDanhGia: string;
+}
+
 export interface XinNghiRequest {
   idLichHoc: string;
   lyDoNghi: string;
@@ -180,6 +188,11 @@ export const hocVienService = {
   // 12. Đánh giá khóa học
   rateCourse: (data: DanhGiaRequest): Promise<string> => {
     return axiosClient.post("/danh-gia/tao-moi", data);
+  },
+
+  // 12.5. Lấy đánh giá khóa học
+  getRating: (idDangKy: string): Promise<DanhGiaResponse> => {
+    return axiosClient.get(`/danh-gia/dang-ky/${idDangKy}`);
   },
 
   // 13. Xin nghỉ học

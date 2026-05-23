@@ -77,4 +77,9 @@ public class DanhGiaService {
 
         return "Cảm ơn bạn đã gửi đánh giá thành công!";
     }
+
+    public DanhGia getDanhGiaByDangKy(String idDangKy) {
+        return danhGiaRepository.findByDangKyHoc_IdDangKy(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy đánh giá cho đơn đăng ký này!"));
+    }
 }

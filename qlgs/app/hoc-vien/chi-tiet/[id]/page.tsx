@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, Text } from "@/component/ui";
+import { Button, Section } from "@/component/ui";
 import {
   hocVienService,
   type ChiTietLichHocResponse,
@@ -48,15 +48,16 @@ export default function CourseDetailPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { bg: string; text: string }> = {
-      "Chưa bắt đầu": { bg: "bg-blue-100", text: "text-blue-700" },
-      "Đang học": { bg: "bg-green-100", text: "text-green-700" },
-      "Đã hoàn thành": { bg: "bg-gray-100", text: "text-gray-700" },
-      "Đã nghỉ": { bg: "bg-yellow-100", text: "text-yellow-700" },
+    const statusMap: Record<string, { bg: string; text: string; icon: string }> = {
+      "Chưa bắt đầu": { bg: "bg-white", text: "text-black", icon: "⏳" },
+      "Đang học": { bg: "bg-blue-50", text: "text-blue-600", icon: "📖" },
+      "Đã hoàn thành": { bg: "bg-green-50", text: "text-green-600", icon: "✅" },
+      "Đã nghỉ": { bg: "bg-amber-50", text: "text-amber-600", icon: "⏸️" },
     };
-    const style = statusMap[status] || { bg: "bg-gray-100", text: "text-gray-700" };
+    const style = statusMap[status] || { bg: "bg-white", text: "text-black", icon: "•" };
     return (
-      <span className={`px-3 py-1 rounded-full text-sm font-medium ${style.bg} ${style.text}`}>
+      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${style.bg} ${style.text}`}>
+        <span>{style.icon}</span>
         {status}
       </span>
     );
@@ -71,43 +72,40 @@ export default function CourseDetailPage() {
     });
   };
 
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5);
-  };
-
-  const formatCurrency = (value: any) => {
-    const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(numValue);
-  };
-
   if (loading) {
     return (
-      <main className="page-shell">
-        <div className="content-lock px-6 py-10 md:px-10">
-          <Text>Đang tải...</Text>
-        </div>
+      <main className="min-h-screen bg-slate-50 pb-16 pt-8">
+        <Section>
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-slate-200 rounded-lg w-48 mx-auto mb-4" />
+              <div className="h-4 bg-slate-200 rounded-lg w-96 mx-auto" />
+            </div>
+          </div>
+        </Section>
       </main>
     );
   }
 
   if (schedules.length === 0) {
     return (
-      <main className="page-shell">
-        <div className="content-lock px-6 py-10 md:px-10">
-          <div className="mb-8">
-            <Link href="/search">
-              <Button variant="secondary">← Quay lại</Button>
+      <main className="min-h-screen bg-slate-50 pb-16 pt-8">
+        <Section>
+          <div className="max-w-6xl mx-auto px-4">
+            <Link href="/hoc-vien/lich-su">
+              <Button className="mb-6 bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-lg">
+                ← Quay lại lịch sử
+              </Button>
             </Link>
+            <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                ⚠️
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Không có dữ liệu</h2>
+              <p className="text-slate-500">{error || "Không tìm thấy lịch học cho khóa học này"}</p>
+            </div>
           </div>
-          <Card className="bg-white p-8 text-center">
-            <Text size="title" className="text-red-600">
-              {error || "Không có dữ liệu lịch học"}
-            </Text>
-          </Card>
-        </div>
+        </Section>
       </main>
     );
   }
@@ -117,199 +115,147 @@ export default function CourseDetailPage() {
   const giaSu = firstSchedule.lichDay.giaSu;
 
   return (
-    <main className="page-shell">
-      <div className="content-lock px-6 py-10 md:px-10">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Text as="h1" size="display">
-              Chi Tiết Khóa Học
-            </Text>
+    <main className="min-h-screen bg-slate-50 pb-16 pt-8">
+      <Section>
+        <div className="max-w-6xl mx-auto px-4 space-y-8">
+          
+          {/* HEADER */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Chi Tiết Khóa Học</h1>
+              <p className="text-slate-500 mt-1">Xem thông tin chi tiết và lịch học</p>
+            </div>
+            <Link href="/hoc-vien/lich-su">
+              <Button className="bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-lg">
+                ← Quay lại lịch sử
+              </Button>
+            </Link>
           </div>
-          <Link href="/search">
-            <Button variant="secondary">Quay lại</Button>
-          </Link>
-        </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <Text size="body" className="text-red-700">
-              {error}
-            </Text>
-          </div>
-        )}
+          {/* ERROR MESSAGE */}
+          {error && (
+            <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span className="font-medium">{error}</span>
+            </div>
+          )}
 
-        <div className="space-y-6">
-          {/* Thông tin khóa học */}
+          {/* COURSE INFO CARD */}
           {khoaHoc && (
-            <Card className="bg-white p-6 md:p-8">
-              <Text as="h2" size="title" className="mb-6">
-                Thông Tin Khóa Học
-              </Text>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Tên khóa học
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {khoaHoc.tenKhoaHoc}
-                  </Text>
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">📚 Thông Tin Khóa Học</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Tên khóa học</p>
+                  <p className="text-lg font-semibold text-slate-900">{khoaHoc.tenKhoaHoc}</p>
                 </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Môn học
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {khoaHoc.tenMonHoc}
-                  </Text>
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Môn học</p>
+                  <p className="text-lg font-semibold text-slate-900">{khoaHoc.tenMonHoc}</p>
                 </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Cấp lớp
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {khoaHoc.tenLop}
-                  </Text>
+                <div className="border-l-4 border-green-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Cấp lớp</p>
+                  <p className="text-lg font-semibold text-slate-900">{khoaHoc.tenLop}</p>
                 </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Số buổi học
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {khoaHoc.soBuoiHoc} buổi
-                  </Text>
+                <div className="border-l-4 border-orange-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Số buổi học</p>
+                  <p className="text-lg font-semibold text-slate-900">{khoaHoc.soBuoiHoc} buổi</p>
                 </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Tổng tiền khóa học
-                  </Text>
-                  <Text size="body" className="font-semibold text-blue-600">
-                    {formatCurrency(khoaHoc.soTienHoc)}
-                  </Text>
+                <div className="border-l-4 border-red-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Tổng tiền khóa học</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(khoaHoc.soTienHoc))}
+                  </p>
                 </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Tiền / buổi
-                  </Text>
-                  <Text size="body" className="font-semibold text-gray-600">
-                    {formatCurrency(khoaHoc.soTienHoc / (khoaHoc.soBuoiHoc || 1))}
-                  </Text>
-                </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Đánh giá khóa học
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    ⭐ {khoaHoc.soSaoTrungBinh}/5 ({khoaHoc.soLuongDanhGia} đánh giá)
-                  </Text>
+                <div className="border-l-4 border-indigo-500 pl-4">
+                  <p className="text-sm text-slate-500 font-medium mb-1">Tiền / buổi</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(khoaHoc.soTienHoc) / (khoaHoc.soBuoiHoc || 1))}
+                  </p>
                 </div>
               </div>
               {khoaHoc.moTa && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Text size="caption" tone="muted" className="mb-2">
-                    Mô tả
-                  </Text>
-                  <Text size="body">{khoaHoc.moTa}</Text>
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <p className="text-sm text-slate-500 font-medium mb-2">Mô tả</p>
+                  <p className="text-slate-700">{khoaHoc.moTa}</p>
                 </div>
               )}
               {khoaHoc.yeuCau && (
                 <div className="mt-4">
-                  <Text size="caption" tone="muted" className="mb-2">
-                    Yêu cầu
-                  </Text>
-                  <Text size="body">{khoaHoc.yeuCau}</Text>
+                  <p className="text-sm text-slate-500 font-medium mb-2">Yêu cầu</p>
+                  <p className="text-slate-700">{khoaHoc.yeuCau}</p>
                 </div>
               )}
-            </Card>
+            </div>
           )}
 
-          {/* Thông tin gia sư */}
-          <Card className="bg-white p-6 md:p-8">
-            <Text as="h2" size="title" className="mb-6">
-              Thông Tin Gia Sư
-            </Text>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Tên gia sư
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {giaSu.tenGiaSu}
-                </Text>
+          {/* TUTOR INFO CARD */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">👨‍🏫 Thông Tin Gia Sư</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                <p className="text-sm text-slate-600 font-medium mb-2">Tên gia sư</p>
+                <p className="text-lg font-semibold text-slate-900">{giaSu.tenGiaSu}</p>
               </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Số khóa học đã dạy
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {giaSu.soLuongKhoaHoc ?? 0} khóa
-                </Text>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+                <p className="text-sm text-slate-600 font-medium mb-2">Số khóa học đã dạy</p>
+                <p className="text-lg font-semibold text-slate-900">{giaSu.soLuongKhoaHoc ?? 0} khóa</p>
               </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Đánh giá trung bình
-                </Text>
-                <Text size="body" className="font-semibold">
-                  ⭐ {giaSu.saoTrungBinh ?? 0}/5
-                </Text>
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4">
+                <p className="text-sm text-slate-600 font-medium mb-2">Đánh giá trung bình</p>
+                <p className="text-lg font-semibold text-slate-900">⭐ {giaSu.saoTrungBinh ?? 0}/5</p>
               </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Số lượng đánh giá
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {giaSu.soLuongDanhGia ?? 0} đánh giá
-                </Text>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                <p className="text-sm text-slate-600 font-medium mb-2">Số lượng đánh giá</p>
+                <p className="text-lg font-semibold text-slate-900">{giaSu.soLuongDanhGia ?? 0} đánh giá</p>
               </div>
             </div>
-          </Card>
+          </div>
 
-          {/* Lịch học chi tiết */}
-          <Card className="bg-white p-6 md:p-8">
-            <Text as="h2" size="title" className="mb-6">
-              Lịch Học Chi Tiết ({schedules.length} buổi)
-            </Text>
+          {/* SCHEDULE TABLE */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">📅 Lịch Học Chi Tiết ({schedules.length} buổi)</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Buổi
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Ngày học
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Giờ học
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Thứ
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Trạng thái
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Hành động
-                    </th>
+                  <tr className="border-b-2 border-slate-300 bg-slate-50">
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Buổi</th>
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Ngày học</th>
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Giờ học</th>
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Thứ</th>
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Trạng thái</th>
+                    <th className="text-left py-4 px-4 font-bold text-slate-700">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
                   {schedules.map((schedule, index) => (
-                    <tr key={schedule.idLichHoc} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">Buổi {index + 1}</td>
-                      <td className="py-3 px-4">{formatDate(schedule.ngayHoc)}</td>
-                      <td className="py-3 px-4">
-                        {formatTime(schedule.lichDay.tietHoc.gioBatDau)} -{" "}
-                        {formatTime(schedule.lichDay.tietHoc.gioKetThuc)}
+                    <tr key={schedule.idLichHoc} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4 font-semibold text-slate-900">Buổi {index + 1}</td>
+                      <td className="py-4 px-4 text-slate-700">
+                        {new Date(schedule.ngayHoc).toLocaleDateString("vi-VN", {
+                          weekday: "short",
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })}
                       </td>
-                      <td className="py-3 px-4">{schedule.lichDay.tietHoc.thu}</td>
-                      <td className="py-3 px-4">{getStatusBadge(schedule.tinhTrang)}</td>
-                      <td className="py-3 px-4">
-                        {schedule.tinhTrang === "Chưa bắt đầu" && (
+                      <td className="py-4 px-4 text-slate-700">
+                        {schedule.lichDay.tietHoc.gioBatDau.substring(0, 5)} - {schedule.lichDay.tietHoc.gioKetThuc.substring(0, 5)}
+                      </td>
+                      <td className="py-4 px-4 text-slate-700">{schedule.lichDay.tietHoc.thu}</td>
+                      <td className="py-4 px-4">{getStatusBadge(schedule.tinhTrang)}</td>
+                      <td className="py-4 px-4">
+                        {schedule.tinhTrang === "Chưa bắt đầu" && index > 0 && (
                           <Link href={`/hoc-vien/xin-nghi/${schedule.idLichHoc}`}>
-                            <Button size="sm" variant="secondary">
-                              Xin nghỉ
+                            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                              ⏸️ Xin nghỉ
                             </Button>
                           </Link>
+                        )}
+                        {index === 0 && (
+                          <span className="text-slate-400 text-sm"></span>
                         )}
                       </td>
                     </tr>
@@ -317,9 +263,9 @@ export default function CourseDetailPage() {
                 </tbody>
               </table>
             </div>
-          </Card>
+          </div>
         </div>
-      </div>
+      </Section>
     </main>
   );
 }
