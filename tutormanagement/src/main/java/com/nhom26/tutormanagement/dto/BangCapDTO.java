@@ -22,4 +22,6 @@ public class BangCapDTO {
     
     private Boolean trangThai;
     private String anhMinhChung;
+    private String idGiaSu;
+    private String tenGiaSu;
 }

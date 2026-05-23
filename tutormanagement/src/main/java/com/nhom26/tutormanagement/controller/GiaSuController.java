@@ -122,4 +122,23 @@ public class GiaSuController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    // Lấy tất cả bằng cấp cho admin
+    @GetMapping("/admin/bang-cap")
+    @PreAuthorize("hasAuthority('ROLE_4')")
+    public ResponseEntity<?> layToanBoBangCapChoAdmin() {
+        return ResponseEntity.ok(giaSuService.layToanBoBangCapChoAdmin());
+    }
+
+    // Duyệt/từ chối bằng cấp
+    @PutMapping("/admin/bang-cap/{idBangCap}/duyet")
+    @PreAuthorize("hasAuthority('ROLE_4')")
+    public ResponseEntity<?> duyetBangCap(
+            @PathVariable String idBangCap,
+            @RequestParam boolean trangThai) {
+        try {
+            return ResponseEntity.ok(giaSuService.duyetBangCap(idBangCap, trangThai));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

@@ -346,4 +346,31 @@ public class GiaSuService {
 
         bangCapRepository.delete(bangCap);
     }
+    // Lấy tất cả bằng cấp cho admin
+    public List<BangCapDTO> layToanBoBangCapChoAdmin() {
+        return bangCapRepository.findAllForAdmin().stream()
+            .map(bc -> {
+                BangCapDTO dto = new BangCapDTO();
+                dto.setIdBangCap(bc.getIdBangCap());
+                dto.setTenBangCap(bc.getTenBangCap());
+                dto.setThongTinBangCap(bc.getThongTinBangCap());
+                dto.setNgayCap(bc.getNgayCap());
+                dto.setAnhMinhChung(bc.getAnhMinhChung());
+                dto.setTrangThai(bc.getTrangThai());
+                // Thêm thông tin gia sư
+                dto.setIdGiaSu(bc.getGiaSu().getIdGiaSu());
+                dto.setTenGiaSu(bc.getGiaSu().getTenGiaSu());
+                return dto;
+            }).toList();
+    }
+
+    // Duyệt hoặc từ chối bằng cấp
+    @Transactional
+    public String duyetBangCap(String idBangCap, boolean trangThai) {
+        BangCap bangCap = bangCapRepository.findById(idBangCap)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy bằng cấp!"));
+        bangCap.setTrangThai(trangThai);
+        bangCapRepository.save(bangCap);
+        return trangThai ? "Đã duyệt bằng cấp thành công!" : "Đã từ chối bằng cấp!";
+    }
 }
