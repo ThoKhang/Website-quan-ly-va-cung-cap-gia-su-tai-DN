@@ -2,6 +2,8 @@ package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.KhoaHocRequestDTO;
 import com.nhom26.tutormanagement.dto.KhoaHocResponseDTO;
+import com.nhom26.tutormanagement.entity.KhoaHoc;
+import com.nhom26.tutormanagement.repository.KhoaHocRepository;
 import com.nhom26.tutormanagement.service.KhoaHocService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,13 +11,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/khoa-hoc")
 @RequiredArgsConstructor
 public class KhoaHocController {
     private final KhoaHocService khoaHocService;
-
+    private final KhoaHocRepository khoaHocRepository;
     @PostMapping("/tao-moi")
     public ResponseEntity<String> taoKhoaHoc(@RequestBody KhoaHocRequestDTO request) {
         try {
@@ -38,6 +43,7 @@ public class KhoaHocController {
     }
 
     @PutMapping("/{id}/duyet")
+    @PreAuthorize("hasAuthority('ROLE_4')") 
     public ResponseEntity<String> duyetKhoaHoc(@PathVariable String id, @RequestParam Integer status) {
         try {
             return ResponseEntity.ok(khoaHocService.duyetKhoaHoc(id, status));
@@ -75,6 +81,7 @@ public class KhoaHocController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_4')") 
     public ResponseEntity<String> deleteKhoaHoc(@PathVariable String id) {
         try {
             return ResponseEntity.ok(khoaHocService.deleteKhoaHoc(id));
@@ -82,4 +89,15 @@ public class KhoaHocController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
+    @GetMapping("/admin/khoa-hoc")
+        @PreAuthorize("hasAuthority('ROLE_4')") 
+        public ResponseEntity<?> layToanBoKhoaHocChoAdmin() {
+            try {
+                List<KhoaHocResponseDTO> result = khoaHocService.layToanBoKhoaHocChoAdmin();
+                return ResponseEntity.ok(result);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            }
+        }
 }
