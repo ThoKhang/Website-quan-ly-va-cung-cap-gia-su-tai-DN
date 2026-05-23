@@ -178,8 +178,8 @@ public class GiaSuService {
     // ==========================================
     private String generateNextIdBangCap() {
         String maxId = bangCapRepository.findMaxId();
-        if (maxId == null || maxId.trim().isEmpty()) return "BC001";
-        return String.format("BC%03d", Integer.parseInt(maxId.trim().substring(2)) + 1);
+        if (maxId == null || maxId.trim().isEmpty()) return "BC00001";
+        return String.format("BC%05d", Integer.parseInt(maxId.trim().substring(2)) + 1);
     }
 
     @Transactional
@@ -300,7 +300,7 @@ public class GiaSuService {
                 return "GS001";
             }
             int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
-            return String.format("GS%03d", nextNumber);
+            return String.format("GS%05d", nextNumber);
         }
 
     // ==========================================

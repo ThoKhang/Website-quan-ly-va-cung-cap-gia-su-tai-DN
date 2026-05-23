@@ -21,10 +21,10 @@ public class LichSuThanhToanService {
     private String generateNextId() {
         String maxId = lichSuThanhToanRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) {
-            return "TT001";
+            return "TT00001";
         }
         int nextNumber = Integer.parseInt(maxId.trim().substring(2)) + 1;
-        return String.format("TT%03d", nextNumber);
+        return String.format("TT%05d", nextNumber);
     }
 
     @Transactional
