@@ -33,7 +33,7 @@ const giaSuFeatures = [
 const trustMetrics = [
   { value: "24h", label: "phản hồi yêu cầu ghép lớp" },
   { value: "1 nền tảng", label: "gồm tìm kiếm, booking và quản lý" },
-  { value: "MADZ", label: "thương hiệu tập trung vào vận hành gọn" },
+  { value: "Đà Nẵng TUTOR", label: "thương hiệu tập trung vào vận hành gọn" },
 ];
 
 const footerColumns = [
@@ -46,7 +46,7 @@ const footerColumns = [
     items: ["Phụ huynh", "Gia sư", "Trung tâm", "Học viên"],
   },
   {
-    title: "MADZ Sch.",
+    title: "Đà Nẵng Tutor",
     items: ["Về chúng tôi", "Quy trình kết nối", "Chính sách hỗ trợ", "Liên hệ"],
   },
 ];
@@ -91,7 +91,7 @@ export default function Home() {
               Nền tảng tìm và quản lý gia sư
             </Text>
             <Text as="h1" size="hero" className="max-w-4xl">
-              MADZ Sch. kết nối đúng gia sư và giữ toàn bộ vận hành dạy học trong tầm tay.
+              Đà Nẵng Tutor. kết nối đúng gia sư và giữ toàn bộ vận hành dạy học trong tầm tay.
             </Text>
             <Text size="lead" tone="muted" className="max-w-3xl">
               Từ khâu tìm kiếm ban đầu đến lịch dạy, booking và theo dõi khóa học, hệ
@@ -181,7 +181,7 @@ export default function Home() {
             Quảng bá dịch vụ nhẹ nhàng, để sản phẩm lên tiếng.
           </Text>
           <Text size="lead" tone="muted" className="max-w-3xl opacity-90">
-            MADZ Sch. tập trung vào hai việc: giúp người dùng tìm được gia sư phù hợp và
+            Đà Nẵng Tutor tập trung vào hai việc: giúp người dùng tìm được gia sư phù hợp và
             giúp đơn vị vận hành ít rối hơn sau khi đã kết nối.
           </Text>
         </div>
@@ -259,7 +259,7 @@ export default function Home() {
               Đặt một lớp vỏ giống brochure, nhưng vẫn sẵn sàng cho sản phẩm thật.
             </Text>
             <Text size="body" tone="onDark" className="max-w-2xl opacity-90">
-              Page này được xây để quảng bá MADZ Sch., nhưng cấu trúc component và token
+              Page này được xây để quảng bá Đà Nẵng Tutor, nhưng cấu trúc component và token
               bên dưới có thể tái sử dụng để mở rộng sang search page, dashboard và course
               listing.
             </Text>
@@ -287,7 +287,7 @@ export default function Home() {
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-4">
               <Text as="h2" size="display">
-                MADZ Sch.
+                Đà Nẵng Tutor
               </Text>
               <Text tone="muted" className="max-w-2xl">
                 Giải pháp quảng bá, kết nối và quản lý gia sư cho trung tâm muốn vận hành
@@ -318,7 +318,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 flex flex-col gap-2 border-t border-black/6 pt-6 md:flex-row md:items-center md:justify-between">
-            <Text size="fine">Copyright 2026 MADZ Sch. All rights reserved.</Text>
+            <Text size="fine">Copyright 2026 Đà Nẵng TutorTutor, All rights reserved.</Text>
             <Text size="fine">Nền tảng quản lý và cho thuê gia sư hướng tới vận hành gọn.</Text>
           </div>
         </div>
