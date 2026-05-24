@@ -122,10 +122,10 @@ export function SiteHeader() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-[13px] font-semibold">
-              M
+              ĐN
             </div>
             <Text as="span" size="bodyStrong" tone="onDark">
-              MADZ Sch.
+              ĐN Tutor.
             </Text>
           </Link>
 
