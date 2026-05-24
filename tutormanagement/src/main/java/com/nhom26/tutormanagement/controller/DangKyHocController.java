@@ -47,16 +47,18 @@ public class DangKyHocController {
         }
     }
 
-    /**
-     * Gia hạn khóa học
-     * PUT /api/dang-ky-hoc/{idDangKy}/gia-han
-     * Body: { "ngayBatDauMoi": "2026-06-01" }
-     */
-    @PutMapping("/{idDangKy}/gia-han")
-    @PreAuthorize("hasAuthority('ROLE_1')") // CHỈ PHỤ HUYNH MỚI ĐƯỢC GỌI
-    public ResponseEntity<?> giaHanKhoaHoc(@PathVariable String idDangKy, @RequestBody GiaHanKhoaHocRequestDTO request) {
+    @PostMapping("/{idDangKy}/gui-gia-han")
+    @PreAuthorize("hasAuthority('ROLE_1')") 
+    public ResponseEntity<?> guiYeuCauGiaHan(
+            @PathVariable String idDangKy, 
+            @RequestBody GiaHanKhoaHocRequestDTO request) {
         try {
-            String message = dangKyHocService.giaHanKhoaHoc(idDangKy, request.getNgayBatDauMoi());
+            // Gọi hàm mới trong Service
+            String message = dangKyHocService.guiYeuCauGiaHan(
+                idDangKy, 
+                request.getSoBuoiGiaHan(), 
+                request.getLoaiGiaHan()
+            );
             return ResponseEntity.ok(message);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

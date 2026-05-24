@@ -185,12 +185,19 @@ CREATE TABLE DangKyHoc (
     trangThaiHoanThanh BIT,
     ngayBatDauHoc DATETIME,
     ngayKetThucDuKien DATETIME,
-    ngayGiaHan DATETIME,
     FOREIGN KEY (idPhuHuynh) REFERENCES PhuHuynh(idPhuHuynh),
     FOREIGN KEY (idHocVien) REFERENCES HocVien(idHocVien),
     FOREIGN KEY (idKhoaHoc) REFERENCES KhoaHoc(idKhoaHoc)
 	);
-
+CREATE TABLE YeuCauGiaHan (
+    idGiaHan CHAR(20) PRIMARY KEY,
+    idDangKy CHAR(20),
+    soBuoiGiaHan INT,
+    loaiGiaHan NVARCHAR(50),      -- 'Toàn bộ' hoặc 'Tùy chọn'
+    ngayYeuCau DATETIME,
+    trangThaiDuyet NVARCHAR(30),  -- 'Chờ duyệt', 'Đã duyệt', 'Từ chối'
+    FOREIGN KEY (idDangKy) REFERENCES DangKyHoc(idDangKy)
+);
 CREATE TABLE DanhGia (
     idDanhGia CHAR(20) PRIMARY KEY,
     idDangKy CHAR(20),

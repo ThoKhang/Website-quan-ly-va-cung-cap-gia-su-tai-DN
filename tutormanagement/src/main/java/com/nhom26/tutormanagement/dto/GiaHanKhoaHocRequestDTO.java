@@ -12,5 +12,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class GiaHanKhoaHocRequestDTO {
-    private LocalDate ngayBatDauMoi; // Ngày bắt đầu mới do phụ huynh chọn
+    private Integer soBuoiGiaHan;
+    private String loaiGiaHan;
 }
