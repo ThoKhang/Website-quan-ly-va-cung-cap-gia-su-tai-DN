@@ -14,6 +14,7 @@ export interface KhoaHoc {
   trangThai?: number; // 0: Chờ duyệt, 1: Đã duyệt, 2: Từ chối
   anhMinhHoa?: string;
   ngayTao?: string;
+  danhGias?: any[];
 }
 
 export interface KhoaHocRequestDTO {
@@ -43,5 +44,5 @@ export interface KhoaHocResponseDTO {
   anhMinhHoa?: string;
   idMonHoc?: string;
   idDanhMucLop?: string;
-
+  danhGias?: any[];
 }

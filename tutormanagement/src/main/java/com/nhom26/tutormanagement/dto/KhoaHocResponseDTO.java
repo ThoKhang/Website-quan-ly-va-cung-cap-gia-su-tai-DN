@@ -26,4 +26,5 @@ public class KhoaHocResponseDTO {
     private Integer trangThai; // 0: Chờ duyệt, 1: Đã duyệt, 2: Từ chối
     private String idMonHoc;
     private String idDanhMucLop;
+    private java.util.List<DanhGiaResponseDTO> danhGias;
 }
