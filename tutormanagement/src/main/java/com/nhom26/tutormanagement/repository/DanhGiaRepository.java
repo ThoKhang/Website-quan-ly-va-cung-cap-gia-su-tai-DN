@@ -9,11 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
-    
-    // Tính điểm đánh giá trung bình của 1 Gia sư dựa trên các lớp (DangKyHoc) đã dạy
+
+    // Tính điểm đánh giá trung bình của 1 Gia sư dựa trên các lớp (DangKyHoc) đã
+    // dạy
     @Query("SELECT AVG(d.soSao) FROM DanhGia d WHERE d.dangKyHoc.khoaHoc.giaSu.idGiaSu = :idGiaSu")
     Double calculateAverageRatingForGiaSu(@Param("idGiaSu") String idGiaSu);
-    
+
     // 1. Tự sinh mã DG001, DG002...
     @Query("SELECT MAX(d.idDanhGia) FROM DanhGia d")
     String findMaxId();
@@ -35,4 +36,7 @@ public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
 
     // 6. Lấy đánh giá theo idDangKy
     Optional<DanhGia> findByDangKyHoc_IdDangKy(String idDangKy);
+
+    // 7. Lấy tất cả đánh giá của 1 Khóa học
+    java.util.List<DanhGia> findByDangKyHoc_KhoaHoc_IdKhoaHoc(String idKhoaHoc);
 }

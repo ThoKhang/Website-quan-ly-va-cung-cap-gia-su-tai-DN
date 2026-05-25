@@ -8,6 +8,7 @@ export type CourseSearchResult = {
   tenGiaSu?: string;
   saoTrungBinh?: number;
   moTa?: string;
+  anhMinhHoa?: string;
 };
 
 export type SubjectOption = {
