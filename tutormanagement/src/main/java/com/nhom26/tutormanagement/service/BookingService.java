@@ -24,19 +24,25 @@ public class BookingService {
     private final PhuHuynhRepository phuHuynhRepository;
     private final HocVienRepository hocVienRepository;
     private final KhoaHocRepository khoaHocRepository;
-
+    private final GiaSuRepository giaSuRepository;
+    // ✅ BookingService
     private String generateNextIdDangKy() {
         String maxId = dangKyHocRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) return "DK00001";
-        return String.format("DK%05d", Integer.parseInt(maxId.trim().substring(2)) + 1);
+        return String.format("DK%05d", Long.parseLong(maxId.trim().substring(2)) + 1);
     }
 
     private int getCurrentMaxLichHocNumber() {
         String maxId = chiTietLichHocRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) return 0;
-        return Integer.parseInt(maxId.trim().substring(2));
+        return (int) Long.parseLong(maxId.trim().substring(2)); // cast về int sau khi parse
     }
 
+    private String generateNextIdThanhToan() {
+        String maxId = lichSuThanhToanRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return "TT00001";
+        return String.format("TT%05d", Long.parseLong(maxId.trim().substring(2)) + 1);
+    }
     // HÀM HỖ TRỢ: Chuyển đổi chuỗi "Thứ 2", "Chủ nhật"... thành số nguyên 1 -> 7 (DayOfWeek của Java)
     private int convertThuToDayOfWeek(String thuStr) {
         if (thuStr == null) return -1;
@@ -158,6 +164,21 @@ public class BookingService {
         }
         dangKy.setNgayKetThucDuKien(ngayChay);
         dangKyHocRepository.save(dangKy); 
+        // Sau dangKyHocRepository.save(dangKy) cuối cùng
+        LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
+        lichSuThanhToan.setIdThanhToan(generateNextIdThanhToan());
+        lichSuThanhToan.setSoTien(khoaHoc.getSoTienHoc());
+        lichSuThanhToan.setTrangThai("Đã thanh toán");
+        lichSuThanhToan.setNgayThanhToan(LocalDateTime.now());
+        lichSuThanhToan.setPhuongThucThanhToan("Chuyển khoản");
+        lichSuThanhToan.setDangKyHoc(dangKy);
+        lichSuThanhToanRepository.save(lichSuThanhToan);
+        // Cập nhật luongHienCon cho gia sư
+        GiaSu giaSu = khoaHoc.getGiaSu();
+        double tienKhoaHoc = khoaHoc.getSoTienHoc().doubleValue();
+        double tienGiaSuNhan = tienKhoaHoc * giaSu.getHeSoLuong();
+        giaSu.setLuongHienCon(giaSu.getLuongHienCon() + tienGiaSuNhan);
+        giaSuRepository.save(giaSu);
         return dangKy;
     }
     @Transactional(rollbackFor = Exception.class)
@@ -171,4 +192,6 @@ public class BookingService {
         dangKyHocRepository.save(dangKy);
         return "Thanh toán thành công! Khóa học đã chính thức bắt đầu.";
     }
+    // Inject thêm vào BookingService
+    private final LichSuThanhToanRepository lichSuThanhToanRepository;
 }

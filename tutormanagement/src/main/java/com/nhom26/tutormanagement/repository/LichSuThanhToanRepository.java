@@ -32,4 +32,6 @@ public interface LichSuThanhToanRepository extends JpaRepository<LichSuThanhToan
     @Query("SELECT MAX(l.idThanhToan) FROM LichSuThanhToan l")
     String findMaxId();
     
+    @Query("SELECT l FROM LichSuThanhToan l WHERE l.dangKyHoc.idDangKy = :idDangKy AND l.trangThai = 'Chưa thanh toán'")
+    List<LichSuThanhToan> findChuaThanhToanByDangKy(@Param("idDangKy") String idDangKy);
 }

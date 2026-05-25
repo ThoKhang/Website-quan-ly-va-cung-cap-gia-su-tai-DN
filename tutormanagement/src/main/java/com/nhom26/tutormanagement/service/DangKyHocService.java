@@ -142,7 +142,7 @@ public class DangKyHocService {
         }
 
         YeuCauGiaHan yeuCauMoi = new YeuCauGiaHan();
-        yeuCauMoi.setIdGiaHan("GH" + System.currentTimeMillis());
+        yeuCauMoi.setIdGiaHan(generateNextIdGiaHan());
         yeuCauMoi.setDangKyHoc(dangKyHoc);
         yeuCauMoi.setLoaiGiaHan(loaiGiaHan); 
         
@@ -178,14 +178,14 @@ public class DangKyHocService {
         dk.setTrangThaiThanhToan(true);
 
         // 2. Tìm hóa đơn chưa thanh toán của Đăng ký này và chuyển thành Đã thanh toán
-        List<LichSuThanhToan> dsHoaDon = lichSuThanhToanRepository.findAll(); 
-        for (LichSuThanhToan hd : dsHoaDon) {
-            if (hd.getDangKyHoc().getIdDangKy().equals(dk.getIdDangKy()) && hd.getTrangThai().equals("Chưa thanh toán")) {
+        // ✅ Chỉ lấy hóa đơn của đơn đăng ký này
+        List<LichSuThanhToan> dsHoaDon = lichSuThanhToanRepository
+            .findChuaThanhToanByDangKy(dk.getIdDangKy());
+            for (LichSuThanhToan hd : dsHoaDon) {
                 hd.setTrangThai("Đã thanh toán");
                 hd.setNgayThanhToan(LocalDateTime.now());
                 lichSuThanhToanRepository.save(hd);
             }
-        }
 
         // 3. TỰ ĐỘNG RẢI LỊCH MỚI
         List<ChiTietLichHoc> lichHocCu = chiTietLichHocRepository.findByDangKyHoc_IdDangKy(dk.getIdDangKy());
@@ -210,8 +210,8 @@ public class DangKyHocService {
         
         // Lấy ID chi tiết lịch học lớn nhất hiện tại
         String maxId = chiTietLichHocRepository.findMaxId();
-        int currentLHNumber = (maxId == null || maxId.trim().isEmpty()) ? 0 : Integer.parseInt(maxId.trim().substring(2));
-
+        int currentLHNumber = (maxId == null || maxId.trim().isEmpty()) ? 0 
+            : (int) Long.parseLong(maxId.trim().substring(2)); 
         while (soBuoiDaTao < soBuoiGiaHan) {
             int currentThu = ngayChay.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
 
@@ -267,5 +267,23 @@ public class DangKyHocService {
         if (maxId == null || maxId.trim().isEmpty()) return "GH00001";
         return String.format("GH%05d", Integer.parseInt(maxId.trim().substring(2)) + 1);
     }
-    
+    @Transactional
+    public String huyYeuCauGiaHan(String idGiaHan) {
+        YeuCauGiaHan don = yeuCauGiaHanRepository.findById(idGiaHan)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn!"));
+
+        if (!don.getTrangThaiDuyet().equals("Chờ thanh toán")) {
+            throw new RuntimeException("Chỉ có thể hủy đơn đang chờ thanh toán!");
+        }
+
+        // Khôi phục trạng thái thanh toán
+        DangKyHoc dk = don.getDangKyHoc();
+        dk.setTrangThaiThanhToan(true);
+        dangKyHocRepository.save(dk);
+
+        don.setTrangThaiDuyet("Đã hủy");
+        yeuCauGiaHanRepository.save(don);
+
+        return "Đã hủy yêu cầu gia hạn.";
+    }
 }

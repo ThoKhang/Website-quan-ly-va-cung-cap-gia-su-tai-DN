@@ -261,13 +261,6 @@ export default function BookingPage() {
         if (!finalIdDangKy) {
           throw new Error("Lỗi: Backend chưa trả về idDangKy. Vui lòng kiểm tra lại API /booking/dat-lop ở Spring Boot!");
         }
-
-        // Bước 2: Lưu lịch sử thanh toán
-        await hocVienService.xacNhanThanhToan(
-          finalIdDangKy,
-          Number(course?.soTienHoc)
-        );
-
         setSuccess("✅ Đặt lớp và thanh toán thành công!");
         setShowPaymentModal(false);
 
