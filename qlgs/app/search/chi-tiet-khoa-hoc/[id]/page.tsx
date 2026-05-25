@@ -32,12 +32,12 @@ export default function CourseDetailPage() {
       setError("");
       const data = await getCourseDetail(idKhoaHoc);
       const courseData = data as any;
-      
+
       setCourse(courseData);
-      
+
       console.log("Course data:", courseData);
       console.log("idGiaSu:", courseData.idGiaSu);
-      
+
       // Fetch tutor info if idGiaSu is available
       if (courseData.idGiaSu) {
         try {
@@ -97,259 +97,284 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <main className="page-shell">
-      <div className="content-lock px-6 py-10 md:px-10">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Text as="h1" size="display">
-              Chi Tiết Khóa Học
-            </Text>
-          </div>
+    <main className="page-shell bg-slate-50/50">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
           <Link href="/search">
-            <Button variant="secondary">Quay lại</Button>
+            <Button variant="ghost" className="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors">
+              <span className="text-lg transition-transform group-hover:-translate-x-1">←</span>
+              <span className="text-sm font-medium">Trở về</span>
+            </Button>
           </Link>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              className="h-9 text-xs font-bold uppercase tracking-wider"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Đã sao chép liên kết vào bộ nhớ tạm!");
+              }}
+            >
+              Chia sẻ
+            </Button>
+            <Link href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}>
+              <Button className="h-9 bg-blue-600 px-6 text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-500/20">Đăng ký lớp</Button>
+            </Link>
+          </div>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <Text size="body" className="text-red-700">
+          <div className="mb-6 rounded-lg border border-red-100 bg-red-50 p-3">
+            <Text className="text-sm text-red-600 font-medium">
               {error}
             </Text>
           </div>
         )}
 
-        <div className="space-y-6">
-          {/* Thông tin gia sư */}
-          {tutor ? (
-            <Card className="bg-white p-6 md:p-8">
-              <Text as="h2" size="title" className="mb-6">
-                Thông Tin Gia Sư
-              </Text>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Tên gia sư
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {tutor.tenGiaSu}
-                  </Text>
-                </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Số khóa học đã dạy
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {tutor.soLuongKhoaHoc} khóa
-                  </Text>
-                </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Đánh giá trung bình
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    ⭐ {tutor.soSaoTrungBinh ?? 0}/5
-                  </Text>
-                </div>
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Số lượng đánh giá
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {tutor.soLuongDanhGia} đánh giá
-                  </Text>
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Main Content Area: 8 columns */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Hero Section */}
+            <Card className="overflow-hidden border-none bg-white p-0 shadow-sm ring-1 ring-slate-200">
+              <div className="relative aspect-[21/9] w-full overflow-hidden bg-slate-100">
+                <img
+                  src={course.anhMinhHoa || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2071&auto=format&fit=crop"}
+                  alt={course.tenKhoaHoc}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-6">
+                  <div className="max-w-xl">
+                    <div className="mb-2 flex gap-2">
+                      <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                        {course.tenMonHoc}
+                      </span>
+                      <span className="rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md uppercase tracking-wider">
+                        {course.tenLop}
+                      </span>
+                    </div>
+                    <Text as="h1" className="text-2xl font-black text-white leading-tight">
+                      {course.tenKhoaHoc}
+                    </Text>
+                  </div>
                 </div>
               </div>
 
-              {tutor.bangCap && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Text size="caption" tone="muted" className="mb-2">
-                    Bằng cấp
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {tutor.bangCap.tenBangCap}
-                  </Text>
+              <div className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 border-b border-slate-100 pb-6">
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Học phí</Text>
+                    <Text className="text-lg font-black text-blue-600">{formatCurrency(course.soTienHoc)}</Text>
+                  </div>
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thời lượng</Text>
+                    <Text className="text-lg font-black text-slate-700">{course.soBuoiHoc || 0} buổi</Text>
+                  </div>
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đánh giá</Text>
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-400 text-sm">★</span>
+                      <Text className="text-lg font-black text-slate-700">{course.saoTrungBinh?.toFixed(1) || "5.0"}</Text>
+                    </div>
+                  </div>
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mỗi buổi</Text>
+                    <Text className="text-lg font-black text-slate-500">
+                      {formatCurrency(course.soTienHoc / (course.soBuoiHoc || 1)).split(' ')[0]}K
+                    </Text>
+                  </div>
                 </div>
+
+                <div className="space-y-6">
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                      <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Mô tả khóa học</Text>
+                    </div>
+                    <Text className="text-sm leading-relaxed text-slate-600">
+                      {course.moTa || "Chưa có mô tả chi tiết cho khóa học này."}
+                    </Text>
+                  </section>
+
+                  {course.yeuCau && (
+                    <section>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                        <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Yêu cầu</Text>
+                      </div>
+                      <Text className="text-sm leading-relaxed text-slate-600">
+                        {course.yeuCau}
+                      </Text>
+                    </section>
+                  )}
+
+                  {course.noiDungKhoaHoc && (
+                    <section>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                        <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Nội dung học</Text>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
+                        <Text className="text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+                          {course.noiDungKhoaHoc}
+                        </Text>
+                      </div>
+                    </section>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Reviews Section */}
+            <Card className="border-none bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-4 bg-yellow-500 rounded"></div>
+                  <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Phản hồi từ học viên</Text>
+                </div>
+                <div className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                  {(course as any).danhGias?.length || 0} ĐÁNH GIÁ
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(course as any).danhGias && (course as any).danhGias.length > 0 ? (
+                  (course as any).danhGias.map((dg: any) => (
+                    <div key={dg.idDanhGia} className="flex flex-col gap-3 p-4 rounded-xl bg-slate-50/50 border border-slate-100 ">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 flex-shrink-0 rounded-full bg-white shadow-sm flex items-center justify-center overflow-hidden border border-slate-200">
+                          {dg.anhDaiDien ? (
+                            <img src={dg.anhDaiDien} alt={dg.tenPhuHuynh} className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold text-blue-600">{dg.tenPhuHuynh?.charAt(0) || "P"}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Text className="text-xs font-bold text-slate-800 truncate block">{dg.tenPhuHuynh || "Ẩn danh"}</Text>
+                          <div className="flex gap-0.5 mt-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`text-[10px] ${i < dg.soSao ? "text-yellow-400" : "text-slate-300"}`}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                        <Text className="text-[9px] text-slate-400 font-medium">
+                          {new Date(dg.ngayDanhGia).toLocaleDateString("vi-VN")}
+                        </Text>
+                      </div>
+                      <Text className="text-xs text-slate-600 italic line-clamp-3">"{dg.noiDung}"</Text>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full flex flex-col items-center justify-center py-10 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <Text className="text-sm text-slate-400">Chưa có đánh giá nào cho khóa học này.</Text>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Sidebar Area: 4 columns */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Sticky Booking Card */}
+            <div className="sticky top-6">
+              <Card className="border-none bg-white p-5 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200 overflow-hidden rounded-2xl">
+                <div className="mb-5">
+                  <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Khóa học cam kết</Text>
+                  <div className="flex items-baseline gap-1">
+                    <Text className="text-2xl font-black text-blue-600">{formatCurrency(course.soTienHoc)}</Text>
+                    <Text className="text-[10px] text-slate-400 font-bold">/ trọn gói</Text>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  {['Học 1-1 Chuyên nghiệp', 'Tương tác trực tiếp', 'Cam kết đầu ra'].map((txt, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg">
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] text-blue-600 font-black">✓</span>
+                      <span>{txt}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Link
+                    href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}
+                    className="block w-full"
+                  >
+                    <Button className="w-full h-11 bg-blue-600 text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-[1.02]">
+                      {isLoggedIn ? "Đăng ký học ngay" : "Đăng nhập để đăng ký"}
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-11 text-xs font-bold text-slate-500 hover:text-blue-600 border border-slate-100"
+                    onClick={() => alert("Gia sư sẽ liên hệ với bạn trong vòng 24h để tư vấn miễn phí!")}
+                  >
+                    Tư vấn miễn phí
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Tutor Profile Card */}
+              {tutor && (
+                <Card className="mt-6 border-none bg-white p-5 shadow-sm ring-1 ring-slate-200 rounded-2xl">
+                  <div className="flex items-center gap-3 mb-5 border-b border-slate-50 pb-5">
+                    <div className="h-10 w-10 shrink-0 rounded-full ring-2 ring-blue-50">
+                      <img
+                        src={tutor.anhDaiDien || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.tenGiaSu)}&background=random`}
+                        alt={tutor.tenGiaSu}
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <Text className="text-xs font-black text-slate-800 block truncate max-w-[150px]">{tutor.tenGiaSu}</Text>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-yellow-400 text-[10px]">★</span>
+                        <Text className="text-[10px] font-black text-slate-600">{tutor.soSaoTrungBinh?.toFixed(1) || "5.0"}</Text>
+                        <Text className="text-[9px] font-bold text-slate-300">({tutor.soLuongDanhGia || 0})</Text>
+                      </div>
+                    </div>
+                  </div>
+
+                  {tutor.khoaHocs && tutor.khoaHocs.length > 1 && (
+                    <div className="space-y-3">
+                      <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Khóa học khác</Text>
+                      <div className="grid gap-2">
+                        {tutor.khoaHocs.filter(kh => kh.idKhoaHoc !== idKhoaHoc).slice(0, 3).map((kh) => (
+                          <Link key={kh.idKhoaHoc} href={`/search/chi-tiet-khoa-hoc/${kh.idKhoaHoc}`} className="group p-2 rounded-lg bg-slate-50/50 hover:bg-blue-50/50 transition-colors border border-slate-100 hover:border-blue-100">
+                            <Text className="text-[11px] font-bold text-slate-700 block truncate group-hover:text-blue-700">{kh.tenKhoaHoc}</Text>
+                            <div className="flex justify-between items-center mt-1">
+                              <Text className="text-[9px] text-slate-400">{kh.tenMonHoc} · {kh.tenLop}</Text>
+                              <Text className="text-[10px] font-black text-blue-600">{formatCurrency(kh.soTienHoc).split(' ')[0]}K</Text>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Link href={`/search/gia-su/${tutor.idGiaSu}`} className="mt-4 block text-[10px] font-black text-center text-slate-400 hover:text-blue-600 uppercase tracking-wider transition-colors">
+                    Xem hồ sơ gia sư →
+                  </Link>
+                </Card>
               )}
 
-              {tutor.khoaHocs && tutor.khoaHocs.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Text size="caption" tone="muted" className="mb-3">
-                    Các khóa học khác của gia sư
-                  </Text>
-                  <div className="space-y-2">
-                    {tutor.khoaHocs.map((kh) => (
-                      <div key={kh.idKhoaHoc} className="text-sm">
-                        <Text size="body">{kh.tenKhoaHoc}</Text>
-                        <Text size="caption" tone="muted">
-                          {kh.tenMonHoc} - {kh.tenLop}
-                        </Text>
+              {/* Schedule Card */}
+              {tutor && tutor.lichRanh && tutor.lichRanh.length > 0 && (
+                <Card className="mt-6 border-none bg-white p-5 shadow-sm ring-1 ring-slate-200 rounded-2xl">
+                  <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-4">Lịch dạy sẵn có</Text>
+                  <div className="grid grid-cols-2 gap-2">
+                    {tutor.lichRanh.map((lich) => (
+                      <div key={lich.idLichDay} className="flex items-center gap-2 p-1.5 rounded bg-slate-50 border border-slate-100">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white text-[9px] font-black shadow-sm text-slate-600 border border-slate-200 uppercase">
+                          {lich.tietHoc.thu.replace("Thứ ", "T")}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-500 whitespace-nowrap">{lich.tietHoc.gioBatDau.substring(0, 5)}</span>
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               )}
-            </Card>
-          ) : course.tenGiaSu ? (
-            <Card className="bg-white p-6 md:p-8">
-              <Text as="h2" size="title" className="mb-6">
-                Thông Tin Gia Sư
-              </Text>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Text size="caption" tone="muted" className="mb-1">
-                    Tên gia sư
-                  </Text>
-                  <Text size="body" className="font-semibold">
-                    {course.tenGiaSu}
-                  </Text>
-                </div>
-              </div>
-            </Card>
-          ) : null}
-
-          {/* Thông tin khóa học */}
-          <Card className="bg-white p-6 md:p-8">
-            <Text as="h2" size="title" className="mb-6">
-              Thông Tin Khóa Học
-            </Text>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Tên khóa học
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {course.tenKhoaHoc}
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Môn học
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {course.tenMonHoc}
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Cấp lớp
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {course.tenLop}
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Số buổi học
-                </Text>
-                <Text size="body" className="font-semibold">
-                  {course.soBuoiHoc} buổi
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Tổng tiền khóa học ({course.soBuoiHoc} buổi)
-                </Text>
-                <Text size="body" className="font-semibold text-blue-600">
-                  {formatCurrency(course.soTienHoc)}
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Tiền / buổi
-                </Text>
-                <Text size="body" className="font-semibold text-gray-600">
-                  {formatCurrency(course.soTienHoc / (course.soBuoiHoc || 1))}
-                </Text>
-              </div>
-              <div>
-                <Text size="caption" tone="muted" className="mb-1">
-                  Đánh giá khóa học
-                </Text>
-                <Text size="body" className="font-semibold">
-                  ⭐ {course.saoTrungBinh ?? 0}/5
-                </Text>
-              </div>
             </div>
-
-            {course.moTa && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <Text size="caption" tone="muted" className="mb-2">
-                  Mô tả
-                </Text>
-                <Text size="body">{course.moTa}</Text>
-              </div>
-            )}
-
-            {course.yeuCau && (
-              <div className="mt-4">
-                <Text size="caption" tone="muted" className="mb-2">
-                  Yêu cầu
-                </Text>
-                <Text size="body">{course.yeuCau}</Text>
-              </div>
-            )}
-
-            {isParent && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <Link href={`/hoc-vien/booking/${idKhoaHoc}`}>
-                  <Button className="w-full">Đặt lớp này</Button>
-                </Link>
-              </div>
-            )}
-          </Card>
-
-          {/* Lịch rảnh của gia sư */}
-          {tutor && tutor.lichRanh && tutor.lichRanh.length > 0 && (
-            <Card className="bg-white p-6 md:p-8">
-              <Text as="h2" size="title" className="mb-6">
-                Lịch Rảnh Của Gia Sư ({tutor.lichRanh.length} buổi)
-              </Text>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Thứ
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Giờ bắt đầu
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Giờ kết thúc
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Số tiết
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Trạng thái
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tutor.lichRanh.map((lich) => (
-                      <tr key={lich.idLichDay} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">{lich.tietHoc.thu}</td>
-                        <td className="py-3 px-4">{lich.tietHoc.gioBatDau.substring(0, 5)}</td>
-                        <td className="py-3 px-4">{lich.tietHoc.gioKetThuc.substring(0, 5)}</td>
-                        <td className="py-3 px-4">{lich.tietHoc.soTiet} tiết</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              lich.tinhTrang
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {lich.tinhTrang ? "Rảnh" : "Bận"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
+          </div>
         </div>
       </div>
     </main>
