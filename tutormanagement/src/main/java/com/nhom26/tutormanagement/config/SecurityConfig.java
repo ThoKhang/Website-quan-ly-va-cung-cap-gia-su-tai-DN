@@ -49,6 +49,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/public/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/dashboard/**", "/api/thongke/**").permitAll()
+                        .requestMatchers("/api/gia-su/**").permitAll() // Mở công khai API gia sư
+                        .requestMatchers("/api/khoa-hoc/**").permitAll()
                         // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                         .anyRequest().authenticated());
 
