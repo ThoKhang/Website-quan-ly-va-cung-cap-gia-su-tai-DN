@@ -527,6 +527,7 @@ select * from DanhMucLop
 select * from DanhGia
 select * from BangCap
 select * from LichSuThanhToan
+select * from YeuCauGiaHan
 --phần config database
 /*
 UPDATE KhoaHoc

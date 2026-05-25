@@ -64,4 +64,24 @@ public class DangKyHocController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // Thêm vào DangKyHocController.java
+    @PostMapping("/gia-han/{idGiaHan}/thanh-toan")
+    @PreAuthorize("hasAuthority('ROLE_1')") 
+    public ResponseEntity<?> xacNhanThanhToanGiaHan(@PathVariable String idGiaHan) {
+        try {
+            return ResponseEntity.ok(java.util.Map.of("message", dangKyHocService.xacNhanThanhToanGiaHan(idGiaHan)));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+    // Kiểm tra đơn gia hạn của 1 đăng ký
+    @GetMapping("/{idDangKy}/don-gia-han")
+    @PreAuthorize("hasAuthority('ROLE_1')")
+    public ResponseEntity<?> layDonGiaHan(@PathVariable String idDangKy) {
+        try {
+            return ResponseEntity.ok(dangKyHocService.layDonGiaHanHienTai(idDangKy));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

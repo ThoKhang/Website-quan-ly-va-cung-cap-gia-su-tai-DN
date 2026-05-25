@@ -393,59 +393,6 @@ public class GiaSuService {
         }).collect(Collectors.toList());
     }
 
-    // XỬ LÝ PHÊ DUYỆT ĐƠN GIA HẠN
-    @Transactional
-    public String xuLyDonGiaHan(String idGiaHan, boolean isDongY) {
-        YeuCauGiaHan don = yeuCauGiaHanRepository.findById(idGiaHan)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn yêu cầu!"));
-
-        if (isDongY) {
-            don.setTrangThaiDuyet("Đã duyệt");
-            DangKyHoc dk = don.getDangKyHoc();
-
-            // Tính tiền
-            double donGia = dk.getKhoaHoc().getSoTienHoc().doubleValue() 
-                          / dk.getKhoaHoc().getSoBuoiHoc();
-            double tongTien = donGia * don.getSoBuoiGiaHan();
-
-            // Tạo hóa đơn thanh toán
-            LichSuThanhToan hoaDon = new LichSuThanhToan();
-            hoaDon.setIdThanhToan(generateNextIdThanhToan());
-            hoaDon.setSoTien(BigDecimal.valueOf(tongTien));
-            hoaDon.setTrangThai("Chưa thanh toán");
-            hoaDon.setNgayThanhToan(LocalDateTime.now());
-            hoaDon.setPhuongThucThanhToan("Chuyển khoản");
-            hoaDon.setDangKyHoc(dk);
-            lichSuThanhToanRepository.save(hoaDon);
-
-            // ✅ Tính ngày kết thúc mới dựa trên số buổi/tuần thực tế
-            // Đếm số ngày học khác nhau trong tuần từ ChiTietLichHoc
-            List<ChiTietLichHoc> chiTietList = chiTietLichHocRepository
-                .findByDangKyHoc_IdDangKy(dk.getIdDangKy());
-
-            long soBuoiTrongTuan = chiTietList.stream()
-                .map(ct -> ct.getNgayHoc().getDayOfWeek())
-                .distinct()
-                .count();
-
-            if (soBuoiTrongTuan == 0) soBuoiTrongTuan = 1;
-
-            // Số tuần cần thêm = số buổi gia hạn / số buổi mỗi tuần
-            long soTuanThem = (long) Math.ceil(
-                (double) don.getSoBuoiGiaHan() / soBuoiTrongTuan
-            );
-
-            dk.setNgayKetThucDuKien(dk.getNgayKetThucDuKien().plusWeeks(soTuanThem));
-            dk.setTrangThaiThanhToan(false);
-            dangKyHocRepository.save(dk);
-
-        } else {
-            don.setTrangThaiDuyet("Từ chối");
-        }
-
-        yeuCauGiaHanRepository.save(don);
-        return isDongY ? "Đã duyệt! Ngày kết thúc đã được cập nhật." : "Đã từ chối đơn gia hạn.";
-    }
     private String generateNextIdThanhToan() {
         String maxId = lichSuThanhToanRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) return "TT00001";
@@ -471,5 +418,44 @@ public class GiaSuService {
                 .trangThaiHoanThanh(dk.getTrangThaiHoanThanh())
                 .build()
         ).collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public String xuLyDonGiaHan(String idGiaHan, boolean isDongY) {
+        YeuCauGiaHan don = yeuCauGiaHanRepository.findById(idGiaHan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn yêu cầu!"));
+
+        if (!don.getTrangThaiDuyet().equals("Chờ duyệt")) {
+            throw new RuntimeException("Đơn này đã được xử lý trước đó!");
+        }
+
+        if (isDongY) {
+            don.setTrangThaiDuyet("Chờ thanh toán"); // Đợi học viên trả tiền
+            DangKyHoc dk = don.getDangKyHoc();
+
+            // Tính tiền: Tổng tiền / Tổng buổi gốc * Số buổi gia hạn
+            double donGiaMotBuoi = dk.getKhoaHoc().getSoTienHoc().doubleValue() / dk.getKhoaHoc().getSoBuoiHoc();
+            double tongTienPhaiDong = donGiaMotBuoi * don.getSoBuoiGiaHan();
+
+            // Tạo hóa đơn
+            LichSuThanhToan hoaDonMoi = new LichSuThanhToan();
+            hoaDonMoi.setIdThanhToan("TT" + System.currentTimeMillis());
+            hoaDonMoi.setSoTien(java.math.BigDecimal.valueOf(tongTienPhaiDong));
+            hoaDonMoi.setTrangThai("Chưa thanh toán");
+            hoaDonMoi.setNgayThanhToan(LocalDateTime.now());
+            hoaDonMoi.setDangKyHoc(dk);
+            lichSuThanhToanRepository.save(hoaDonMoi);
+
+            // Khóa trạng thái thanh toán của khóa học lại
+            dk.setTrangThaiThanhToan(false); 
+            dangKyHocRepository.save(dk);
+            yeuCauGiaHanRepository.save(don);
+            
+            return "Đã duyệt đơn! Hệ thống đã tạo hóa đơn, chờ học viên thanh toán.";
+        } else {
+            don.setTrangThaiDuyet("Từ chối");
+            yeuCauGiaHanRepository.save(don);
+            return "Đã từ chối đơn gia hạn.";
+        }
     }
 }

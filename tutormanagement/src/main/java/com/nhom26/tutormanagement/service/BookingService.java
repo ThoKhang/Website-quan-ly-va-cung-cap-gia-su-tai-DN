@@ -132,42 +132,43 @@ public class BookingService {
                 throw new RuntimeException("LỖI DỮ LIỆU: Cột 'thu' trong Tiết học không hợp lệ (" + lichDay.getTietHoc().getThu() + ")!");
             }
         }
-
-        // 4. Rải lịch học tự động
         int soBuoiToiDa = khoaHoc.getSoBuoiHoc();
         int soBuoiDaTao = 0;
         int currentLHNumber = getCurrentMaxLichHocNumber();
-        
-        // Khởi tạo ngày chạy bằng LocalDate
         LocalDate ngayChay = ngayBatDau;
-
         while (soBuoiDaTao < soBuoiToiDa) {
-            // Java trả về thứ 2 = 1, thứ 3 = 2, CN = 7
             int currentThu = ngayChay.getDayOfWeek().getValue();
-
             if (thuToLichDayMap.containsKey(currentThu)) {
                 LichDay lichDayHomNay = thuToLichDayMap.get(currentThu);
-
                 currentLHNumber++;
                 ChiTietLichHoc chiTiet = new ChiTietLichHoc();
                 chiTiet.setIdLichHoc(String.format("LH%05d", currentLHNumber));
                 chiTiet.setDangKyHoc(dangKy);
                 chiTiet.setLichDay(lichDayHomNay);
                 chiTiet.setTinhTrang("Chưa bắt đầu");
-                
-                // TUYỆT ĐỈNH: Ghép Ngày (LocalDate) + Giờ (LocalTime lấy từ TietHoc) -> LocalDateTime
                 LocalTime gioBatDauTietHoc = lichDayHomNay.getTietHoc().getGioBatDau().toLocalTime();
                 LocalDateTime thoiGianHocChinhXac = LocalDateTime.of(ngayChay, gioBatDauTietHoc);
-                
                 chiTiet.setNgayHoc(thoiGianHocChinhXac); 
-                
                 chiTietLichHocRepository.save(chiTiet);
                 soBuoiDaTao++;
             }
-            // Tịnh tiến lên 1 ngày để kiểm tra tiếp
-            ngayChay = ngayChay.plusDays(1);
+            if (soBuoiDaTao < soBuoiToiDa) {
+                ngayChay = ngayChay.plusDays(1);
+            }
         }
-
+        dangKy.setNgayKetThucDuKien(ngayChay);
+        dangKyHocRepository.save(dangKy); 
         return dangKy;
+    }
+    @Transactional(rollbackFor = Exception.class)
+    public String xacNhanThanhToanLanDau(String idDangKy) {
+        DangKyHoc dangKy = dangKyHocRepository.findById(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy đơn đăng ký học này!"));
+        if (dangKy.getTrangThaiThanhToan() != null && dangKy.getTrangThaiThanhToan()) {
+            throw new RuntimeException("LỖI: Khóa học này đã được thanh toán và kích hoạt rồi!");
+        }
+        dangKy.setTrangThaiThanhToan(true);
+        dangKyHocRepository.save(dangKy);
+        return "Thanh toán thành công! Khóa học đã chính thức bắt đầu.";
     }
 }

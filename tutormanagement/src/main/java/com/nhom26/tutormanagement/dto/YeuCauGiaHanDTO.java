@@ -14,4 +14,5 @@ public class YeuCauGiaHanDTO {
     private String loaiGiaHan;
     private String ngayKetThucCu;
     private LocalDateTime ngayYeuCau;
+    private String trangThai; 
 }
