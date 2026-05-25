@@ -2,6 +2,8 @@ package com.nhom26.tutormanagement.controller;
 
 import com.nhom26.tutormanagement.dto.DangKyHocResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaHanKhoaHocRequestDTO;
+import com.nhom26.tutormanagement.entity.YeuCauGiaHan;
+import com.nhom26.tutormanagement.repository.YeuCauGiaHanRepository;
 import com.nhom26.tutormanagement.service.DangKyHocService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/dang-ky-hoc")
@@ -16,7 +19,7 @@ import java.util.List;
 public class DangKyHocController {
 
     private final DangKyHocService dangKyHocService;
-
+    private final YeuCauGiaHanRepository yeuCauGiaHanRepository;
     /**
      * Lấy danh sách khóa học đã đăng ký của phụ huynh (Lịch sử)
      * GET /api/dang-ky-hoc/phu-huynh/{idPhuHuynh}
@@ -82,6 +85,18 @@ public class DangKyHocController {
             return ResponseEntity.ok(dangKyHocService.layDonGiaHanHienTai(idDangKy));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @DeleteMapping("/gia-han/{idGiaHan}/huy")
+    @PreAuthorize("hasAuthority('ROLE_1')")
+    public ResponseEntity<?> huyYeuCauGiaHan(@PathVariable String idGiaHan) {
+        try {
+            // Gọi xuống Service để xử lý logic
+            String message = dangKyHocService.huyYeuCauGiaHan(idGiaHan);
+            // Trả về JSON để Frontend đọc được
+            return ResponseEntity.ok(java.util.Map.of("message", message));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
     }
 }
