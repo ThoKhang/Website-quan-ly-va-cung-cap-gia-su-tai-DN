@@ -4,12 +4,14 @@ import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
 import com.nhom26.tutormanagement.service.GiaSuService;
+import com.nhom26.tutormanagement.service.KhoaHocService;
 import com.nhom26.tutormanagement.service.LichDayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/gia-su")
@@ -18,6 +20,8 @@ public class GiaSuController {
 
     private final GiaSuService giaSuService;
     private final LichDayService lichDayService;
+    @Autowired
+    private KhoaHocService khoaHocService;
     // API 1: Lấy danh sách lịch rảnh
     @GetMapping("/{idGiaSu}/lich-ranh")
     public ResponseEntity<?> layLichRanh(@PathVariable String idGiaSu) {
@@ -160,5 +164,22 @@ public class GiaSuController {
     @PreAuthorize("hasAuthority('ROLE_2')")
     public ResponseEntity<?> layLopDangDay() {
         return ResponseEntity.ok(giaSuService.layLopDangDayCuaGiaSu());
+    }
+    @GetMapping("/{idGiaSu}/khoa-hoc")
+    public ResponseEntity<?> layKhoaHocCuaGiaSu(@PathVariable String idGiaSu) {
+        try {
+            return ResponseEntity.ok(giaSuService.layKhoaHocCuaGiaSu(idGiaSu));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{idGiaSu}/danh-gia")
+    public ResponseEntity<?> layDanhGiaCuaGiaSu(@PathVariable String idGiaSu) {
+        try {
+            return ResponseEntity.ok(giaSuService.layDanhGiaCuaGiaSu(idGiaSu));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 }

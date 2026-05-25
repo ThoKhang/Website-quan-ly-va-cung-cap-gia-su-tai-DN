@@ -1,6 +1,7 @@
 package com.nhom26.tutormanagement.repository;
 
 import com.nhom26.tutormanagement.entity.DanhGia;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,4 +40,7 @@ public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
 
     // 7. Lấy tất cả đánh giá của 1 Khóa học
     java.util.List<DanhGia> findByDangKyHoc_KhoaHoc_IdKhoaHoc(String idKhoaHoc);
+    
+    // Tìm tất cả đánh giá thuộc về các khóa học của Gia sư này, sắp xếp mới nhất lên đầu
+    List<DanhGia> findByDangKyHoc_KhoaHoc_GiaSu_IdGiaSuOrderByNgayDanhGiaDesc(String idGiaSu);
 }
