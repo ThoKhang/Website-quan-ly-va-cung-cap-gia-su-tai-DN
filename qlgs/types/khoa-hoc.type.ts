@@ -44,5 +44,5 @@ export interface KhoaHocResponseDTO {
   anhMinhHoa?: string;
   idMonHoc?: string;
   idDanhMucLop?: string;
-
+  danhGias?: any[];
 }

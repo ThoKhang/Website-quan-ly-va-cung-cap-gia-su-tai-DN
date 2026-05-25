@@ -239,74 +239,75 @@ function SearchExperience({
           </Card>
         ) : null}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {results.map((course) => (
-            <Card key={course.idKhoaHoc} className="flex flex-col overflow-hidden bg-white transition-all hover:shadow-xl hover:-translate-y-1">
-              <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+            <Card key={course.idKhoaHoc} className="group flex flex-col overflow-hidden bg-white border-none shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] hover:-translate-y-1.5 ring-1 ring-black/5">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
                 <img
-                  src={course.anhMinhHoa || "/placeholder-course.jpg"}
+                  src={course.anhMinhHoa || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2071&auto=format&fit=crop"}
                   alt={course.tenKhoaHoc}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2071&auto=format&fit=crop";
                   }}
                 />
-                <div className="absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1.5 backdrop-blur-sm">
-                  <Text size="bodyStrong" className="text-blue-600">
-                    {formatCurrency(course.soTienHoc)}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <div className="absolute top-2 left-2 flex gap-1.5">
+                  <span className="rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-bold text-blue-600 backdrop-blur-sm uppercase shadow-sm">
+                    {course.tenMonHoc || "Môn học"}
+                  </span>
+                </div>
+
+                <div className="absolute bottom-2 right-2 rounded-lg bg-blue-600 px-2.5 py-1 shadow-lg">
+                  <Text className="text-[13px] font-black text-white">
+                    {formatCurrency(course.soTienHoc).split(' ')[0]}K
                   </Text>
                 </div>
               </div>
 
-              <div className="flex flex-1 flex-col p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-[12px] font-bold text-blue-600 uppercase tracking-wider">
-                    {course.tenMonHoc || "Môn học"}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-yellow-400 text-sm">★</span>
-                    <Text size="caption" className="font-semibold">
+              <div className="flex flex-1 flex-col p-4">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400 text-xs">★</span>
+                    <Text className="text-[11px] font-bold text-gray-700">
                       {course.saoTrungBinh != null && course.saoTrungBinh > 0
                         ? course.saoTrungBinh.toFixed(1)
-                        : "New"}
+                        : "5.0"}
                     </Text>
                   </div>
+                  <Text className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+                    {course.soBuoiHoc || 0} buổi
+                  </Text>
                 </div>
 
-                <Text as="h3" size="title" className="mb-2 line-clamp-1">
+                <Text as="h3" className="mb-3 line-clamp-2 min-h-[40px] text-[15px] font-bold leading-tight text-gray-800 group-hover:text-blue-600 transition-colors">
                   {course.tenKhoaHoc}
                 </Text>
 
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <span className="text-[12px] font-bold text-gray-500">
+                <div className="mt-auto flex items-center gap-2 border-t border-gray-50 pt-3">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden ring-2 ring-white shadow-sm">
+                    <span className="text-[10px] font-black text-white">
                       {course.tenGiaSu?.charAt(0) || "G"}
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <Text size="caption" tone="muted">Gia sư</Text>
-                    <Text size="caption" className="font-medium">{course.tenGiaSu || "Đang cập nhật"}</Text>
+                    <Text className="text-[10px] font-bold text-gray-900 truncate max-w-[120px]">{course.tenGiaSu || "Gia sư"}</Text>
+                    <Text className="text-[9px] text-gray-400">Gia sư Chuyên nghiệp</Text>
                   </div>
                 </div>
 
-                {course.moTa && (
-                  <Text size="caption" tone="muted" className="mb-5 line-clamp-2 italic">
-                    {course.moTa}
-                  </Text>
-                )}
-
-                <div className="mt-auto grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
-                  <Link href={`/hoc-vien/booking/${course.idKhoaHoc}`} className="w-full">
-                    <Button
-                      className="w-full h-10 text-sm"
-                      disabled={!isLoggedIn || !isParent}
-                    >
-                      Đặt ngay
+                <div className="mt-4 flex gap-2">
+                  <Link href={`/search/chi-tiet-khoa-hoc/${course.idKhoaHoc}`} className="flex-1">
+                    <Button variant="secondary" className="w-full h-9 text-[12px] font-bold border-none bg-gray-100 hover:bg-blue-600 hover:text-white transition-all">
+                      Chi tiết
                     </Button>
                   </Link>
-                  <Link href={`/search/chi-tiet-khoa-hoc/${course.idKhoaHoc}`}>
-                    <Button variant="secondary" className="w-full h-10 text-sm">
-                      Chi tiết
+                  <Link href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${course.idKhoaHoc}` : `/hoc-vien/booking/${course.idKhoaHoc}`}>
+                    <Button
+                      className="h-9 w-9 p-0 bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                    >
+                      <span className="text-lg">⊕</span>
                     </Button>
                   </Link>
                 </div>

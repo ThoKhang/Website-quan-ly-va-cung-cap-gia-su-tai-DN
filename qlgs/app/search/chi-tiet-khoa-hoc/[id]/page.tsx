@@ -97,265 +97,283 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <main className="page-shell bg-gray-50/50">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+    <main className="page-shell bg-slate-50/50">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
           <Link href="/search">
-            <Button variant="ghost" className="group flex items-center gap-2">
-              <span className="transition-transform group-hover:-translate-x-1">←</span>
-              Quay lại tìm kiếm
+            <Button variant="ghost" className="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors">
+              <span className="text-lg transition-transform group-hover:-translate-x-1">←</span>
+              <span className="text-sm font-medium">Trở về</span>
             </Button>
           </Link>
-          <div className="flex gap-3">
-            {isParent && (
-              <Link href={`/hoc-vien/booking/${idKhoaHoc}`}>
-                <Button className="shadow-lg shadow-blue-500/20">Đặt lớp ngay</Button>
-              </Link>
-            )}
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              className="h-9 text-xs font-bold uppercase tracking-wider"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Đã sao chép liên kết vào bộ nhớ tạm!");
+              }}
+            >
+              Chia sẻ
+            </Button>
+            <Link href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}>
+              <Button className="h-9 bg-blue-600 px-6 text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-500/20">Đăng ký lớp</Button>
+            </Link>
           </div>
         </div>
 
         {error && (
-          <div className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4">
-            <Text size="body" className="text-red-700">
+          <div className="mb-6 rounded-lg border border-red-100 bg-red-50 p-3">
+            <Text className="text-sm text-red-600 font-medium">
               {error}
             </Text>
           </div>
         )}
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Main Content Area: 8 columns */}
+          <div className="lg:col-span-8 space-y-6">
             {/* Hero Section */}
-            <Card className="overflow-hidden border-none bg-white p-0 shadow-sm ring-1 ring-black/5">
-              <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+            <Card className="overflow-hidden border-none bg-white p-0 shadow-sm ring-1 ring-slate-200">
+              <div className="relative aspect-[21/9] w-full overflow-hidden bg-slate-100">
                 <img
                   src={course.anhMinhHoa || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2071&auto=format&fit=crop"}
                   alt={course.tenKhoaHoc}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2071&auto=format&fit=crop";
-                  }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                  <div>
-                    <div className="mb-3 flex gap-2">
-                      <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-6">
+                  <div className="max-w-xl">
+                    <div className="mb-2 flex gap-2">
+                      <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
                         {course.tenMonHoc}
                       </span>
-                      <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
+                      <span className="rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md uppercase tracking-wider">
                         {course.tenLop}
                       </span>
                     </div>
-                    <Text as="h1" size="display" className="text-white drop-shadow-sm">
+                    <Text as="h1" className="text-2xl font-black text-white leading-tight">
                       {course.tenKhoaHoc}
                     </Text>
                   </div>
                 </div>
               </div>
 
-              <div className="p-8">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                  <div className="flex flex-col">
-                    <Text size="caption" tone="muted" className="mb-1 uppercase tracking-wider font-bold">Giá học phí</Text>
-                    <Text size="title" className="text-blue-600 font-bold">{formatCurrency(course.soTienHoc)}</Text>
+              <div className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 border-b border-slate-100 pb-6">
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Học phí</Text>
+                    <Text className="text-lg font-black text-blue-600">{formatCurrency(course.soTienHoc)}</Text>
                   </div>
-                  <div className="flex flex-col">
-                    <Text size="caption" tone="muted" className="mb-1 uppercase tracking-wider font-bold">Thời lượng</Text>
-                    <Text size="title" className="font-bold">{course.soBuoiHoc || 0} buổi</Text>
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thời lượng</Text>
+                    <Text className="text-lg font-black text-slate-700">{course.soBuoiHoc || 0} buổi</Text>
                   </div>
-                  <div className="flex flex-col">
-                    <Text size="caption" tone="muted" className="mb-1 uppercase tracking-wider font-bold">Đánh giá</Text>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-yellow-400">★</span>
-                      <Text size="title" className="font-bold">{course.saoTrungBinh?.toFixed(1) || "5.0"}</Text>
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đánh giá</Text>
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-400 text-sm">★</span>
+                      <Text className="text-lg font-black text-slate-700">{course.saoTrungBinh?.toFixed(1) || "5.0"}</Text>
                     </div>
                   </div>
-                  <div className="flex flex-col">
-                    <Text size="caption" tone="muted" className="mb-1 uppercase tracking-wider font-bold">Học phí / buổi</Text>
-                    <Text size="title" className="text-gray-600 font-bold">
-                      {formatCurrency(course.soTienHoc / (course.soBuoiHoc || 1))}
+                  <div className="space-y-0.5">
+                    <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mỗi buổi</Text>
+                    <Text className="text-lg font-black text-slate-500">
+                      {formatCurrency(course.soTienHoc / (course.soBuoiHoc || 1)).split(' ')[0]}K
                     </Text>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <div>
-                    <Text size="title" className="mb-3 font-bold border-l-4 border-blue-600 pl-4 uppercase tracking-wider text-sm">
-                      Mô tả khóa học
-                    </Text>
-                    <Text size="body" className="leading-relaxed text-gray-700">
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                      <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Mô tả khóa học</Text>
+                    </div>
+                    <Text className="text-sm leading-relaxed text-slate-600">
                       {course.moTa || "Chưa có mô tả chi tiết cho khóa học này."}
                     </Text>
-                  </div>
+                  </section>
 
                   {course.yeuCau && (
-                    <div>
-                      <Text size="title" className="mb-3 font-bold border-l-4 border-blue-600 pl-4 uppercase tracking-wider text-sm">
-                        Yêu cầu đầu vào
-                      </Text>
-                      <Text size="body" className="leading-relaxed text-gray-700">
+                    <section>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                        <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Yêu cầu</Text>
+                      </div>
+                      <Text className="text-sm leading-relaxed text-slate-600">
                         {course.yeuCau}
                       </Text>
-                    </div>
+                    </section>
                   )}
 
                   {course.noiDungKhoaHoc && (
-                    <div>
-                      <Text size="title" className="mb-3 font-bold border-l-4 border-blue-600 pl-4 uppercase tracking-wider text-sm">
-                        Nội dung giảng dạy
-                      </Text>
-                      <Text size="body" className="leading-relaxed text-gray-700 whitespace-pre-line">
-                        {course.noiDungKhoaHoc}
-                      </Text>
-                    </div>
+                    <section>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-1 w-4 bg-blue-600 rounded"></div>
+                        <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Nội dung học</Text>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
+                        <Text className="text-sm leading-relaxed text-slate-600 whitespace-pre-line">
+                          {course.noiDungKhoaHoc}
+                        </Text>
+                      </div>
+                    </section>
                   )}
                 </div>
               </div>
             </Card>
 
             {/* Reviews Section */}
-            <Card className="border-none bg-white p-8 shadow-sm ring-1 ring-black/5">
-              <div className="mb-8 flex items-center justify-between">
-                <Text size="title" className="font-bold uppercase tracking-wider text-sm border-l-4 border-yellow-500 pl-4">
-                  Đánh giá từ phụ huynh
-                </Text>
-                <div className="flex items-center gap-2 rounded-full bg-yellow-50 px-4 py-1.5 text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
-                  <span className="text-sm font-bold">{course.saoTrungBinh?.toFixed(1) || "5.0"}</span>
-                  <span className="text-yellow-400">★</span>
+            <Card className="border-none bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-4 bg-yellow-500 rounded"></div>
+                  <Text className="text-xs font-black uppercase tracking-widest text-slate-800">Phản hồi từ học viên</Text>
+                </div>
+                <div className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                  {(course as any).danhGias?.length || 0} ĐÁNH GIÁ
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {(course as any).danhGias && (course as any).danhGias.length > 0 ? (
                   (course as any).danhGias.map((dg: any) => (
-                    <div key={dg.idDanhGia} className="flex gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 transition-colors hover:bg-white hover:shadow-md">
-                      <div className="h-12 w-12 flex-shrink-0 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-                        {dg.anhDaiDien ? (
-                          <img src={dg.anhDaiDien} alt={dg.tenPhuHuynh} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-lg font-bold text-blue-600">{dg.tenPhuHuynh?.charAt(0) || "P"}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Text size="bodyStrong">{dg.tenPhuHuynh || "Phụ huynh ẩn danh"}</Text>
-                          <Text size="caption" tone="muted">
-                            {new Date(dg.ngayDanhGia).toLocaleDateString("vi-VN")}
-                          </Text>
+                    <div key={dg.idDanhGia} className="flex flex-col gap-3 p-4 rounded-xl bg-slate-50/50 border border-slate-100 ">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 flex-shrink-0 rounded-full bg-white shadow-sm flex items-center justify-center overflow-hidden border border-slate-200">
+                          {dg.anhDaiDien ? (
+                            <img src={dg.anhDaiDien} alt={dg.tenPhuHuynh} className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold text-blue-600">{dg.tenPhuHuynh?.charAt(0) || "P"}</span>
+                          )}
                         </div>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <span key={i} className={`text-sm ${i < dg.soSao ? "text-yellow-400" : "text-gray-300"}`}>★</span>
-                          ))}
+                        <div className="flex-1 min-w-0">
+                          <Text className="text-xs font-bold text-slate-800 truncate block">{dg.tenPhuHuynh || "Ẩn danh"}</Text>
+                          <div className="flex gap-0.5 mt-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`text-[10px] ${i < dg.soSao ? "text-yellow-400" : "text-slate-300"}`}>★</span>
+                            ))}
+                          </div>
                         </div>
-                        <Text size="body" className="text-gray-600 italic">"{dg.noiDung}"</Text>
+                        <Text className="text-[9px] text-slate-400 font-medium">
+                          {new Date(dg.ngayDanhGia).toLocaleDateString("vi-VN")}
+                        </Text>
                       </div>
+                      <Text className="text-xs text-slate-600 italic line-clamp-3">"{dg.noiDung}"</Text>
                     </div>
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="mb-3 text-4xl text-gray-200">💬</div>
-                    <Text tone="muted">Chưa có đánh giá nào cho khóa học này.</Text>
+                  <div className="col-span-full flex flex-col items-center justify-center py-10 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <Text className="text-sm text-slate-400">Chưa có đánh giá nào cho khóa học này.</Text>
                   </div>
                 )}
               </div>
             </Card>
           </div>
 
-          {/* Sidebar Area */}
-          <div className="space-y-8">
-            {/* Tutor Profile Card */}
-            {tutor && (
-              <Card className="border-none bg-white p-6 shadow-lg ring-1 ring-black/5">
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative mb-4 h-24 w-24 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 p-1">
-                    <div className="h-full w-full rounded-full bg-white p-1 overflow-hidden">
+          {/* Sidebar Area: 4 columns */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Sticky Booking Card */}
+            <div className="sticky top-6">
+              <Card className="border-none bg-white p-5 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200 overflow-hidden rounded-2xl">
+                <div className="mb-5">
+                  <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Khóa học cam kết</Text>
+                  <div className="flex items-baseline gap-1">
+                    <Text className="text-2xl font-black text-blue-600">{formatCurrency(course.soTienHoc)}</Text>
+                    <Text className="text-[10px] text-slate-400 font-bold">/ trọn gói</Text>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  {['Học 1-1 Chuyên nghiệp', 'Tương tác trực tiếp', 'Cam kết đầu ra'].map((txt, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg">
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] text-blue-600 font-black">✓</span>
+                      <span>{txt}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Link
+                    href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}
+                    className="block w-full"
+                  >
+                    <Button className="w-full h-11 bg-blue-600 text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-[1.02]">
+                      {isLoggedIn ? "Đăng ký học ngay" : "Đăng nhập để đăng ký"}
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-11 text-xs font-bold text-slate-500 hover:text-blue-600 border border-slate-100"
+                    onClick={() => alert("Gia sư sẽ liên hệ với bạn trong vòng 24h để tư vấn miễn phí!")}
+                  >
+                    Tư vấn miễn phí
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Tutor Profile Card */}
+              {tutor && (
+                <Card className="mt-6 border-none bg-white p-5 shadow-sm ring-1 ring-slate-200 rounded-2xl">
+                  <div className="flex items-center gap-3 mb-5 border-b border-slate-50 pb-5">
+                    <div className="h-10 w-10 shrink-0 rounded-full ring-2 ring-blue-50">
                       <img
                         src={tutor.anhDaiDien || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.tenGiaSu)}&background=random`}
                         alt={tutor.tenGiaSu}
                         className="h-full w-full rounded-full object-cover"
                       />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1.5 border-4 border-white"></div>
-                  </div>
-
-                  <Text as="h3" size="title" className="font-bold">{tutor.tenGiaSu}</Text>
-                  <Text size="caption" tone="muted" className="mb-4">Gia sư Chuyên nghiệp</Text>
-
-                  <div className="w-full grid grid-cols-2 gap-4 mb-6">
-                    <div className="rounded-xl bg-gray-50 p-3">
-                      <Text size="caption" tone="muted" className="mb-1 block">Khóa học</Text>
-                      <Text className="font-bold">{tutor.soLuongKhoaHoc || 0}</Text>
-                    </div>
-                    <div className="rounded-xl bg-gray-50 p-3">
-                      <Text size="caption" tone="muted" className="mb-1 block">Đánh giá</Text>
-                      <Text className="font-bold">{tutor.soSaoTrungBinh?.toFixed(1) || "5.0"} ★</Text>
+                    <div>
+                      <Text className="text-xs font-black text-slate-800 block truncate max-w-[150px]">{tutor.tenGiaSu}</Text>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-yellow-400 text-[10px]">★</span>
+                        <Text className="text-[10px] font-black text-slate-600">{tutor.soSaoTrungBinh?.toFixed(1) || "5.0"}</Text>
+                        <Text className="text-[9px] font-bold text-slate-300">({tutor.soLuongDanhGia || 0})</Text>
+                      </div>
                     </div>
                   </div>
 
-                  {tutor.bangCap && (
-                    <div className="mb-6 w-full text-left rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-                      <Text size="caption" tone="primary" className="mb-1 uppercase tracking-wider font-bold text-[10px]">
-                        Chứng chỉ/Bằng cấp
-                      </Text>
-                      <Text size="caption" className="font-medium text-blue-900">{tutor.bangCap.tenBangCap}</Text>
+                  {tutor.khoaHocs && tutor.khoaHocs.length > 1 && (
+                    <div className="space-y-3">
+                      <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Khóa học khác</Text>
+                      <div className="grid gap-2">
+                        {tutor.khoaHocs.filter(kh => kh.idKhoaHoc !== idKhoaHoc).slice(0, 3).map((kh) => (
+                          <Link key={kh.idKhoaHoc} href={`/search/chi-tiet-khoa-hoc/${kh.idKhoaHoc}`} className="group p-2 rounded-lg bg-slate-50/50 hover:bg-blue-50/50 transition-colors border border-slate-100 hover:border-blue-100">
+                            <Text className="text-[11px] font-bold text-slate-700 block truncate group-hover:text-blue-700">{kh.tenKhoaHoc}</Text>
+                            <div className="flex justify-between items-center mt-1">
+                              <Text className="text-[9px] text-slate-400">{kh.tenMonHoc} · {kh.tenLop}</Text>
+                              <Text className="text-[10px] font-black text-blue-600">{formatCurrency(kh.soTienHoc).split(' ')[0]}K</Text>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  <div className="w-full space-y-3">
-                    <Button variant="secondary" className="w-full">Xem hồ sơ đầy đủ</Button>
-                    <Link href={`/search/gia-su/${tutor.idGiaSu}`} className="block w-full text-sm font-medium text-blue-600 hover:text-blue-700">
-                      Gửi tin nhắn riêng
-                    </Link>
-                  </div>
-                </div>
-              </Card>
-            )}
+                  <Link href={`/search/gia-su/${tutor.idGiaSu}`} className="mt-4 block text-[10px] font-black text-center text-slate-400 hover:text-blue-600 uppercase tracking-wider transition-colors">
+                    Xem hồ sơ gia sư →
+                  </Link>
+                </Card>
+              )}
 
-            {/* Other Courses Card */}
-            {tutor && tutor.khoaHocs && tutor.khoaHocs.length > 1 && (
-              <Card className="border-none bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <Text size="title" className="mb-6 font-bold uppercase tracking-wider text-xs border-l-4 border-indigo-600 pl-4">
-                  Khóa học khác của gia sư
-                </Text>
-                <div className="space-y-4">
-                  {tutor.khoaHocs.filter(kh => kh.idKhoaHoc !== idKhoaHoc).slice(0, 3).map((kh) => (
-                    <Link key={kh.idKhoaHoc} href={`/search/chi-tiet-khoa-hoc/${kh.idKhoaHoc}`} className="group block space-y-1">
-                      <Text size="bodyStrong" className="group-hover:text-blue-600 transition-colors line-clamp-1">{kh.tenKhoaHoc}</Text>
-                      <div className="flex items-center justify-between">
-                        <Text size="caption" tone="muted">{kh.tenMonHoc} · {kh.tenLop}</Text>
-                        <Text size="caption" className="font-bold text-gray-700">{formatCurrency(kh.soTienHoc)}</Text>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* Schedule Card */}
-            {tutor && tutor.lichRanh && tutor.lichRanh.length > 0 && (
-              <Card className="border-none bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <Text size="title" className="mb-6 font-bold uppercase tracking-wider text-xs border-l-4 border-green-600 pl-4">
-                  Lịch dạy khả dụng
-                </Text>
-                <div className="space-y-3">
-                  {tutor.lichRanh.map((lich) => (
-                    <div key={lich.idLichDay} className="flex items-center justify-between text-sm p-2 rounded-lg bg-gray-50 border border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[10px] font-bold shadow-sm">
+              {/* Schedule Card */}
+              {tutor && tutor.lichRanh && tutor.lichRanh.length > 0 && (
+                <Card className="mt-6 border-none bg-white p-5 shadow-sm ring-1 ring-slate-200 rounded-2xl">
+                  <Text className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-4">Lịch dạy sẵn có</Text>
+                  <div className="grid grid-cols-2 gap-2">
+                    {tutor.lichRanh.map((lich) => (
+                      <div key={lich.idLichDay} className="flex items-center gap-2 p-1.5 rounded bg-slate-50 border border-slate-100">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white text-[9px] font-black shadow-sm text-slate-600 border border-slate-200 uppercase">
                           {lich.tietHoc.thu.replace("Thứ ", "T")}
                         </span>
-                        <span>{lich.tietHoc.gioBatDau.substring(0, 5)} - {lich.tietHoc.gioKetThuc.substring(0, 5)}</span>
+                        <span className="text-[9px] font-bold text-slate-500 whitespace-nowrap">{lich.tietHoc.gioBatDau.substring(0, 5)}</span>
                       </div>
-                      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full ring-1 ring-inset ring-green-600/20">
-                        SẴN SÀNG
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>
