@@ -318,6 +318,11 @@ public class GiaSuService {
             GiaSu giaSuMoi = new GiaSu();
             giaSuMoi.setIdGiaSu(generateNextIdGiaSu()); 
             giaSuMoi.setTaiKhoan(taiKhoan);
+            // ✅ THÊM CÁC FIELD CÒN THIẾU
+            giaSuMoi.setNgay(LocalDateTime.now());
+            giaSuMoi.setTrangThai(1);
+            giaSuMoi.setHeSoLuong(0.75);
+            giaSuMoi.setLuongHienCon(0.0);
             giaSu = giaSuRepository.save(giaSuMoi);
         } else {
             giaSu = giaSuOpt.get();

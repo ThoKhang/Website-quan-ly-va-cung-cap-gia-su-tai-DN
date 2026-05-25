@@ -25,8 +25,15 @@ public class GiaSu {
     @Column(name = "CCCD", length = 20)
     private String cccd;
 
+    @Column(name = "ngay")
     private LocalDateTime ngay;
+
+    @Column(name = "trangThai")
     private Integer trangThai;
+
+    @Column(name = "heSoLuong")
     private Double heSoLuong;
+
+    @Column(name = "luongHienCon")
     private Double luongHienCon;
 }
