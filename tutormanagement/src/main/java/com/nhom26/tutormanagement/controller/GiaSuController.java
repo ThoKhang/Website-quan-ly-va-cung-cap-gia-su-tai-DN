@@ -141,5 +141,24 @@ public class GiaSuController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+    @GetMapping("/don-gia-han/cho-duyet")
+    @PreAuthorize("hasAuthority('ROLE_2')")
+    public ResponseEntity<?> layDonGiaHanChoDuyet() {
+        return ResponseEntity.ok(giaSuService.layDonGiaHanChoDuyet());
+    }
+
+    @PutMapping("/don-gia-han/{idGiaHan}/xu-ly")
+    @PreAuthorize("hasAuthority('ROLE_2')")
+    public ResponseEntity<String> xuLyDonGiaHan(@PathVariable String idGiaHan, @RequestParam boolean isDongY) {
+        try {
+            return ResponseEntity.ok(giaSuService.xuLyDonGiaHan(idGiaHan, isDongY));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping("/lop-dang-day")
+    @PreAuthorize("hasAuthority('ROLE_2')")
+    public ResponseEntity<?> layLopDangDay() {
+        return ResponseEntity.ok(giaSuService.layLopDangDayCuaGiaSu());
+    }
 }

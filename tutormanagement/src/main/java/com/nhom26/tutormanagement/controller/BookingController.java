@@ -34,4 +34,20 @@ public class BookingController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    // Thêm vào BookingController.java
+    @PostMapping("/xac-nhan-thanh-toan/{idDangKy}")
+    @PreAuthorize("hasAuthority('ROLE_1')") 
+    public ResponseEntity<?> xacNhanThanhToanLanDau(@PathVariable String idDangKy) {
+        try {
+            // Hứng kết quả từ BookingService
+            String message = bookingService.xacNhanThanhToanLanDau(idDangKy);
+            
+            // TRẢ VỀ JSON CÓ CHỨA MESSAGE
+            return ResponseEntity.ok(Map.of("message", message));
+            
+        } catch (RuntimeException e) {
+            // Trả về lỗi rõ ràng để React hiển thị màu đỏ
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

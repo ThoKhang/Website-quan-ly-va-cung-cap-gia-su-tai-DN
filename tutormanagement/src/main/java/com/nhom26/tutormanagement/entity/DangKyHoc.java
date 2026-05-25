@@ -38,7 +38,4 @@ public class DangKyHoc {
     @Column(name = "ngayKetThucDuKien")
     private LocalDate ngayKetThucDuKien; // Ngày kết thúc dự kiến (tính từ ngayBatDauHoc + số buổi học)
     
-    @Column(name = "ngayGiaHan")
-    private LocalDate ngayGiaHan; // Ngày gia hạn (nếu có)
-    
 }

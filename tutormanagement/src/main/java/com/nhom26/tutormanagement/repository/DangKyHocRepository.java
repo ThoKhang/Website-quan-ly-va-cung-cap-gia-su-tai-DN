@@ -33,4 +33,5 @@ public interface DangKyHocRepository extends JpaRepository<DangKyHoc, String> {
             "GROUP BY MONTH(ngayDangKy) " +
             "ORDER BY MONTH(ngayDangKy)", nativeQuery = true)
     List<Object[]> thongKeDangKyTheoThang(@Param("year") int year);
+    List<DangKyHoc> findByKhoaHoc_GiaSu_IdGiaSu(String idGiaSu);
 }

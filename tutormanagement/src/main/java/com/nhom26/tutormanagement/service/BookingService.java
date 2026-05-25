@@ -24,19 +24,25 @@ public class BookingService {
     private final PhuHuynhRepository phuHuynhRepository;
     private final HocVienRepository hocVienRepository;
     private final KhoaHocRepository khoaHocRepository;
-
+    private final GiaSuRepository giaSuRepository;
+    // ✅ BookingService
     private String generateNextIdDangKy() {
         String maxId = dangKyHocRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) return "DK00001";
-        return String.format("DK%05d", Integer.parseInt(maxId.trim().substring(2)) + 1);
+        return String.format("DK%05d", Long.parseLong(maxId.trim().substring(2)) + 1);
     }
 
     private int getCurrentMaxLichHocNumber() {
         String maxId = chiTietLichHocRepository.findMaxId();
         if (maxId == null || maxId.trim().isEmpty()) return 0;
-        return Integer.parseInt(maxId.trim().substring(2));
+        return (int) Long.parseLong(maxId.trim().substring(2)); // cast về int sau khi parse
     }
 
+    private String generateNextIdThanhToan() {
+        String maxId = lichSuThanhToanRepository.findMaxId();
+        if (maxId == null || maxId.trim().isEmpty()) return "TT00001";
+        return String.format("TT%05d", Long.parseLong(maxId.trim().substring(2)) + 1);
+    }
     // HÀM HỖ TRỢ: Chuyển đổi chuỗi "Thứ 2", "Chủ nhật"... thành số nguyên 1 -> 7 (DayOfWeek của Java)
     private int convertThuToDayOfWeek(String thuStr) {
         if (thuStr == null) return -1;
@@ -132,42 +138,60 @@ public class BookingService {
                 throw new RuntimeException("LỖI DỮ LIỆU: Cột 'thu' trong Tiết học không hợp lệ (" + lichDay.getTietHoc().getThu() + ")!");
             }
         }
-
-        // 4. Rải lịch học tự động
         int soBuoiToiDa = khoaHoc.getSoBuoiHoc();
         int soBuoiDaTao = 0;
         int currentLHNumber = getCurrentMaxLichHocNumber();
-        
-        // Khởi tạo ngày chạy bằng LocalDate
         LocalDate ngayChay = ngayBatDau;
-
         while (soBuoiDaTao < soBuoiToiDa) {
-            // Java trả về thứ 2 = 1, thứ 3 = 2, CN = 7
             int currentThu = ngayChay.getDayOfWeek().getValue();
-
             if (thuToLichDayMap.containsKey(currentThu)) {
                 LichDay lichDayHomNay = thuToLichDayMap.get(currentThu);
-
                 currentLHNumber++;
                 ChiTietLichHoc chiTiet = new ChiTietLichHoc();
                 chiTiet.setIdLichHoc(String.format("LH%05d", currentLHNumber));
                 chiTiet.setDangKyHoc(dangKy);
                 chiTiet.setLichDay(lichDayHomNay);
                 chiTiet.setTinhTrang("Chưa bắt đầu");
-                
-                // TUYỆT ĐỈNH: Ghép Ngày (LocalDate) + Giờ (LocalTime lấy từ TietHoc) -> LocalDateTime
                 LocalTime gioBatDauTietHoc = lichDayHomNay.getTietHoc().getGioBatDau().toLocalTime();
                 LocalDateTime thoiGianHocChinhXac = LocalDateTime.of(ngayChay, gioBatDauTietHoc);
-                
                 chiTiet.setNgayHoc(thoiGianHocChinhXac); 
-                
                 chiTietLichHocRepository.save(chiTiet);
                 soBuoiDaTao++;
             }
-            // Tịnh tiến lên 1 ngày để kiểm tra tiếp
-            ngayChay = ngayChay.plusDays(1);
+            if (soBuoiDaTao < soBuoiToiDa) {
+                ngayChay = ngayChay.plusDays(1);
+            }
         }
-
+        dangKy.setNgayKetThucDuKien(ngayChay);
+        dangKyHocRepository.save(dangKy); 
+        // Sau dangKyHocRepository.save(dangKy) cuối cùng
+        LichSuThanhToan lichSuThanhToan = new LichSuThanhToan();
+        lichSuThanhToan.setIdThanhToan(generateNextIdThanhToan());
+        lichSuThanhToan.setSoTien(khoaHoc.getSoTienHoc());
+        lichSuThanhToan.setTrangThai("Đã thanh toán");
+        lichSuThanhToan.setNgayThanhToan(LocalDateTime.now());
+        lichSuThanhToan.setPhuongThucThanhToan("Chuyển khoản");
+        lichSuThanhToan.setDangKyHoc(dangKy);
+        lichSuThanhToanRepository.save(lichSuThanhToan);
+        // Cập nhật luongHienCon cho gia sư
+        GiaSu giaSu = khoaHoc.getGiaSu();
+        double tienKhoaHoc = khoaHoc.getSoTienHoc().doubleValue();
+        double tienGiaSuNhan = tienKhoaHoc * giaSu.getHeSoLuong();
+        giaSu.setLuongHienCon(giaSu.getLuongHienCon() + tienGiaSuNhan);
+        giaSuRepository.save(giaSu);
         return dangKy;
     }
+    @Transactional(rollbackFor = Exception.class)
+    public String xacNhanThanhToanLanDau(String idDangKy) {
+        DangKyHoc dangKy = dangKyHocRepository.findById(idDangKy)
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy đơn đăng ký học này!"));
+        if (dangKy.getTrangThaiThanhToan() != null && dangKy.getTrangThaiThanhToan()) {
+            throw new RuntimeException("LỖI: Khóa học này đã được thanh toán và kích hoạt rồi!");
+        }
+        dangKy.setTrangThaiThanhToan(true);
+        dangKyHocRepository.save(dangKy);
+        return "Thanh toán thành công! Khóa học đã chính thức bắt đầu.";
+    }
+    // Inject thêm vào BookingService
+    private final LichSuThanhToanRepository lichSuThanhToanRepository;
 }
