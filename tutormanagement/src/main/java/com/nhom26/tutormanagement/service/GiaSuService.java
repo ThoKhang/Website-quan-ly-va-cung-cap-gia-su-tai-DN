@@ -5,13 +5,16 @@ import com.nhom26.tutormanagement.dto.BangCapRequestDTO;
 import com.nhom26.tutormanagement.dto.DangKyLichRanhRequestDTO;
 import com.nhom26.tutormanagement.dto.GiaSuDetailResponseDTO;
 import com.nhom26.tutormanagement.dto.GiaSuRequestDTO;
+import com.nhom26.tutormanagement.dto.KhoaHocResponseDTO;
 import com.nhom26.tutormanagement.dto.LichRanhDTO;
 import com.nhom26.tutormanagement.dto.LopDangDayDTO;
 import com.nhom26.tutormanagement.dto.YeuCauGiaHanDTO;
 import com.nhom26.tutormanagement.entity.BangCap;
 import com.nhom26.tutormanagement.entity.ChiTietLichHoc;
 import com.nhom26.tutormanagement.entity.DangKyHoc;
+import com.nhom26.tutormanagement.entity.DanhGia;
 import com.nhom26.tutormanagement.entity.GiaSu;
+import com.nhom26.tutormanagement.entity.KhoaHoc;
 import com.nhom26.tutormanagement.entity.LichDay;
 import com.nhom26.tutormanagement.entity.LichSuThanhToan;
 import com.nhom26.tutormanagement.entity.TaiKhoan;
@@ -22,6 +25,7 @@ import com.nhom26.tutormanagement.repository.ChiTietLichHocRepository;
 import com.nhom26.tutormanagement.repository.DangKyHocRepository;
 import com.nhom26.tutormanagement.repository.DanhGiaRepository;
 import com.nhom26.tutormanagement.repository.GiaSuRepository;
+import com.nhom26.tutormanagement.repository.KhoaHocRepository;
 import com.nhom26.tutormanagement.repository.LichDayRepository;
 import com.nhom26.tutormanagement.repository.LichSuThanhToanRepository;
 import com.nhom26.tutormanagement.repository.TaiKhoanRepository;
@@ -35,7 +39,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,6 +59,8 @@ public class GiaSuService {
     private final LichSuThanhToanRepository lichSuThanhToanRepository;
     private final DangKyHocRepository dangKyHocRepository; // Đã bổ sung repository này
     private final ChiTietLichHocRepository chiTietLichHocRepository;
+    private final KhoaHocService khoaHocService;
+    private final KhoaHocRepository khoaHocRepository;
     // ==========================================
     // 1. LẤY LỊCH RẢNH CỦA GIA SƯ
     // ==========================================
@@ -462,5 +470,25 @@ public class GiaSuService {
             yeuCauGiaHanRepository.save(don);
             return "Đã từ chối đơn gia hạn.";
         }
+    }
+    public List<KhoaHocResponseDTO> layKhoaHocCuaGiaSu(String idGiaSu) {
+        List<KhoaHoc> khoaHocs = khoaHocRepository.findByGiaSu_IdGiaSuAndTinhTrang(idGiaSu, 1);
+        
+        return khoaHocs.stream()
+                .map(khoaHocService::mapToResponseDTO) // Tận dụng lại hàm chuyển đổi DTO
+                .collect(Collectors.toList());
+    }
+    public List<Map<String, Object>> layDanhGiaCuaGiaSu(String idGiaSu) {
+        List<DanhGia> danhGias = danhGiaRepository.findByDangKyHoc_KhoaHoc_GiaSu_IdGiaSuOrderByNgayDanhGiaDesc(idGiaSu);
+        
+        return danhGias.stream().map(dg -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("idDanhGia", dg.getIdDanhGia());
+            map.put("tenPhuHuynh", dg.getDangKyHoc().getPhuHuynh().getTenPhuHuynh()); 
+            map.put("soSao", dg.getSoSao());
+            map.put("noiDung", dg.getNoiDung());
+            map.put("ngayDanhGia", dg.getNgayDanhGia());
+            return map;
+        }).collect(Collectors.toList());
     }
 }

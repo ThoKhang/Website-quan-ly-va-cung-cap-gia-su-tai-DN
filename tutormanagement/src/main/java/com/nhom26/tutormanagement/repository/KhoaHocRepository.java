@@ -45,4 +45,7 @@ public interface KhoaHocRepository extends JpaRepository<KhoaHoc, String> {
 
     @Query("SELECT kh FROM KhoaHoc kh WHERE kh.giaSu.idGiaSu = :idGiaSu ORDER BY kh.idKhoaHoc DESC")
     List<KhoaHoc> findByGiaSu_IdGiaSu(@Param("idGiaSu") String idGiaSu);
+    
+    // Tìm các khóa học ĐÃ ĐƯỢC DUYỆT (tinhTrang = 1) của một Gia sư cụ thể
+    List<KhoaHoc> findByGiaSu_IdGiaSuAndTinhTrang(String idGiaSu, Integer tinhTrang);
 }

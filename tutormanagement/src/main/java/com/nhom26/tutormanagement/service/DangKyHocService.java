@@ -270,20 +270,24 @@ public class DangKyHocService {
     @Transactional
     public String huyYeuCauGiaHan(String idGiaHan) {
         YeuCauGiaHan don = yeuCauGiaHanRepository.findById(idGiaHan)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn!"));
-
-        if (!don.getTrangThaiDuyet().equals("Chờ thanh toán")) {
-            throw new RuntimeException("Chỉ có thể hủy đơn đang chờ thanh toán!");
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn yêu cầu gia hạn này!"));
+        String trangThai = don.getTrangThaiDuyet();
+        // Chỉ cho phép hủy khi đang Chờ duyệt, Đã duyệt hoặc Chờ thanh toán
+        if (!trangThai.equals("Chờ duyệt") && !trangThai.equals("Chờ thanh toán") && !trangThai.equals("Đã duyệt")) {
+            throw new RuntimeException("Không thể hủy yêu cầu gia hạn ở trạng thái này!");
+        }
+        // Nếu đơn ĐÃ ĐƯỢC GIA SƯ DUYỆT (tức là khóa học đang bị khóa chờ tiền)
+        // Chúng ta phải khôi phục lại trạng thái thanh toán = true để học viên học tiếp bình thường
+        if (trangThai.equals("Chờ thanh toán") || trangThai.equals("Đã duyệt")) {
+            DangKyHoc dk = don.getDangKyHoc();
+            dk.setTrangThaiThanhToan(true);
+            dangKyHocRepository.save(dk);
         }
 
-        // Khôi phục trạng thái thanh toán
-        DangKyHoc dk = don.getDangKyHoc();
-        dk.setTrangThaiThanhToan(true);
-        dangKyHocRepository.save(dk);
-
+        // Đổi trạng thái thành Đã hủy (hoặc bạn có thể dùng yeuCauGiaHanRepository.delete(don) để xóa hẳn)
         don.setTrangThaiDuyet("Đã hủy");
         yeuCauGiaHanRepository.save(don);
 
-        return "Đã hủy yêu cầu gia hạn.";
+        return "Đã hủy yêu cầu gia hạn thành công!";
     }
 }

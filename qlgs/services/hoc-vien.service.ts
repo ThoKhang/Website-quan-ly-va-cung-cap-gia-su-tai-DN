@@ -271,5 +271,18 @@ export const hocVienService = {
       return null;
     }
   },
+  // ── HỦY GIA HẠN TỪ BADGE ──
+  huyYeuCauGiaHan: async (idGiaHan: string) => {
+    // Gọi phương thức DELETE
+    return await axiosClient.delete(`/dang-ky-hoc/gia-han/${idGiaHan}/huy`);
+  },
+  // Lấy các khóa học của gia sư
+  getTutorCourses: async (idGiaSu: string): Promise<any[]> => {
+    return await axiosClient.get(`/gia-su/${idGiaSu}/khoa-hoc`);
+  },
 
+  // Lấy các đánh giá về gia sư
+  getTutorReviews: async (idGiaSu: string): Promise<any[]> => {
+    return await axiosClient.get(`/gia-su/${idGiaSu}/danh-gia`);
+  },
 };

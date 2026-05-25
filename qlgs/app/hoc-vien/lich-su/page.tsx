@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/auth.store";
 import {
   BookOpen, Clock, X, CreditCard, Loader2, GraduationCap,
   CalendarDays, ChevronRight, Star, AlertTriangle, CheckCircle2,
-  PlayCircle, RefreshCcw, TrendingUp, XCircle, Hourglass
+  PlayCircle, RefreshCcw, TrendingUp, XCircle, Hourglass, Home
 } from "lucide-react";
 import { PAYMENT_CONFIG } from "@/config/payment.config";
 
@@ -76,7 +76,6 @@ function GiaHanBadge({ trangThai, soBuoi, onThanhToan }: {
   return null;
 }
 
-// Màu theo tab
 const TAB_COLORS = {
   dang_hoc:   { bg:"#EAF3DE", text:"#3B6D11", dot:"#639922", bar:"#639922", active:"#3B6D11" },
   chua_bt:    { bg:"#FAEEDA", text:"#854F0B", dot:"#BA7517", bar:"#BA7517", active:"#854F0B" },
@@ -126,7 +125,6 @@ export default function BookingHistoryPage() {
     finally { setLoading(false); }
   };
 
-  // ── PHÂN LOẠI ĐÃ SỬA ──
   const chuaThanhToan = bookings.filter(b =>
     b.trangThaiThanhToan === false && !b.trangThaiGiaHan
   );
@@ -142,9 +140,9 @@ export default function BookingHistoryPage() {
   const daHoanThanh = bookings.filter(b => b.trangThaiThanhToan !== false && getStatus(b) === "Đã hoàn thành");
 
   const tabConfig = [
-    { key:"dang_hoc"   as const, label:"Đang học",      count:dangHoc.length,    icon:PlayCircle   },
-    { key:"chua_bt"    as const, label:"Chưa bắt đầu",  count:chuaBatDau.length, icon:Clock        },
-    { key:"hoan_thanh" as const, label:"Hoàn thành",    count:daHoanThanh.length,icon:CheckCircle2 },
+    { key:"dang_hoc"   as const, label:"Đang học",     count:dangHoc.length,    icon:PlayCircle   },
+    { key:"chua_bt"    as const, label:"Chưa bắt đầu", count:chuaBatDau.length, icon:Clock        },
+    { key:"hoan_thanh" as const, label:"Hoàn thành",   count:daHoanThanh.length,icon:CheckCircle2 },
   ];
   const displayed = tab==="dang_hoc" ? dangHoc : tab==="chua_bt" ? chuaBatDau : daHoanThanh;
 
@@ -217,7 +215,6 @@ export default function BookingHistoryPage() {
     finally { setPayExtSubmit(false); }
   };
 
-  // ── HỦY GIA HẠN TỪ BADGE ──
   const huyGiaHanFromBadge = async () => {
     if (!payExtBook?.idYeuCauGiaHan) return;
     try {
@@ -243,6 +240,39 @@ export default function BookingHistoryPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+
+      {/* ══════════════════════════════════
+          HERO BANNER — khớp SearchPage
+      ══════════════════════════════════ */}
+      <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 w-full pt-5 pb-10 relative overflow-hidden">
+        {/* Hiệu ứng orb nền */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
+
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center text-sm font-medium text-blue-200/70 mb-4">
+            <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5">
+              <Home size={14} /> Trang chủ
+            </Link>
+         
+            <ChevronRight size={14} className="mx-2 flex-shrink-0" />
+            <span className="text-white font-semibold">Lịch sử đăng ký</span>
+          </nav>
+
+          {/* Tiêu đề + mô tả */}
+          <h1 className="text-2xl md:text-3xl font-black text-white mb-2">
+            Hồ sơ học tập của bạn
+          </h1>
+          <p className="text-blue-200 text-sm font-medium max-w-xl">
+            Theo dõi tiến độ, quản lý lịch học và gia hạn các khóa học đang tham gia.
+          </p>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════
+          NỘI DUNG CHÍNH
+      ══════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-4 py-8 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-6 items-start">
 
@@ -256,7 +286,7 @@ export default function BookingHistoryPage() {
                   <GraduationCap size={20} style={{color:"#0F6E56"}}/>
                 </div>
                 <div>
-                  <h1 className="text-sm font-medium text-slate-900">Hồ sơ học tập</h1>
+                  <h2 className="text-sm font-medium text-slate-900">Tổng quan</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Quản lý khóa học của bạn</p>
                 </div>
               </div>
