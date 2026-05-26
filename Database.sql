@@ -477,40 +477,36 @@ INSERT INTO HocVien (idHocVien, tenHocVien, gioiTinh, CCCD, ngaySinh, idPhuHuynh
 ('HV00004', N'Nguyễn Thị Hoa', 0, '123456789004', '2010-11-25', 'PH00004'),
 ('HV00005', N'Đỗ Văn Minh', 1, '123456789005', '2008-07-12', 'PH00005');
 -- 7. INSERT DỮ LIỆU VÀO BẢNG DangKyHoc
-INSERT INTO DangKyHoc (idDangKy, idPhuHuynh, idHocVien, idKhoaHoc, ngayDangKy, loaiDangKy, trangThaiThanhToan, trangThaiHoanThanh, ngayBatDauHoc) VALUES
-('DK00001', 'PH00001', 'HV00001', 'KH00001', '2024-01-10', N'Đăng ký', 1, 0, '2024-01-15'),
-('DK00002', 'PH00001', 'HV00001', 'KH00002', '2024-02-10', N'Đăng ký', 1, 0, '2024-02-15'),
-('DK00003', 'PH00002', 'HV00002', 'KH00004', '2024-01-12', N'Đăng ký', 1, 0, '2024-01-17'),
-('DK00004', 'PH00002', 'HV00002', 'KH00005', '2024-02-12', N'Đăng ký', 1, 0, '2024-02-17'),
-('DK00005', 'PH00003', 'HV00003', 'KH00008', '2024-01-14', N'Đăng ký', 1, 0, '2024-01-19'),
-('DK00006', 'PH00003', 'HV00003', 'KH00009', '2024-02-14', N'Đăng ký', 1, 0, '2024-02-19'),
-('DK00007', 'PH00004', 'HV00004', 'KH00011', '2024-01-16', N'Đăng ký', 1, 0, '2024-01-21'),
-('DK00008', 'PH00004', 'HV00004', 'KH00012', '2024-02-16', N'Đăng ký', 1, 0, '2024-02-21'),
-('DK00009', 'PH00005', 'HV00005', 'KH00013', '2024-01-18', N'Đăng ký', 1, 0, '2024-01-23'),
-('DK00010', 'PH00005', 'HV00005', 'KH00014', '2024-02-18', N'Đăng ký', 1, 0, '2024-02-23');
-
+INSERT INTO DangKyHoc (idDangKy, idPhuHuynh, idHocVien, idKhoaHoc, ngayDangKy, loaiDangKy, trangThaiThanhToan, trangThaiHoanThanh, ngayBatDauHoc, ngayKetThucDuKien) VALUES
+('DK00001', 'PH00001', 'HV00001', 'KH00001', '2024-01-10', N'Đăng ký', 1, 1, '2024-01-15',DATEADD(DAY,-2,GETDATE())),
+('DK00002', 'PH00001', 'HV00001', 'KH00002', '2024-02-10', N'Đăng ký', 1, 1, '2024-02-15',DATEADD(DAY,-2,GETDATE())),
+('DK00003', 'PH00002', 'HV00002', 'KH00004', '2024-01-12', N'Đăng ký', 1, 1, '2024-01-17',DATEADD(DAY,-2,GETDATE())),
+('DK00004', 'PH00002', 'HV00002', 'KH00005', '2024-02-12', N'Đăng ký', 1, 1, '2024-02-17',DATEADD(DAY,-2,GETDATE())),
+('DK00005', 'PH00003', 'HV00003', 'KH00008', '2024-01-14', N'Đăng ký', 1, 1, '2024-01-19',DATEADD(DAY,-2,GETDATE())),
+('DK00006', 'PH00003', 'HV00003', 'KH00009', '2024-02-14', N'Đăng ký', 1, 1, '2024-02-19',DATEADD(DAY,-2,GETDATE())),
+('DK00007', 'PH00004', 'HV00004', 'KH00011', '2024-01-16', N'Đăng ký', 1, 1, '2024-01-21',DATEADD(DAY,-2,GETDATE())),
+('DK00008', 'PH00004', 'HV00004', 'KH00012', '2024-02-16', N'Đăng ký', 1, 1, '2024-02-21',DATEADD(DAY,-2,GETDATE())),
+('DK00009', 'PH00005', 'HV00005', 'KH00013', '2024-01-18', N'Đăng ký', 1, 1, '2024-01-23',DATEADD(DAY,-2,GETDATE())),
+('DK00010', 'PH00005', 'HV00005', 'KH00014', '2024-02-18', N'Đăng ký', 1, 1, '2024-02-23',DATEADD(DAY,-2,GETDATE()));
+INSERT INTO DangKyHoc (
+    idDangKy, idPhuHuynh, idHocVien, idKhoaHoc,
+    ngayDangKy, loaiDangKy,
+    trangThaiThanhToan, trangThaiHoanThanh,
+    ngayBatDauHoc, ngayKetThucDuKien
+) VALUES
+('DK00011', 'PH00001', 'HV00001', 'KH00003', DATEADD(MONTH,-4,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-4,GETDATE()), DATEADD(DAY,-2,GETDATE())),
+('DK00012', 'PH00001', 'HV00001', 'KH00006', DATEADD(MONTH,-3,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-3,GETDATE()), DATEADD(DAY,-5,GETDATE())),
+('DK00013', 'PH00002', 'HV00002', 'KH00007', DATEADD(MONTH,-5,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-5,GETDATE()), DATEADD(DAY,-3,GETDATE())),
+('DK00014', 'PH00003', 'HV00003', 'KH00010', DATEADD(MONTH,-2,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-2,GETDATE()), DATEADD(DAY,-1,GETDATE())),
+('DK00015', 'PH00004', 'HV00004', 'KH00015', DATEADD(MONTH,-6,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-6,GETDATE()), DATEADD(DAY,-7,GETDATE()));
+ 
 -- 8. INSERT DỮ LIỆU VÀO BẢNG DanhGia
 INSERT INTO DanhGia (idDanhGia, idDangKy, soSao, noiDung, ngayDanhGia) VALUES
-('DG00001', 'DK00001', 5, N'Gia sư rất tâm huyết, giảng dạy rõ ràng, con em tôi tiến bộ rất nhiều', '2024-02-01'),
-('DG00002', 'DK00001', 4, N'Tốt, nhưng có thể cải thiện tốc độ giảng dạy', '2024-02-15'),
-('DG00003', 'DK00002', 5, N'Xuất sắc! Gia sư giải thích rất kỹ lưỡng', '2024-03-01'),
-('DG00004', 'DK00002', 5, N'Rất hài lòng với chất lượng dạy học', '2024-03-15'),
-('DG00005', 'DK00003', 5, N'Gia sư rất nhiệt tình, con em tôi yêu thích tiếng Anh hơn', '2024-02-05'),
-('DG00006', 'DK00003', 4, N'Tốt, nhưng cần thêm bài tập thực hành', '2024-02-20'),
-('DG00007', 'DK00004', 5, N'Phương pháp dạy rất hiệu quả, con em tôi đã cải thiện điểm số', '2024-03-05'),
-('DG00008', 'DK00004', 5, N'Rất chuyên nghiệp và tận tâm', '2024-03-20'),
-('DG00009', 'DK00005', 4, N'Gia sư giải thích tốt, nhưng có thể thêm ví dụ thực tế', '2024-02-10'),
-('DG00010', 'DK00005', 5, N'Rất tốt, con em tôi hiểu bài hơn', '2024-02-25'),
-('DG00011', 'DK00006', 5, N'Xuất sắc! Gia sư rất am hiểu môn học', '2024-03-10'),
-('DG00012', 'DK00006', 4, N'Tốt, nhưng cần cải thiện kỹ năng giao tiếp', '2024-03-25'),
-('DG00013', 'DK00007', 5, N'Gia sư rất tâm huyết, giảng dạy rõ ràng', '2024-02-12'),
-('DG00014', 'DK00007', 5, N'Rất hài lòng, con em tôi yêu thích hóa học', '2024-02-27'),
-('DG00015', 'DK00008', 4, N'Tốt, nhưng có thể cải thiện tốc độ giảng dạy', '2024-03-12'),
-('DG00016', 'DK00008', 5, N'Rất chuyên nghiệp', '2024-03-27'),
-('DG00017', 'DK00009', 5, N'Gia sư rất giỏi, con em tôi tiến bộ rất nhanh', '2024-02-14'),
-('DG00018', 'DK00009', 5, N'Xuất sắc! Rất tâm huyết', '2024-02-29'),
-('DG00019', 'DK00010', 5, N'Rất tốt, con em tôi yêu thích sinh học', '2024-03-14'),
-('DG00020', 'DK00010', 4, N'Tốt, nhưng cần thêm bài tập', '2024-03-29');
+('DG00001', 'DK00011', 5, N'Gia sư rất tâm huyết, con tôi tiến bộ vượt bậc.', '2026-05-02'),
+('DG00002', 'DK00012', 4, N'Tốt, giảng dạy dễ hiểu.', '2026-05-03'),
+('DG00003', 'DK00013', 5, N'Xuất sắc! Rất hài lòng về chất lượng dạy.', '2026-05-04'),
+('DG00004', 'DK00014', 5, N'Gia sư nhiệt tình, bài tập thực tế.', '2026-05-16'),
+('DG00005', 'DK00015', 5, N'Rất chuyên nghiệp, con em tôi yêu thích môn học.', '2026-05-17');
 -- =====================================================================
 -- INSERT LỊCH RẢNH CHO CÁC GIA SƯ
 INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
@@ -539,18 +535,7 @@ INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
 ('LD00023', 1, 'GS00008', 'TH00006'),  -- GS008: Thứ 4, 19:30-21:30
 ('LD00024', 1, 'GS00008', 'TH00007');  -- GS008: Thứ 5, 17:30-19:30
 
-INSERT INTO DangKyHoc (
-    idDangKy, idPhuHuynh, idHocVien, idKhoaHoc,
-    ngayDangKy, loaiDangKy,
-    trangThaiThanhToan, trangThaiHoanThanh,
-    ngayBatDauHoc, ngayKetThucDuKien
-) VALUES
-('DK00011', 'PH00001', 'HV00001', 'KH00003', DATEADD(MONTH,-4,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-4,GETDATE()), DATEADD(DAY,-2,GETDATE())),
-('DK00012', 'PH00001', 'HV00001', 'KH00006', DATEADD(MONTH,-3,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-3,GETDATE()), DATEADD(DAY,-5,GETDATE())),
-('DK00013', 'PH00002', 'HV00002', 'KH00007', DATEADD(MONTH,-5,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-5,GETDATE()), DATEADD(DAY,-3,GETDATE())),
-('DK00014', 'PH00003', 'HV00003', 'KH00010', DATEADD(MONTH,-2,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-2,GETDATE()), DATEADD(DAY,-1,GETDATE())),
-('DK00015', 'PH00004', 'HV00004', 'KH00015', DATEADD(MONTH,-6,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-6,GETDATE()), DATEADD(DAY,-7,GETDATE()));
- 
+
 select * from PhuHuynh
 select * from KhoaHoc
 select * from DangKyHoc

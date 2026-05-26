@@ -30,6 +30,11 @@ public class DanhGiaController {
         try {
             return ResponseEntity.ok(danhGiaService.getDanhGiaByDangKy(idDangKy.trim()));
         } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Không tìm thấy đánh giá")) {
+                return ResponseEntity.ok().body(null);
+            }
+            
+            // Các lỗi thật sự khác thì vẫn trả về 400
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
