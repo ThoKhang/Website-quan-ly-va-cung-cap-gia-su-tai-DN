@@ -23,4 +23,9 @@ public class DangKyHocResponseDTO {
     private Boolean trangThaiThanhToan;
     private Boolean trangThaiHoanThanh;
     private List<ChiTietLichHocResponseDTO> chiTietLichHoc;
+
+    private String idYeuCauGiaHan;
+    private String trangThaiGiaHan;   // "Chờ duyệt", "Đã duyệt", "Từ chối"
+    private Integer soBuoiGiaHan;
+    private String loaiGiaHan;
 }

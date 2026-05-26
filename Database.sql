@@ -185,12 +185,19 @@ CREATE TABLE DangKyHoc (
     trangThaiHoanThanh BIT,
     ngayBatDauHoc DATETIME,
     ngayKetThucDuKien DATETIME,
-    ngayGiaHan DATETIME,
     FOREIGN KEY (idPhuHuynh) REFERENCES PhuHuynh(idPhuHuynh),
     FOREIGN KEY (idHocVien) REFERENCES HocVien(idHocVien),
     FOREIGN KEY (idKhoaHoc) REFERENCES KhoaHoc(idKhoaHoc)
 	);
-
+CREATE TABLE YeuCauGiaHan (
+    idGiaHan CHAR(20) PRIMARY KEY,
+    idDangKy CHAR(20),
+    soBuoiGiaHan INT,
+    loaiGiaHan NVARCHAR(50),      -- 'Toàn bộ' hoặc 'Tùy chọn'
+    ngayYeuCau DATETIME,
+    trangThaiDuyet NVARCHAR(30),  -- 'Chờ duyệt', 'Đã duyệt', 'Từ chối'
+    FOREIGN KEY (idDangKy) REFERENCES DangKyHoc(idDangKy)
+);
 CREATE TABLE DanhGia (
     idDanhGia CHAR(20) PRIMARY KEY,
     idDangKy CHAR(20),
@@ -248,7 +255,36 @@ INSERT INTO TietHoc (idTietHoc, thu, gioBatDau, gioKetThuc, soTiet) VALUES
 ('TH00007', N'Thứ 5', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
 ('TH00008', N'Thứ 5', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
 ('TH00009', N'Thứ 6', '1900-01-01 17:30:00', '1900-01-01 19:30:00', 2),
-('TH00010', N'Thứ 6', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2);
+('TH00010', N'Thứ 6', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH00011', N'Thứ 2', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00012', N'Thứ 2', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+('TH00013', N'Thứ 3', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00014', N'Thứ 3', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+('TH00015', N'Thứ 4', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00016', N'Thứ 4', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+('TH00017', N'Thứ 5', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00018', N'Thứ 5', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+('TH00019', N'Thứ 6', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00020', N'Thứ 6', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+-- Buổi chiều
+('TH00021', N'Thứ 2', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00022', N'Thứ 3', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00023', N'Thứ 4', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00024', N'Thứ 5', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00025', N'Thứ 6', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+-- Cuối tuần sáng
+('TH00026', N'Thứ 7', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00027', N'Thứ 7', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+('TH00028', N'Chủ nhật', '1900-01-01 07:30:00', '1900-01-01 09:30:00', 2),
+('TH00029', N'Chủ nhật', '1900-01-01 09:30:00', '1900-01-01 11:30:00', 2),
+-- Cuối tuần chiều
+('TH00030', N'Thứ 7', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00031', N'Thứ 7', '1900-01-01 15:30:00', '1900-01-01 17:30:00', 2),
+('TH00032', N'Chủ nhật', '1900-01-01 13:30:00', '1900-01-01 15:30:00', 2),
+('TH00033', N'Chủ nhật', '1900-01-01 15:30:00', '1900-01-01 17:30:00', 2),
+-- Cuối tuần tối
+('TH00034', N'Thứ 7', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2),
+('TH00035', N'Chủ nhật', '1900-01-01 19:30:00', '1900-01-01 21:30:00', 2);
 
 -- THÊMDỮ LIỆU QUẬN/HUYỆN VÀ PHƯỜNG/XÃ (ĐÀ NẴNG)
 INSERT INTO QuanHuyen (idQuanHuyen, tenQuanHuyen) VALUES
@@ -345,7 +381,7 @@ INSERT INTO MonHoc (idMonHoc, tenMonHoc) VALUES
 -- 1. INSERT DỮ LIỆU VÀO BẢNG TaiKhoan
 -- Tài khoản Gia sư (Format: TK_GS00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, trangThai, LoaiNguoiDungID) VALUES
-('TK00001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '123456', GETDATE(),'1', '3'),
+('TK00001', 'giasu.toan@gmail.com', 'giasu_toan', 'avatar1.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '3'),
 ('TK00002', 'giasu.anh@gmail.com', 'giasu_anh', 'avatar2.jpg', '123456', GETDATE(),'1', '2'),
 ('TK00003', 'giasu.ly@gmail.com', 'giasu_ly', 'avatar3.jpg', '123456', GETDATE(),'1', '2'),
 ('TK00004', 'giasu.hoa@gmail.com', 'giasu_hoa', 'avatar4.jpg', '123456', GETDATE(),'1', '2'),
@@ -355,11 +391,11 @@ INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayT
 ('TK00008', 'giasu.dia@gmail.com', 'giasu_dia', 'avatar8.jpg', '123456', GETDATE(),'1', '2');
 -- Tài khoản Phụ huynh (Format: TK_PH00x)
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao,trangThai, LoaiNguoiDungID) VALUES
-('TK00009', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '123456', GETDATE(),'1', '1'),
-('TK00010', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '123456', GETDATE(),'1', '1'),
-('TK00011', 'phuhuynh.hung@gmail.com', 'phuhuynh_hung', 'avatar_ph3.jpg', '123456', GETDATE(),'1', '1'),
-('TK00012', 'phuhuynh.mai@gmail.com', 'phuhuynh_mai', 'avatar_ph4.jpg', '123456', GETDATE(),'1', '1'),
-('TK00013', 'phuhuynh.duc@gmail.com', 'phuhuynh_duc', 'avatar_ph5.jpg', '123456', GETDATE(),'1', '1');
+('TK00009', 'phuhuynh.tuan@gmail.com', 'phuhuynh_tuan', 'avatar_ph1.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '1'),
+('TK00010', 'phuhuynh.linh@gmail.com', 'phuhuynh_linh', 'avatar_ph2.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '1'),
+('TK00011', 'phuhuynh.hung@gmail.com', 'phuhuynh_hung', 'avatar_ph3.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '1'),
+('TK00012', 'phuhuynh.mai@gmail.com', 'phuhuynh_mai', 'avatar_ph4.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '1'),
+('TK00013', 'phuhuynh.duc@gmail.com', 'phuhuynh_duc', 'avatar_ph5.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(),'1', '1');
 INSERT INTO TaiKhoan (idTaiKhoan, email, tenDangNhap, anhDaiDien, matKhau, ngayTao, LoaiNguoiDungID) VALUES
 ('TK00014', 'giasu.toan124@gmail.com', 'admin124', 'avatar1.jpg', '$2a$12$6SCVjp7VQrTLTzdVBwXJr.tT9b1SBiRQ4bZd0E/E3rKPFoREiZQHK', GETDATE(), '4');
 
@@ -502,6 +538,19 @@ INSERT INTO LichDay (idLichDay, tinhTrang, idGiaSu, idTietHoc) VALUES
 ('LD00022', 1, 'GS00008', 'TH00002'),  -- GS008: Thứ 2, 19:30-21:30
 ('LD00023', 1, 'GS00008', 'TH00006'),  -- GS008: Thứ 4, 19:30-21:30
 ('LD00024', 1, 'GS00008', 'TH00007');  -- GS008: Thứ 5, 17:30-19:30
+
+INSERT INTO DangKyHoc (
+    idDangKy, idPhuHuynh, idHocVien, idKhoaHoc,
+    ngayDangKy, loaiDangKy,
+    trangThaiThanhToan, trangThaiHoanThanh,
+    ngayBatDauHoc, ngayKetThucDuKien
+) VALUES
+('DK00011', 'PH00001', 'HV00001', 'KH00003', DATEADD(MONTH,-4,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-4,GETDATE()), DATEADD(DAY,-2,GETDATE())),
+('DK00012', 'PH00001', 'HV00001', 'KH00006', DATEADD(MONTH,-3,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-3,GETDATE()), DATEADD(DAY,-5,GETDATE())),
+('DK00013', 'PH00002', 'HV00002', 'KH00007', DATEADD(MONTH,-5,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-5,GETDATE()), DATEADD(DAY,-3,GETDATE())),
+('DK00014', 'PH00003', 'HV00003', 'KH00010', DATEADD(MONTH,-2,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-2,GETDATE()), DATEADD(DAY,-1,GETDATE())),
+('DK00015', 'PH00004', 'HV00004', 'KH00015', DATEADD(MONTH,-6,GETDATE()), N'Đăng ký', 1, 1, DATEADD(MONTH,-6,GETDATE()), DATEADD(DAY,-7,GETDATE()));
+ 
 select * from PhuHuynh
 select * from KhoaHoc
 select * from DangKyHoc
@@ -520,6 +569,7 @@ select * from DanhMucLop
 select * from DanhGia
 select * from BangCap
 select * from LichSuThanhToan
+select * from YeuCauGiaHan
 --phần config database
 /*
 UPDATE KhoaHoc

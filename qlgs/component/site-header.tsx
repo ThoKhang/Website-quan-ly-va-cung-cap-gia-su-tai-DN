@@ -146,9 +146,11 @@ export function SiteHeader() {
         <div className="hidden md:flex items-center gap-3 flex-1 justify-end min-w-0">
           <HeaderSearchForm key={`${pathname}:${currentKeyword}`} initialKeyword={currentKeyword} pathname={pathname} />
 
-          <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white">
-            Tư vấn
-          </Button>
+          <Link href={!isMounted || !isLoggedIn ? "/login" : isParent ? "/hoc-vien/lich-hoc" : "/gia-su/lich-ranh"}>
+            <Button variant="ghost" className="text-white hover:bg-white/8 hover:text-white transition-colors">
+              {isMounted && isTutor ? "Lịch dạy" : "Lịch học"}
+            </Button>
+          </Link>
 
           {isMounted && isLoggedIn && tenDangNhap ? (
             <div className="flex items-center gap-3">
@@ -167,7 +169,7 @@ export function SiteHeader() {
               {isParent && (
                 <div className="flex items-center gap-1 border-r border-white/20 pr-3">
                   <Link href="/hoc-vien/lich-su">
-                    <Button variant="ghost" className="text-white hover:bg-white/10 text-sm">Lịch sử</Button>
+                    <Button variant="ghost" className="text-white hover:bg-white/10 text-sm">Khóa học</Button>
                   </Link>
                 </div>
               )}

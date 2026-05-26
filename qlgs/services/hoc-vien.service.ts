@@ -129,8 +129,20 @@ export interface DangKyHocResponse {
   trangThaiThanhToan: boolean;
   trangThaiHoanThanh: boolean;
   chiTietLichHoc: ChiTietLichHocResponse[];
-}
 
+  idYeuCauGiaHan?: string;
+  trangThaiGiaHan?: string;
+  soBuoiGiaHan?: number;
+  loaiGiaHan?: string;
+}
+export interface DonGiaHanResponse {
+  idGiaHan: string;
+  idDangKy: string;
+  soBuoiGiaHan: number;
+  loaiGiaHan: string;
+  trangThai: string;  // 'Chờ duyệt', 'Đã duyệt', 'Từ chối'
+  ngayYeuCau: string;
+}
 export const hocVienService = {
   // 1. Tạo hồ sơ học viên
   createProfile: (data: HocVienProfile): Promise<any> => {
@@ -222,20 +234,55 @@ export const hocVienService = {
     return axiosClient.get(`/dang-ky-hoc/${idDangKy}`);
   },
 
-  // 14.6. Xác nhận thanh toán (Tạo bản ghi lịch sử thanh toán)
-   xacNhanThanhToan: async (idDangKy: string, soTien: number): Promise<void> => {
-      await axiosClient.post('/thanh-toan/xac-nhan', {
-        idDangKy: idDangKy,
-        soTien: soTien.toString(),
-        phuongThuc: 'Chuyển khoản',
-        maGiaoDich: "", // Vẫn giữ chuỗi rỗng nhé
-      });
-    },
+// =================================================================
+  // LUỒNG 1: THANH TOÁN LẦN ĐẦU (BOOKING)
+  // =================================================================
+  // 14.6. Xác nhận thanh toán lần đầu (Trỏ vào BookingController)
+  xacNhanThanhToan: async (idDangKy: string, soTien?: number): Promise<any> => {
+    // Chỉ cần gọi đúng URL chứa idDangKy, Backend đã có logic xử lý
+    return await axiosClient.post(`/booking/xac-nhan-thanh-toan/${idDangKy}`);
+  },
 
-  // 15. Gia hạn khóa học
-  extendCourse: (idDangKy: string, ngayBatDauMoi: string): Promise<string> => {
-    return axiosClient.put(`/dang-ky-hoc/${idDangKy}/gia-han`, {
-      ngayBatDauMoi: ngayBatDauMoi,
-    });
+  // =================================================================
+  // LUỒNG 2: GIA HẠN KHÓA HỌC (DANG_KY_HOC)
+  // =================================================================
+  // 15. Gửi yêu cầu gia hạn
+  guiYeuCauGiaHan: async (idDangKy: string, data: { soBuoiGiaHan: number, loaiGiaHan: string }) => {
+    return await axiosClient.post(`/dang-ky-hoc/${idDangKy}/gui-gia-han`, data);
+  },
+
+  // 16. Thanh toán Gia hạn (Trỏ vào DangKyHocController)
+  xacNhanThanhToanGiaHan: async (idGiaHan: string) => {
+    return await axiosClient.post(`/dang-ky-hoc/gia-han/${idGiaHan}/thanh-toan`);
+  },
+
+  // 17. Lấy chi tiết đăng ký
+  getChiTietDangKy: async (idDangKy: string): Promise<DangKyHocResponse> => {
+    // Thêm await .get để lấy thẳng data (axiosClient thường tự bóc tách response.data)
+    return await axiosClient.get(`/dang-ky-hoc/${idDangKy}`); 
+  },
+
+  // 18. Kiểm tra đơn gia hạn hiện tại của 1 đăng ký
+  checkDonGiaHan: async (idDangKy: string): Promise<DonGiaHanResponse | null> => {
+    try {
+      // Sửa lại đường dẫn khớp với Controller lúc nãy: /gia-han/moi-nhat
+      return await axiosClient.get(`/dang-ky-hoc/${idDangKy}/gia-han/moi-nhat`) as unknown as DonGiaHanResponse;
+    } catch {
+      return null;
+    }
+  },
+  // ── HỦY GIA HẠN TỪ BADGE ──
+  huyYeuCauGiaHan: async (idGiaHan: string) => {
+    // Gọi phương thức DELETE
+    return await axiosClient.delete(`/dang-ky-hoc/gia-han/${idGiaHan}/huy`);
+  },
+  // Lấy các khóa học của gia sư
+  getTutorCourses: async (idGiaSu: string): Promise<any[]> => {
+    return await axiosClient.get(`/gia-su/${idGiaSu}/khoa-hoc`);
+  },
+
+  // Lấy các đánh giá về gia sư
+  getTutorReviews: async (idGiaSu: string): Promise<any[]> => {
+    return await axiosClient.get(`/gia-su/${idGiaSu}/danh-gia`);
   },
 };
