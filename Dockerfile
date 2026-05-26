@@ -14,7 +14,7 @@ RUN mvn dependency:go-offline -B
 COPY tutormanagement/src ./src
 RUN mvn clean package -DskipTests -B
 
-# Stage 3: Runner
+# Final Stage: Runner
 FROM eclipse-temurin:17-jre-jammy
 # Install Node.js
 RUN apt-get update && apt-get install -y curl && \
@@ -27,6 +27,8 @@ WORKDIR /app
 # Copy Backend
 COPY --from=backend-builder /app/backend/target/*.jar app.jar
 COPY tutormanagement/uploads ./uploads
+# Tao thu muc data cho DB file
+RUN mkdir -p data
 
 # Copy Frontend
 COPY --from=frontend-builder /app/frontend/package*.json ./
@@ -34,13 +36,13 @@ COPY --from=frontend-builder /app/frontend/.next ./.next
 COPY --from=frontend-builder /app/frontend/public ./public
 COPY --from=frontend-builder /app/frontend/node_modules ./node_modules
 
-# Create start script (Chỉ chạy BE và FE)
+# Startup script
 RUN echo '#!/bin/bash \n\
 java -jar app.jar --server.port=8080 & \n\
 npm start -- -p ${PORT:-3000}' > start.sh
 RUN chmod +x start.sh
 
-# Render uses the PORT environment variable, defaults to 3000 for Frontend
+# Expose port (Render sets $PORT for HTTP services)
 EXPOSE 3000
 
 CMD ["./start.sh"]
