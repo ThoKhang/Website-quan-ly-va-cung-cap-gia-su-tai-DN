@@ -100,13 +100,13 @@ export default function EditGiaSuHoSo() {
 
     setLoading(true);
     try {
-      const response: any = await axiosClient.post('/gia-su/them-bang-cap', bangCapForm);
-      const newBangCap: BangCap = {
-        ...bangCapForm,
-        idBangCap: response.idBangCap || Date.now().toString(),
-        trangThai: 1
-      };
-      setBangCapList([...bangCapList, newBangCap]);
+      await axiosClient.post('/gia-su/them-bang-cap', bangCapForm);
+      
+      // ✅ Fetch lại từ server thay vì tự thêm vào state
+      const data: any = await axiosClient.get('/gia-su/thong-tin-hien-tai');
+      const rawBangCapList = data.bangCapList || data.danhSachBangCap || data.bangCaps || [];
+      setBangCapList(Array.isArray(rawBangCapList) ? rawBangCapList : []);
+      
       setBangCapForm({ tenBangCap: '', thongTinBangCap: '', ngayCap: '', anhMinhChung: '' });
       setShowBangCapForm(false);
       setMessage('Thêm bằng cấp thành công!');
@@ -313,8 +313,18 @@ export default function EditGiaSuHoSo() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-bold text-slate-800">{bangCap.tenBangCap}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${bangCap.trangThai ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {bangCap.trangThai ? 'Đã duyệt' : 'Chờ duyệt'}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                            bangCap.trangThai === 1 
+                              ? 'bg-green-100 text-green-700' 
+                              : bangCap.trangThai === 2 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {bangCap.trangThai === 1 
+                              ? 'Đã duyệt' 
+                              : bangCap.trangThai === 2 
+                              ? 'Từ chối' 
+                              : 'Chờ duyệt'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400">Ngày cấp: {bangCap.ngayCap ? new Date(bangCap.ngayCap).toLocaleDateString('vi-VN') : 'N/A'}</p>
