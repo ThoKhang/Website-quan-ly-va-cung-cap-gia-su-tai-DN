@@ -255,7 +255,10 @@ export default function BookingHistoryPage() {
             <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5">
               <Home size={14} /> Trang chủ
             </Link>
-         
+            <ChevronRight size={14} className="mx-2 flex-shrink-0" />
+            <Link href="/hoc-vien" className="hover:text-white transition-colors">
+              Học viên
+            </Link>
             <ChevronRight size={14} className="mx-2 flex-shrink-0" />
             <span className="text-white font-semibold">Lịch sử đăng ký</span>
           </nav>
@@ -379,7 +382,7 @@ export default function BookingHistoryPage() {
               <div className="space-y-3">
                 {displayed.map(b => {
                   const status = getStatus(b);
-                  const done  = b.chiTietLichHoc.filter((c:any) => c.tinhTrang === "Đã hoàn thành").length;
+                  const done  = b.chiTietLichHoc.filter((c:any) => c.tinhTrang === "Đã hoàn thành" || c.tinhTrang === "Đã nghỉ").length;
                   const total = b.khoaHoc.soBuoiHoc;
                   const pct   = total > 0 ? Math.round((done/total)*100) : 0;
 

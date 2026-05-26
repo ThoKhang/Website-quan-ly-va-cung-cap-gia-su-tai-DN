@@ -3,450 +3,328 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Button, Section } from "@/component/ui";
-import { hocVienService, type DangKyHocResponse } from "@/services/hoc-vien.service";
+import { hocVienService } from "@/services/hoc-vien.service";
 import { useAuthStore } from "@/store/auth.store";
+import {
+  Home, ChevronRight, Loader2, Star, CheckCircle2,
+  AlertCircle, MessageSquare, BookOpen, GraduationCap, Send
+} from "lucide-react";
 
-export default function RateCoursePage() {
+export default function DanhGiaPage() {
   const router = useRouter();
   const params = useParams();
-  const { isLoggedIn, idNguoiDung } = useAuthStore();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [soSao, setSoSao] = useState(5);
-  const [noiDung, setNoiDung] = useState("");
-  const [courseData, setCourseData] = useState<DangKyHocResponse | null>(null);
-  const [canEdit, setCanEdit] = useState(false);
-  const [daysRemaining, setDaysRemaining] = useState(0);
-  const [existingRating, setExistingRating] = useState<any>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-
+  const { isLoggedIn } = useAuthStore();
   const idDangKy = params.id as string;
 
+  const [loading, setLoading]       = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingInfo, setBookingInfo] = useState<any>(null);
+  const [existing, setExisting]     = useState<any>(null); // đánh giá cũ nếu có
+  const [soSao, setSoSao]           = useState(5);
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [noiDung, setNoiDung]       = useState("");
+  const [error, setError]           = useState("");
+  const [success, setSuccess]       = useState("");
+
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push("/login");
-      return;
-    }
+    if (!isLoggedIn) { router.push("/login"); return; }
+    fetchData();
+  }, [isLoggedIn, idDangKy]);
 
-    fetchCourseData();
-  }, [isLoggedIn, router, idDangKy]);
-
-  const fetchCourseData = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      if (!idNguoiDung) {
-        setError("Không tìm thấy thông tin người dùng");
-        return;
-      }
+      // Lấy thông tin đăng ký
+      const detail = await hocVienService.getCourseDetailById(idDangKy);
+      setBookingInfo(detail);
 
-      // Lấy danh sách khóa học đã đăng ký
-      const bookingHistory = await hocVienService.getBookingHistory(idNguoiDung);
-      console.log("📚 Booking History:", bookingHistory);
-      console.log("🔍 Looking for idDangKy:", idDangKy);
-      
-      // Tìm khóa học theo idDangKy (trim để loại bỏ khoảng trắng)
-      const course = bookingHistory.find((d) => d.idDangKy?.trim() === idDangKy?.trim());
-      console.log("📖 Found Course:", course);
-
-      if (!course) {
-        console.error("❌ Course not found. Available IDs:", bookingHistory.map(d => `"${d.idDangKy}"`));
-        setError("Không tìm thấy khóa học");
-        setLoading(false);
-        return;
-      }
-
-      // Kiểm tra xem khóa học đã hoàn thành chưa
-      if (!course.trangThaiHoanThanh) {
-        setError("Khóa học chưa hoàn thành. Bạn chỉ có thể đánh giá khi khóa học đã hoàn thành!");
-        setLoading(false);
-        return;
-      }
-
-      setCourseData(course);
-
-      // Nếu đã có đánh giá, load dữ liệu cũ
+      // Kiểm tra đã đánh giá chưa
       try {
-        const rating = await hocVienService.getRating(idDangKy?.trim());
-        console.log("📝 Existing Rating:", rating);
-        setExistingRating(rating);
-        setSoSao(rating.soSao);
-        setNoiDung(rating.noiDung || "");
-      } catch (err: any) {
-        // Nếu không có đánh giá hoặc endpoint chưa tồn tại, bỏ qua
-        console.log("ℹ️ No existing rating found or endpoint not available");
-        if (err.status === 400 || err.response?.status === 400) {
-          // Lỗi 400 có nghĩa là không có đánh giá, đây là bình thường
-          setExistingRating(null);
-        } else {
-          // Các lỗi khác có thể bỏ qua
-          setExistingRating(null);
+        const existingRating = await hocVienService.getRating(idDangKy);
+        if (existingRating) {
+          setExisting(existingRating);
+          setSoSao(existingRating.soSao);
+          setNoiDung(existingRating.noiDung || "");
         }
-      }
-
-      // Tính ngày kết thúc từ ngayKetThucDuKien hoặc buổi học cuối cùng
-      let endDate: Date | null = null;
-      
-      if (course.ngayKetThucDuKien) {
-        endDate = new Date(course.ngayKetThucDuKien);
-      } else if (course.chiTietLichHoc && course.chiTietLichHoc.length > 0) {
-        const lastSession = course.chiTietLichHoc[course.chiTietLichHoc.length - 1];
-        endDate = new Date(lastSession.ngayHoc);
-      }
-
-      if (endDate) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-
-        const diffTime = today.getTime() - endDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        console.log("📅 End Date:", endDate, "Days passed:", diffDays);
-
-        // Có thể chỉnh sửa trong vòng 7 ngày kể từ lúc kết thúc
-        setCanEdit(diffDays <= 7);
-        setDaysRemaining(Math.max(0, 7 - diffDays));
+      } catch {
+        // Chưa đánh giá — bình thường
       }
     } catch (err: any) {
-      console.error("❌ Error fetching course data:", err);
-      setError(err.response?.data?.message || err.message || "Có lỗi xảy ra");
+      setError("Không thể tải thông tin khóa học.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleSubmit = async () => {
+    if (!noiDung.trim()) {
+      setError("Vui lòng nhập nội dung nhận xét.");
+      return;
+    }
     setError("");
-    setSuccess("");
-
+    setSubmitting(true);
     try {
-      if (soSao < 1 || soSao > 5) {
-        setError("Vui lòng chọn số sao từ 1 đến 5");
-        setSubmitting(false);
-        return;
-      }
-
-      if (!canEdit) {
-        setError("Thời gian chỉnh sửa đánh giá đã hết (7 ngày kể từ kết thúc khóa học)");
-        setSubmitting(false);
-        return;
-      }
-
-      // Nếu đang chỉnh sửa, gọi updateRating, nếu không gọi rateCourse
-      if (isEditMode && existingRating) {
-        await hocVienService.updateRating(idDangKy, {
+      if (existing) {
+        // Cập nhật đánh giá cũ
+        await hocVienService.updateRating(existing.idDanhGia, {
           idDangKy,
           soSao,
-          noiDung,
+          noiDung: noiDung.trim(),
         });
-        setSuccess("Cảm ơn bạn đã cập nhật đánh giá!");
       } else {
+        // Tạo đánh giá mới
         await hocVienService.rateCourse({
           idDangKy,
           soSao,
-          noiDung,
+          noiDung: noiDung.trim(),
         });
-        setSuccess("Cảm ơn bạn đã gửi đánh giá!");
       }
-
+      setSuccess(existing ? "Đã cập nhật đánh giá thành công!" : "Cảm ơn bạn đã đánh giá!");
       setTimeout(() => router.push("/hoc-vien/lich-su"), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Có lỗi xảy ra");
+    } catch (e: any) {
+      setError(e?.message || e?.response?.data?.message || "Có lỗi xảy ra khi gửi đánh giá.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const renderStars = (interactive: boolean = true) => {
-    return (
-      <div className="flex gap-3">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type={interactive ? "button" : "button"}
-            disabled={!interactive}
-            onClick={() => interactive && setSoSao(star)}
-            className={`text-5xl transition ${
-              star <= soSao
-                ? "text-yellow-400"
-                : "text-slate-300"
-            } ${interactive ? "cursor-pointer hover:scale-110" : "cursor-default"}`}
-          >
-            ★
-          </button>
-        ))}
+  const starLabels = ["", "Rất tệ", "Tệ", "Bình thường", "Tốt", "Rất tốt"];
+
+  /* ── Loading ── */
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="animate-spin text-blue-500" size={36} />
+        <p className="text-sm text-slate-500">Đang tải…</p>
       </div>
-    );
-  };
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-slate-50 pb-16 pt-8">
-        <Section>
-          <div className="max-w-2xl mx-auto px-4 text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-slate-200 rounded-lg w-48 mx-auto mb-4" />
-              <div className="h-4 bg-slate-200 rounded-lg w-96 mx-auto" />
-            </div>
-          </div>
-        </Section>
-      </main>
-    );
-  }
-
-  if (!courseData) {
-    return (
-      <main className="min-h-screen bg-slate-50 pb-16 pt-8">
-        <Section>
-          <div className="max-w-2xl mx-auto px-4">
-            <Link href="/hoc-vien/lich-su">
-              <Button className="mb-6 bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-lg">
-                ← Quay lại lịch sử
-              </Button>
-            </Link>
-            <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                ⚠️
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Không tìm thấy khóa học</h2>
-              <p className="text-slate-500">{error}</p>
-            </div>
-          </div>
-        </Section>
-      </main>
-    );
-  }
+  const khoaHoc = bookingInfo?.khoaHoc;
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-16 pt-8">
-      <Section>
-        <div className="max-w-3xl mx-auto px-4 space-y-8">
-          
-          {/* HEADER */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">⭐ Đánh Giá Khóa Học</h1>
-              <p className="text-slate-500 mt-1">Chia sẻ trải nghiệm của bạn về khóa học này</p>
-            </div>
-            <Link href="/hoc-vien/lich-su">
-              <Button className="bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-lg">
-                ← Quay lại
-              </Button>
+    <div className="min-h-screen bg-slate-50">
+
+      {/* ══ HERO BANNER ══ */}
+      <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 w-full pt-5 pb-10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
+        <div className="max-w-3xl mx-auto px-4 md:px-8 relative z-10">
+          <nav className="flex items-center text-sm font-medium text-blue-200/70 mb-4 flex-wrap gap-y-1">
+            <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5">
+              <Home size={14} /> Trang chủ
             </Link>
-          </div>
+            <ChevronRight size={14} className="mx-2 flex-shrink-0" />
+            <Link href="/hoc-vien/lich-su" className="hover:text-white transition-colors">
+              Lịch sử đăng ký
+            </Link>
+            <ChevronRight size={14} className="mx-2 flex-shrink-0" />
+            <span className="text-white font-semibold">Đánh giá khóa học</span>
+          </nav>
+          <h1 className="text-2xl md:text-3xl font-black text-white mb-2">
+            {existing ? "Cập nhật đánh giá" : "Đánh giá khóa học"}
+          </h1>
+          <p className="text-blue-200 text-sm font-medium max-w-xl">
+            Chia sẻ trải nghiệm của bạn để giúp các phụ huynh khác tìm được gia sư phù hợp.
+          </p>
+        </div>
+      </div>
 
-          {/* COURSE INFO CARD */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">📚 Thông Tin Khóa Học</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Tên khóa học</p>
-                <p className="text-lg font-semibold text-slate-900">{courseData.khoaHoc.tenKhoaHoc}</p>
+      {/* ══ CONTENT ══ */}
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 space-y-5">
+
+        {/* Thông tin khóa học */}
+        {khoaHoc && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <BookOpen size={15} className="text-blue-500" />
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Khóa học</h2>
+            </div>
+            <div className="flex items-start gap-4">
+              {/* Thumbnail */}
+              <div className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden border border-slate-100 bg-blue-50 flex items-center justify-center">
+                {khoaHoc.anhMinhHoa
+                  ? <img src={khoaHoc.anhMinhHoa} alt="" className="w-full h-full object-cover" />
+                  : <BookOpen size={20} className="text-blue-400" />
+                }
               </div>
-              <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Giảng viên</p>
-                <p className="text-lg font-semibold text-slate-900">{courseData.khoaHoc.tenGiaSu}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Môn học</p>
-                <p className="text-lg font-semibold text-slate-900">{courseData.khoaHoc.tenMonHoc}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Cấp lớp</p>
-                <p className="text-lg font-semibold text-slate-900">{courseData.khoaHoc.tenLop}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 leading-snug mb-1">{khoaHoc.tenKhoaHoc}</p>
+                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <GraduationCap size={11} /> {khoaHoc.tenGiaSu}
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span>{khoaHoc.tenMonHoc}</span>
+                  <span className="text-slate-300">·</span>
+                  <span>{khoaHoc.tenLop}</span>
+                  <span className="text-slate-300">·</span>
+                  <span>{khoaHoc.soBuoiHoc} buổi</span>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* EDIT TIME LIMIT WARNING */}
-          {!canEdit && (
-            <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
-              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <span className="font-medium">Thời gian chỉnh sửa đánh giá đã hết (7 ngày kể từ kết thúc khóa học)</span>
-            </div>
-          )}
+        {/* Form đánh giá */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
+          <div className="p-6 space-y-6">
 
-          {canEdit && daysRemaining > 0 && (
-            <div className="flex items-center gap-3 px-5 py-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-800">
-              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <span className="font-medium">Bạn còn {daysRemaining} ngày để chỉnh sửa đánh giá</span>
-            </div>
-          )}
-
-          {/* RATING FORM */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-            {/* EXISTING RATING DISPLAY - KHI HẾT HẠN CHỈNH SỬA */}
-            {existingRating && !canEdit && (
-              <div className="mb-8 pb-8 border-b border-slate-200">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">📋 Đánh Giá Của Bạn</h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">
-                        {Array(existingRating.soSao).fill("⭐").join("")}
-                      </span>
-                      <span className="text-lg font-bold text-blue-600">{existingRating.soSao}/5 sao</span>
-                    </div>
-                    <span className="text-sm text-slate-600">
-                      📅 {new Date(existingRating.ngayDanhGia).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  {existingRating.noiDung && (
-                    <div className="bg-white rounded-lg p-4 mt-4">
-                      <p className="text-slate-700">{existingRating.noiDung}</p>
-                    </div>
-                  )}
-                </div>
+            {/* Thông báo */}
+            {error && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-sm text-red-700">
+                <AlertCircle size={14} className="flex-shrink-0" /> {error}
+              </div>
+            )}
+            {success && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-sm text-emerald-700">
+                <CheckCircle2 size={14} className="flex-shrink-0" /> {success}
               </div>
             )}
 
-            {/* EXISTING RATING DISPLAY - KHI CÒN TRONG 7 NGÀY */}
-            {existingRating && canEdit && !isEditMode && (
-              <div className="mb-8 pb-8 border-b border-slate-200">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">📋 Đánh Giá Của Bạn (Có thể chỉnh sửa)</h3>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">
-                        {Array(existingRating.soSao).fill("⭐").join("")}
-                      </span>
-                      <span className="text-lg font-bold text-green-600">{existingRating.soSao}/5 sao</span>
-                    </div>
-                    <span className="text-sm text-slate-600">
-                      📅 {new Date(existingRating.ngayDanhGia).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  {existingRating.noiDung && (
-                    <div className="bg-white rounded-lg p-4 mt-4">
-                      <p className="text-slate-700">{existingRating.noiDung}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditMode(true)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition"
-                  >
-                    ✏️ Chỉnh sửa đánh giá
-                  </button>
-                  <Link href="/hoc-vien/lich-su" className="flex-1">
-                    <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg">
-                      Quay lại
-                    </Button>
-                  </Link>
-                </div>
+            {/* Chọn số sao */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Star size={15} className="text-amber-500" />
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                  Đánh giá chất lượng
+                </h2>
               </div>
-            )}
 
-            {/* FORM HIỂN THỊ KHI CHƯA CÓ ĐÁNH GIÁ HOẶC CÒN TRONG 7 NGÀY */}
-            {(!existingRating || (canEdit && isEditMode)) && (
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {error && (
-                  <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <span className="font-medium">{error}</span>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    <span className="font-medium">{success}</span>
-                  </div>
-                )}
-
-                {/* STAR RATING */}
-                <div>
-                  <label className="block text-lg font-bold text-slate-900 mb-4">
-                    Đánh giá của bạn <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mb-3">
-                    {renderStars(canEdit)}
-                  </div>
-                  <p className="text-sm text-slate-600">
-                    Bạn đã chọn: <span className="font-bold text-yellow-500">{soSao} sao</span>
-                  </p>
+              <div className="flex flex-col items-center gap-3 py-4">
+                {/* Sao */}
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const filled = star <= (hoveredStar || soSao);
+                    return (
+                      <button
+                        key={star}
+                        onClick={() => setSoSao(star)}
+                        onMouseEnter={() => setHoveredStar(star)}
+                        onMouseLeave={() => setHoveredStar(0)}
+                        className="transition-transform hover:scale-110 active:scale-95"
+                      >
+                        <Star
+                          size={40}
+                          className="transition-colors duration-100"
+                          style={{
+                            fill: filled ? "#FBBF24" : "transparent",
+                            color: filled ? "#FBBF24" : "#D1D5DB",
+                            strokeWidth: 1.5,
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* COMMENT */}
-                <div>
-                  <label className="block text-lg font-bold text-slate-900 mb-3">
-                    Nhận xét (tùy chọn)
-                  </label>
-                  <textarea
-                    value={noiDung}
-                    onChange={(e) => setNoiDung(e.target.value)}
-                    disabled={!canEdit}
-                    placeholder="Chia sẻ ý kiến của bạn về khóa học, gia sư, phương pháp dạy, ..."
-                    rows={6}
-                    className={`w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      !canEdit ? "bg-slate-100 cursor-not-allowed" : "bg-white"
-                    }`}
-                  />
-                  <p className="text-sm text-slate-500 mt-2">{noiDung.length}/300 ký tự</p>
-                </div>
-
-                {/* BUTTONS */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={submitting || !canEdit}
-                    className={`flex-1 font-bold px-6 py-3 rounded-lg transition ${
-                      canEdit
-                        ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                        : "bg-slate-300 text-slate-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {submitting ? "Đang gửi..." : isEditMode ? "Cập nhật đánh giá" : "Gửi đánh giá"}
-                  </button>
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditMode(false)}
-                      className="flex-1 bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition"
+                {/* Label */}
+                <div className="h-6 flex items-center">
+                  {(hoveredStar || soSao) > 0 && (
+                    <span
+                      className="text-sm font-semibold px-3 py-1 rounded-full"
+                      style={{
+                        background: "#FAEEDA",
+                        color: "#854F0B",
+                      }}
                     >
-                      Hủy
-                    </button>
-                  )}
-                  {!isEditMode && (
-                    <Link href="/hoc-vien/lich-su" className="flex-1">
-                      <Button className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg">
-                        Quay lại
-                      </Button>
-                    </Link>
+                      {starLabels[hoveredStar || soSao]}
+                    </span>
                   )}
                 </div>
-              </form>
+
+                {/* Thanh sao mini */}
+                <div className="flex gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <div
+                      key={s}
+                      className="h-1 w-8 rounded-full transition-all"
+                      style={{
+                        background: s <= soSao ? "#FBBF24" : "#E5E7EB",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Nhận xét */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <MessageSquare size={15} className="text-indigo-500" />
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                  Nhận xét chi tiết
+                </h2>
+              </div>
+
+              <textarea
+                value={noiDung}
+                onChange={(e) => { setNoiDung(e.target.value); setError(""); }}
+                placeholder="Chia sẻ trải nghiệm của bạn về gia sư và khóa học — cách giảng dạy, thái độ, hiệu quả học tập..."
+                rows={5}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white focus:border-transparent transition-all resize-none leading-relaxed"
+              />
+              <div className="flex justify-between mt-1.5">
+                {noiDung.trim() === "" && !error && (
+                  <p className="text-xs text-slate-400">Tối thiểu vài chữ để giúp phụ huynh khác tham khảo.</p>
+                )}
+                <span className="text-xs text-slate-400 ml-auto">{noiDung.length} ký tự</span>
+              </div>
+            </div>
+
+            {/* Gợi ý nội dung */}
+            {noiDung.length === 0 && (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Gia sư nhiệt tình, dễ hiểu",
+                  "Con tiến bộ rõ rệt",
+                  "Lịch học linh hoạt",
+                  "Phương pháp giảng dạy tốt",
+                  "Kiên nhẫn với học sinh",
+                ].map((goi) => (
+                  <button
+                    key={goi}
+                    onClick={() => setNoiDung(goi)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:border-amber-300 hover:text-amber-700 hover:bg-amber-50 transition-all"
+                  >
+                    + {goi}
+                  </button>
+                ))}
+              </div>
             )}
+
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || !!success}
+              className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "#BA7517" }}
+              onMouseOver={(e) => !submitting && !success && (e.currentTarget.style.background = "#854F0B")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "#BA7517")}
+            >
+              {submitting
+                ? <><Loader2 size={16} className="animate-spin" /> Đang gửi…</>
+                : success
+                ? <><CheckCircle2 size={16} /> Đã gửi!</>
+                : <><Send size={16} /> {existing ? "Cập nhật đánh giá" : "Gửi đánh giá"}</>
+              }
+            </button>
+
+            {/* Quay lại */}
+            <div className="text-center">
+              <Link
+                href="/hoc-vien/lich-su"
+                className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                Bỏ qua, quay lại lịch sử đăng ký
+              </Link>
+            </div>
+
           </div>
         </div>
-      </Section>
-    </main>
+
+      </div>
+    </div>
   );
 }
