@@ -12,10 +12,12 @@ export interface GiaSuProfile {
 }
 
 export interface BangCap {
+  idBangCap?: string;
   tenBangCap: string;
   thongTinBangCap: string;
   ngayCap: string;
   anhMinhChung: string;
+  trangThai?: number;
 }
 
 export interface LichRanh {

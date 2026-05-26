@@ -307,7 +307,7 @@ export default function CourseDetailPage() {
                 </div>
 
                 <Link
-                  href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}
+                  href={!isLoggedIn ? `/login?redirectTo=/hoc-vien/booking/${idKhoaHoc}` : `/hoc-vien/booking/${idKhoaHoc}`}
                   className="block w-full"
                 >
                   <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-1">
