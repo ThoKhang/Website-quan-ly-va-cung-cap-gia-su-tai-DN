@@ -30,6 +30,11 @@ public class DanhGiaController {
         try {
             return ResponseEntity.ok(danhGiaService.getDanhGiaByDangKy(idDangKy.trim()));
         } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Không tìm thấy đánh giá")) {
+                return ResponseEntity.ok().body(null);
+            }
+            
+            // Các lỗi thật sự khác thì vẫn trả về 400
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -39,6 +44,28 @@ public class DanhGiaController {
     public ResponseEntity<?> capNhatDanhGia(@PathVariable String idDangKy, @RequestBody DanhGiaRequestDTO request) {
         try {
             return ResponseEntity.ok(danhGiaService.capNhatDanhGia(idDangKy.trim(), request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/admin/tat-ca")
+    @PreAuthorize("hasAuthority('ROLE_4')") 
+    public ResponseEntity<?> getAllBinhLuan() {
+        try {
+            return ResponseEntity.ok(danhGiaService.getAllDanhGiaForAdmin());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi lấy danh sách bình luận: " + e.getMessage());
+        }
+    }
+
+    // Thay đổi đường dẫn xóa
+    @DeleteMapping("/admin/{idDanhGia}")
+    @PreAuthorize("hasAuthority('ROLE_4')")
+    public ResponseEntity<?> deleteBinhLuan(@PathVariable String idDanhGia) {
+        try {
+            danhGiaService.deleteDanhGia(idDanhGia);
+            return ResponseEntity.ok("Đã xóa bình luận thành công");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
