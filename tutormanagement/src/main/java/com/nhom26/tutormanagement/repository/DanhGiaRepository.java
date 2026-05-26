@@ -1,5 +1,6 @@
 package com.nhom26.tutormanagement.repository;
 
+import com.nhom26.tutormanagement.dto.BinhLuanAdminDTO;
 import com.nhom26.tutormanagement.entity.DanhGia;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,4 +44,15 @@ public interface DanhGiaRepository extends JpaRepository<DanhGia, String> {
     
     // Tìm tất cả đánh giá thuộc về các khóa học của Gia sư này, sắp xếp mới nhất lên đầu
     List<DanhGia> findByDangKyHoc_KhoaHoc_GiaSu_IdGiaSuOrderByNgayDanhGiaDesc(String idGiaSu);
+    
+    @Query("SELECT new com.nhom26.tutormanagement.dto.BinhLuanAdminDTO(" +
+           "dg.idDanhGia, dk.idDangKy, ph.tenPhuHuynh, kh.tenKhoaHoc, gs.tenGiaSu, " +
+           "dg.soSao, dg.noiDung, dg.ngayDanhGia) " +
+           "FROM DanhGia dg " +
+           "JOIN dg.dangKyHoc dk " +
+           "JOIN dk.phuHuynh ph " +
+           "JOIN dk.khoaHoc kh " +
+           "JOIN kh.giaSu gs " +
+           "ORDER BY dg.ngayDanhGia DESC")
+    List<BinhLuanAdminDTO> findAllBinhLuanForAdmin();
 }

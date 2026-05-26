@@ -1,5 +1,6 @@
 package com.nhom26.tutormanagement.service;
 
+import com.nhom26.tutormanagement.dto.BinhLuanAdminDTO;
 import com.nhom26.tutormanagement.dto.DanhGiaRequestDTO;
 import com.nhom26.tutormanagement.entity.DangKyHoc;
 import com.nhom26.tutormanagement.entity.DanhGia;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -116,5 +118,16 @@ public class DanhGiaService {
         danhGiaRepository.save(danhGia);
 
         return "Cảm ơn bạn đã cập nhật đánh giá thành công!";
+    }
+    public List<BinhLuanAdminDTO> getAllDanhGiaForAdmin() {
+            return danhGiaRepository.findAllBinhLuanForAdmin();
+        }
+
+    // Xóa đánh giá
+    public void deleteDanhGia(String idDanhGia) {
+        if (!danhGiaRepository.existsById(idDanhGia)) {
+            throw new RuntimeException("Không tìm thấy bình luận này!");
+        }
+        danhGiaRepository.deleteById(idDanhGia);
     }
 }

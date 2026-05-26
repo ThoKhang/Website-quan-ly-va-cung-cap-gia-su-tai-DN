@@ -12,9 +12,9 @@ export default function AdminSidebar() {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
     { name: 'Quản lý tài khoản', icon: Briefcase, path: '/admin/nhan-vien' },
-    { name: 'Quản lý bình luận', icon: Users, path: '/admin/nguoi-dung' },
+    { name: 'Quản lý bình luận', icon: Users, path: '/admin/binh-luan' },
     { name: 'Quản lý khóa học', icon: BookOpen, path: '/admin/khoa-hoc' },
-    { name: 'Quản lý lương', icon: UserCheck, path: '/admin/duyet-ho-so' },
+    { name: 'Quản lý lương', icon: UserCheck, path: '/admin/quan-ly-luong' },
     { name: 'Duyệt bằng cấp', icon: GraduationCap, path: '/admin/duyet-bang-cap' },
   ];
 
