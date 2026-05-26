@@ -1,5 +1,4 @@
 // types/dashboard.ts
-
 export interface RevenueData {
   name: string;
   doanhThu: number;

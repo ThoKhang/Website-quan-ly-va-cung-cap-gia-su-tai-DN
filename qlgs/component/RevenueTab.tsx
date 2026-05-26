@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DollarSign, TrendingUp, Calendar, Clock, Loader2 } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, Clock, Loader2, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { RevenueData } from '../types/dashboard';
 import { dashboardService } from '../services/dashboardService';
 
@@ -109,6 +110,31 @@ export default function RevenueTab() {
       c: growthClass
     };
   });
+// --- HÀM XUẤT EXCEL DOANH THU ---
+  const handleExportExcel = () => {
+    const exportData = revenueData.map((row, index) => {
+      let growth = '-';
+      if (index > 0 && revenueData[index - 1].doanhThu > 0) {
+        growth = (((row.doanhThu - revenueData[index - 1].doanhThu) / revenueData[index - 1].doanhThu) * 100).toFixed(1) + '%';
+      }
+
+      return {
+        'Thời gian': row.name,
+        'Số lớp': row.soLop || 0,
+        'Tổng doanh thu (VNĐ)': row.doanhThu,
+        'Hoa hồng 10% (VNĐ)': row.doanhThu * 0.10,
+        'Doanh thu thuần (VNĐ)': row.doanhThu * 0.90,
+        'Tăng trưởng': growth
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Doanh Thu");
+    
+    const fileName = `Bao_Cao_Doanh_Thu_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -159,7 +185,7 @@ export default function RevenueTab() {
               <Tooltip 
                 cursor={{fill: '#f3f4f6'}} 
                 contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
-                formatter={(value: any) => [formatCurrency(Number(value)), 'Doanh thu']}
+                formatter={(value) => [formatCurrency(Number(value)), 'Doanh thu'] as [string, string]}
               />
               <Bar dataKey="doanhThu" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -169,8 +195,19 @@ export default function RevenueTab() {
 
       {/* Bảng dữ liệu tự động map từ dữ liệu tính toán ở trên */}
       <div className="bg-white p-6 rounded-xl border border-blue-500 shadow-sm overflow-x-auto">
-        <h2 className="text-lg font-semibold text-gray-800 mb-1">Báo cáo doanh thu chi tiết</h2>
-        <p className="text-sm text-gray-500 mb-4">Thống kê doanh thu theo tháng với hoa hồng 10% và tỷ lệ tăng trưởng</p>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">Báo cáo doanh thu chi tiết</h2>
+            <p className="text-sm text-gray-500">Thống kê doanh thu theo tháng với hoa hồng 10% và tỷ lệ tăng trưởng</p>
+          </div>
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors border border-blue-200"
+          >
+            <Download size={18} />
+            Xuất Excel
+          </button>
+        </div>
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="border-b border-gray-200 text-sm text-gray-600 bg-gray-50/50">

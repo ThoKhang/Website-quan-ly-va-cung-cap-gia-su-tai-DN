@@ -319,13 +319,19 @@ function SearchExperience({
                           Chi tiết
                         </button>
                       </Link>
-                      <Link href={!isLoggedIn ? `/auth/login?redirectTo=/hoc-vien/booking/${course.idKhoaHoc}` : `/hoc-vien/booking/${course.idKhoaHoc}`} className="flex-1">
+                      <Link
+                        href={
+                          !isLoggedIn
+                            ? `/login?redirectTo=/hoc-vien/booking/${course.idKhoaHoc}`
+                            : `/hoc-vien/booking/${course.idKhoaHoc}`
+                        }
+                        className="flex-1"
+                      >
                         <button className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all">
                           Đăng ký
                         </button>
                       </Link>
                     </div>
-
                   </div>
                 </div>
               ))}

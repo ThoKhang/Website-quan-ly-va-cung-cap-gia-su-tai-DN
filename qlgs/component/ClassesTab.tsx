@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, CheckCircle2, GraduationCap, Users, Loader2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, GraduationCap, Users, Loader2, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { ClassStatsData } from '../types/dashboard';
 import { dashboardService } from '../services/dashboardService';
 
@@ -47,6 +48,31 @@ export default function ClassesTab() {
     { name: 'Đang học',     value: tongDangHoc,   color: '#f59e0b' },
     { name: 'Đã hoàn thành',value: tongHoanThanh, color: '#6366f1' },
   ];
+
+  // --- HÀM XUẤT EXCEL NHẬN LỚP ---
+  const handleExportExcel = () => {
+    const exportData = classData.map((row) => {
+      const tiLe = row.tongYeuCau > 0 
+        ? ((row.daNhanLop / row.tongYeuCau) * 100).toFixed(1) + '%' 
+        : '0%';
+
+      return {
+        'Thời gian': row.name,
+        'Tổng yêu cầu': row.tongYeuCau,
+        'Đã nhận lớp': row.daNhanLop,
+        'Đang học': row.dangHoc,
+        'Đã hoàn thành': row.daHoanThanh,
+        'Tỷ lệ nhận lớp': tiLe
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Luot Nhan Lop");
+    
+    const fileName = `Bao_Cao_Nhan_Lop_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -144,8 +170,19 @@ export default function ClassesTab() {
 
       {/* Bảng chi tiết theo tháng — dữ liệu thật từ API */}
       <div className="bg-white p-6 rounded-xl border border-purple-300 shadow-sm overflow-x-auto">
-        <h2 className="text-lg font-semibold text-gray-800 mb-1">Báo cáo lượt nhận lớp chi tiết</h2>
-        <p className="text-sm text-gray-500 mb-4">Thống kê tình trạng xử lý yêu cầu tìm gia sư theo tháng</p>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">Báo cáo lượt nhận lớp chi tiết</h2>
+            <p className="text-sm text-gray-500">Thống kê tình trạng xử lý yêu cầu tìm gia sư theo tháng</p>
+          </div>
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 bg-purple-50 text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-100 transition-colors border border-purple-200"
+          >
+            <Download size={18} />
+            Xuất Excel
+          </button>
+        </div>
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-200 text-sm text-gray-600 bg-gray-50/50">
