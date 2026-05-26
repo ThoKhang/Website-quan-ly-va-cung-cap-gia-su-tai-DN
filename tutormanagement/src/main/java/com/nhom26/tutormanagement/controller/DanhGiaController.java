@@ -48,4 +48,26 @@ public class DanhGiaController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/admin/tat-ca")
+    @PreAuthorize("hasAuthority('ROLE_4')") 
+    public ResponseEntity<?> getAllBinhLuan() {
+        try {
+            return ResponseEntity.ok(danhGiaService.getAllDanhGiaForAdmin());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi lấy danh sách bình luận: " + e.getMessage());
+        }
+    }
+
+    // Thay đổi đường dẫn xóa
+    @DeleteMapping("/admin/{idDanhGia}")
+    @PreAuthorize("hasAuthority('ROLE_4')")
+    public ResponseEntity<?> deleteBinhLuan(@PathVariable String idDanhGia) {
+        try {
+            danhGiaService.deleteDanhGia(idDanhGia);
+            return ResponseEntity.ok("Đã xóa bình luận thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

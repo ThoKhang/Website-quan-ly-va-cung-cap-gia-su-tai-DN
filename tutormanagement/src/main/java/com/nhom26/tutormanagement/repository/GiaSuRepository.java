@@ -1,5 +1,6 @@
 package com.nhom26.tutormanagement.repository;
 
+import com.nhom26.tutormanagement.dto.GiaSuLuongAdminDTO;
 import com.nhom26.tutormanagement.entity.GiaSu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query; // Nhớ import cái này
@@ -42,4 +43,11 @@ public interface GiaSuRepository extends JpaRepository<GiaSu, String> {
     List<GiaSu> timKiemGiaSu(
             @Param("keyword") String keyword,
             @Param("idMonHoc") String idMonHoc);
+    
+    @Query("SELECT new com.nhom26.tutormanagement.dto.GiaSuLuongAdminDTO(" +
+       "g.idGiaSu, g.tenGiaSu, t.nganHang, t.stk, g.luongHienCon) " +
+       "FROM GiaSu g JOIN g.taiKhoan t " +
+       "WHERE g.luongHienCon > 0 " +
+       "ORDER BY g.luongHienCon DESC")
+    List<GiaSuLuongAdminDTO> findDanhSachTraLuong();
 }

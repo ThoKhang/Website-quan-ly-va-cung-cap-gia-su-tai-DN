@@ -20,6 +20,7 @@ public class LichSuTraLuong {
     private Boolean tinhTrang;
     private LocalDateTime ngayThanhToan;
     
+    @Column(columnDefinition = "MONEY")
     private BigDecimal soTien;
 
     @Column(length = 50)
