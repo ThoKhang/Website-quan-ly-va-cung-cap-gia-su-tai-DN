@@ -101,7 +101,11 @@ export default function EditGiaSuHoSo() {
     setLoading(true);
     try {
       const response: any = await axiosClient.post('/gia-su/them-bang-cap', bangCapForm);
-      const newBangCap = { ...bangCapForm, idBangCap: response.idBangCap || Date.now().toString(), trangThai: false };
+      const newBangCap: BangCap = {
+        ...bangCapForm,
+        idBangCap: response.idBangCap || Date.now().toString(),
+        trangThai: 1
+      };
       setBangCapList([...bangCapList, newBangCap]);
       setBangCapForm({ tenBangCap: '', thongTinBangCap: '', ngayCap: '', anhMinhChung: '' });
       setShowBangCapForm(false);
