@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/dashboard/**", "/api/thongke/**").permitAll()
                         .requestMatchers("/api/gia-su/**").permitAll() // Mở công khai API gia sư
                         .requestMatchers("/api/khoa-hoc/**").permitAll()
+                        // Allow static resources for the frontend
+                        .requestMatchers("/", "/index.html", "/_next/**", "/static/**", "/*.ico", "/*.json", "/*.png", "/favicon.ico").permitAll()
                         // 3. Mọi yêu cầu khác (như /api/booking/**) BẮT BUỘC phải có Token
                         .anyRequest().authenticated());
 

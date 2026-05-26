@@ -4,7 +4,7 @@
 
 import { GiaSuSearchResult } from "@/types/giasu.type";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 /**
  * Tìm kiếm gia sư theo từ khóa hoặc môn học

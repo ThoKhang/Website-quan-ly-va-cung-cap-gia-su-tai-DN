@@ -14,6 +14,7 @@ public class UploadController {
 
     // Thư mục lưu trữ ảnh ngay tại thư mục gốc của dự án Backend
     private final String UPLOAD_DIR = "uploads/";
+
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
@@ -34,7 +35,8 @@ public class UploadController {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
 
-            // Đổi tên file thành mã ngẫu nhiên UUID để tránh trùng tên khi nhiều người upload
+            // Đổi tên file thành mã ngẫu nhiên UUID để tránh trùng tên khi nhiều người
+            // upload
             String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
 
             // Tiến hành copy và lưu file vào thư mục vật lý
@@ -42,7 +44,7 @@ public class UploadController {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             // Tạo đường dẫn URL tĩnh để Frontend truy cập xem ảnh công khai
-            String fileUrl = "http://localhost:8080/uploads/" + uniqueFileName;
+            String fileUrl = "/uploads/" + uniqueFileName;
 
             return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
 
